@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
+import ThemeProvider from "../../components/ThemeProvider";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import StatsCards from "./components/StatsCards";
@@ -9,13 +10,15 @@ import DepartmentTable from "./components/DepartmentTable";
 import BarChart from "../../components/charts/BarChart";
 import PieChart from "../../components/charts/PieChart";
 import LineChart from "../../components/charts/LineChart";
-import { CheckSquare, Target, Calendar, Clock, FileText } from "lucide-react";
+import { CheckSquare, Target, Calendar, Clock, FileText, Users, TrendingUp } from "lucide-react";
+import { users, departments, managerActivities, hierarchicalMetrics } from "../../data/mockData";
+import { tasks } from "../../data/tasks";
 
 // Import modules and pages
 import EmployeePayslips from "../Employees/EmployeePayslips";
 import EmployeeLeaves from "../Employees/EmployeeLeaves";
 import EmployeeTimesheet from "../Employees/EmployeeTimesheet";
-import EmployeeTasks from "../Employees/EmployeeTasks";
+
 import EmployeeProfile from "../Employees/EmployeeProfile";
 import EmployeeDocuments from "../Employees/EmployeeDocuments";
 import EmployeesPage from "./modules/EmployeesPage";
@@ -23,6 +26,11 @@ import PayrollPage from "./modules/PayrollPage";
 import PerformancePage from "./modules/PerformancePage";
 import RecruitmentPage from "./modules/RecruitmentPage";
 import SettingsPage from "./modules/SettingsPage";
+import ManagerNomination from "../Managers/ManagerNomination";
+import ManagersList from "../Managers/ManagersList";
+import TaskManagement from "../Tasks/TaskManagement";
+import EmployeeEvaluation from "../Evaluations/EmployeeEvaluation";
+import MyPerformance from "../Evaluations/MyPerformance";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -31,47 +39,103 @@ const Dashboard = () => {
   const renderDashboard = () => {
     switch (currentUser?.role) {
       case 'employer':
+        const employerMetrics = hierarchicalMetrics.employer;
+        
         return (
           <div className="p-8 space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                Vue d'ensemble
+                Vue d'ensemble Direction
               </h1>
-              <p className="text-gray-500">Tableau de bord direction</p>
+              <p className="text-gray-500">Supervision complète • {employerMetrics.totalManagers} managers • {employerMetrics.totalEmployees} employés</p>
             </div>
             
-            <StatsCards />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <LineChart 
-                  title="Revenus mensuels" 
-                  color="blue"
-                  data={[
-                    {label: 'Jul', value: 45000},
-                    {label: 'Aoû', value: 52000},
-                    {label: 'Sep', value: 48000},
-                    {label: 'Oct', value: 61000},
-                    {label: 'Nov', value: 55000},
-                    {label: 'Déc', value: 67000}
-                  ]}
-                />
+            {/* Métriques consolidées */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Performance Globale</h3>
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                </div>
+                <p className="text-3xl font-bold text-green-600">{employerMetrics.avgPerformance}%</p>
+                <p className="text-sm text-gray-500">Moyenne entreprise</p>
               </div>
-              <QuickActions />
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Tâches Complétées</h3>
+                  <CheckSquare className="w-5 h-5 text-blue-500" />
+                </div>
+                <p className="text-3xl font-bold text-blue-600">{employerMetrics.totalTasksCompleted}</p>
+                <p className="text-sm text-gray-500">Ce mois</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Managers Actifs</h3>
+                  <Users className="w-5 h-5 text-purple-500" />
+                </div>
+                <p className="text-3xl font-bold text-purple-600">{employerMetrics.totalManagers}</p>
+                <p className="text-sm text-gray-500">Départements gérés</p>
+              </div>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">En Attente</h3>
+                  <Clock className="w-5 h-5 text-orange-500" />
+                </div>
+                <p className="text-3xl font-bold text-orange-600">{employerMetrics.pendingApprovals}</p>
+                <p className="text-sm text-gray-500">Approbations</p>
+              </div>
+            </div>
+            
+            {/* Activités des managers */}
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+              <h3 className="text-lg font-semibold mb-4">Activité des Managers</h3>
+              <div className="space-y-4">
+                {managerActivities.map(activity => (
+                  <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4">
+                        <div>
+                          <h4 className="font-medium">{activity.managerName}</h4>
+                          <p className="text-sm text-gray-600">{activity.department} • {activity.teamSize} membres</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <p className="font-semibold">{activity.tasksCompleted}</p>
+                        <p className="text-gray-600">Tâches</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-semibold">{activity.teamPerformance}%</p>
+                        <p className="text-gray-600">Performance</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-semibold text-orange-600">{activity.pendingApprovals}</p>
+                        <p className="text-gray-600">En attente</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <BarChart 
-                title="Performance départements" 
+                title="Performance par département" 
                 color="purple"
+                data={employerMetrics.departmentPerformance.map(d => ({label: d.name, value: d.performance}))}
+              />
+              <LineChart 
+                title="Évolution revenus" 
+                color="blue"
                 data={[
-                  {label: 'Commercial', value: 92},
-                  {label: 'Production', value: 88},
-                  {label: 'Marketing', value: 85},
-                  {label: 'Administration', value: 95}
+                  {label: 'Jul', value: 45000},
+                  {label: 'Aoû', value: 52000},
+                  {label: 'Sep', value: 48000},
+                  {label: 'Oct', value: 61000},
+                  {label: 'Nov', value: 55000}
                 ]}
               />
-              <ActivityFeed />
             </div>
           </div>
         );
@@ -124,7 +188,7 @@ const Dashboard = () => {
                   ]}
                 />
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-lg font-semibold mb-4">Actions rapides</h3>
                 <div className="space-y-3">
                   <button className="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
@@ -150,17 +214,17 @@ const Dashboard = () => {
               <p className="text-gray-600">Suivi des employés</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Employés actifs</h3>
                 <p className="text-3xl font-bold text-blue-600">42</p>
                 <p className="text-sm text-gray-500">+2 ce mois</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Congés en attente</h3>
                 <p className="text-3xl font-bold text-orange-600">7</p>
                 <p className="text-sm text-gray-500">À approuver</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Présence aujourd'hui</h3>
                 <p className="text-3xl font-bold text-green-600">38</p>
                 <p className="text-sm text-gray-500">90% présents</p>
@@ -181,95 +245,131 @@ const Dashboard = () => {
           </div>
         );
       case 'manager':
+      case 'senior_manager':
+        const managerData = users.find(u => u.id === currentUser?.id);
+        const managerActivity = managerActivities.find(a => a.managerId === currentUser?.id);
+        const myDepartments = departments.filter(d => managerData?.departmentIds?.includes(d.id));
+        const myTasks = tasks.filter(t => t.assignedBy === currentUser?.id);
+        const isSeniorManager = currentUser?.role === 'senior_manager';
+        
         return (
           <div className="p-8 space-y-8">
             <div>
               <h1 className="text-3xl font-semibold mb-2 tracking-tight">
-                Tableau de bord Manager
+                {isSeniorManager ? 'Tableau de bord Senior Manager' : 'Tableau de bord Manager'}
               </h1>
-              <p className="text-gray-600">Gestion de votre équipe</p>
+              <p className="text-gray-600">
+                {managerData?.departments?.join(' + ') || 'Gestion de votre équipe'}
+                {isSeniorManager && ` • Supervision: ${managerData?.subordinates?.length || 0} manager(s)`}
+              </p>
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="font-semibold mb-2">Mon Équipe</h3>
-                <p className="text-3xl font-bold text-blue-600">8</p>
-                <p className="text-sm text-gray-500">Membres actifs</p>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Mon Équipe</h3>
+                  <Users className="w-5 h-5 text-blue-500" />
+                </div>
+                <p className="text-3xl font-bold text-blue-600">{managerActivity?.teamSize || 0}</p>
+                <p className="text-sm text-gray-500">Membres {isSeniorManager ? '(direct + indirect)' : 'actifs'}</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="font-semibold mb-2">Projets</h3>
-                <p className="text-3xl font-bold text-green-600">5</p>
-                <p className="text-sm text-gray-500">En cours</p>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Tâches</h3>
+                  <CheckSquare className="w-5 h-5 text-green-500" />
+                </div>
+                <p className="text-3xl font-bold text-green-600">{managerActivity?.tasksCompleted || 0}</p>
+                <p className="text-sm text-gray-500">Complétées ce mois</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="font-semibold mb-2">Performance</h3>
-                <p className="text-3xl font-bold text-purple-600">92%</p>
-                <p className="text-sm text-gray-500">Objectifs atteints</p>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Performance</h3>
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                </div>
+                <p className="text-3xl font-bold text-purple-600">{managerActivity?.teamPerformance || 0}%</p>
+                <p className="text-sm text-gray-500">Moyenne équipe</p>
               </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="font-semibold mb-2">Congés</h3>
-                <p className="text-3xl font-bold text-orange-600">3</p>
-                <p className="text-sm text-gray-500">À approuver</p>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">En attente</h3>
+                  <Clock className="w-5 h-5 text-orange-500" />
+                </div>
+                <p className="text-3xl font-bold text-orange-600">{managerActivity?.pendingApprovals || 0}</p>
+                <p className="text-sm text-gray-500">Approbations</p>
               </div>
             </div>
+            
+            {/* Activités récentes */}
+            <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+              <h3 className="text-lg font-semibold mb-4">Activités récentes</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {managerActivity?.activities?.map((activity, index) => (
+                  <div key={index} className="text-center p-4 bg-gray-50 rounded-lg">
+                    <p className="text-2xl font-bold text-gray-900">{activity.count}</p>
+                    <p className="text-sm text-gray-600">{activity.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Performance par département */}
               <BarChart 
-                title="Performance individuelle" 
+                title={isSeniorManager ? "Performance départements" : "Performance équipe"} 
                 color="green"
-                data={[
-                  {label: 'Alice', value: 95},
-                  {label: 'Bob', value: 88},
-                  {label: 'Claire', value: 92},
-                  {label: 'David', value: 85},
-                  {label: 'Emma', value: 90}
-                ]}
+                data={isSeniorManager ? 
+                  hierarchicalMetrics.employer.departmentPerformance.map(d => ({label: d.name, value: d.performance})) :
+                  myDepartments.map(d => ({label: d.name, value: parseInt(d.performance.replace('%', '').replace('+', ''))}))
+                }
               />
+              
+              {/* Évolution mensuelle */}
               <LineChart 
-                title="Productivité équipe" 
+                title="Évolution performance" 
                 color="purple"
                 data={[
-                  {label: 'Sem 1', value: 85},
-                  {label: 'Sem 2', value: 88},
-                  {label: 'Sem 3', value: 92},
-                  {label: 'Sem 4', value: 89},
-                  {label: 'Sem 5', value: 94}
+                  {label: 'Jan', value: 82},
+                  {label: 'Fév', value: 85},
+                  {label: 'Mar', value: 88},
+                  {label: 'Avr', value: 86},
+                  {label: 'Mai', value: managerActivity?.teamPerformance || 90}
                 ]}
               />
             </div>
+            
+            {/* Section spéciale pour Senior Manager */}
+            {isSeniorManager && (
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Supervision Managers</h3>
+                <div className="space-y-4">
+                  {managerActivities.filter(a => managerData?.subordinates?.includes(a.managerId)).map(activity => (
+                    <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <h4 className="font-medium">{activity.managerName}</h4>
+                        <p className="text-sm text-gray-600">{activity.department} • {activity.teamSize} membres</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">{activity.teamPerformance}%</p>
+                        <p className="text-sm text-gray-600">{activity.tasksCompleted} tâches</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'employee':
         return (
           <div className="min-h-screen bg-gray-50">
             <div className="p-8">
-              {/* Welcome Header */}
-              {/* <div className="mb-8">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-white relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full -ml-24 -mb-24"></div>
-                  <div className="relative z-10">
-                    <h1 className="text-3xl font-bold mb-2">Bonjour {currentUser?.name || 'Marie'} 😊</h1>
-                    <p className="text-blue-100 text-lg">Nous sommes le {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <div className="mt-6 flex items-center gap-4">
-                      <div className="bg-white bg-opacity-20 rounded-xl px-4 py-2">
-                        <p className="text-sm opacity-90">Température</p>
-                        <p className="font-semibold">22°C</p>
-                      </div>
-                      <div className="bg-white bg-opacity-20 rounded-xl px-4 py-2">
-                        <p className="text-sm opacity-90">Statut</p>
-                        <p className="font-semibold">En ligne</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-
               {/* Quick Actions */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Actions rapides</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <button 
-                    onClick={() => setActiveTab('tasks')}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+                    onClick={() => setActiveTab('task-management')}
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
                       <CheckSquare className="w-6 h-6 text-blue-600" />
@@ -279,7 +379,7 @@ const Dashboard = () => {
                   </button>
                   <button 
                     onClick={() => setActiveTab('leaves')}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
                       <Calendar className="w-6 h-6 text-green-600" />
@@ -289,7 +389,7 @@ const Dashboard = () => {
                   </button>
                   <button 
                     onClick={() => setActiveTab('timesheet')}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
                       <Clock className="w-6 h-6 text-purple-600" />
@@ -299,7 +399,7 @@ const Dashboard = () => {
                   </button>
                   <button 
                     onClick={() => setActiveTab('documents')}
-                    className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
                   >
                     <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
                       <FileText className="w-6 h-6 text-orange-600" />
@@ -314,7 +414,7 @@ const Dashboard = () => {
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Vue d'ensemble</h2>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                         <Calendar className="w-6 h-6 text-blue-600" />
@@ -327,7 +427,7 @@ const Dashboard = () => {
                       <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                         <Clock className="w-6 h-6 text-green-600" />
@@ -340,7 +440,7 @@ const Dashboard = () => {
                       <div className="bg-green-600 h-2 rounded-full" style={{width: '95%'}}></div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                         <CheckSquare className="w-6 h-6 text-purple-600" />
@@ -353,7 +453,7 @@ const Dashboard = () => {
                       <div className="bg-purple-600 h-2 rounded-full" style={{width: '75%'}}></div>
                     </div>
                   </div>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                       <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                         <Target className="w-6 h-6 text-orange-600" />
@@ -374,18 +474,18 @@ const Dashboard = () => {
                 {/* Tasks & Schedule */}
                 <div className="lg:col-span-2 space-y-8">
                   {/* Urgent Tasks */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-lg font-semibold text-gray-900">Tâches urgentes</h3>
                       <button 
-                        onClick={() => setActiveTab('tasks')}
+                        onClick={() => setActiveTab('task-management')}
                         className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                       >
                         Voir tout
                       </button>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl border border-red-100">
+                      <div className="flex items-center gap-4 p-4 bg-red-50 rounded-xl">
                         <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">Finaliser rapport mensuel</h4>
@@ -393,7 +493,7 @@ const Dashboard = () => {
                         </div>
                         <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">Urgent</span>
                       </div>
-                      <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                      <div className="flex items-center gap-4 p-4 bg-orange-50 rounded-xl">
                         <div className="w-3 h-3 bg-orange-500 rounded-full flex-shrink-0"></div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">Préparer présentation client</h4>
@@ -405,7 +505,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Weekly Schedule */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Planning de la semaine</h3>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
@@ -442,7 +542,7 @@ const Dashboard = () => {
                 {/* Sidebar */}
                 <div className="space-y-8">
                   {/* Recent Activity */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Activité récente</h3>
                     <div className="space-y-4">
                       <div className="flex items-start gap-3">
@@ -479,7 +579,7 @@ const Dashboard = () => {
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Statistiques</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
@@ -524,8 +624,7 @@ const Dashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return renderDashboard();
-      case 'tasks':
-        return <EmployeeTasks />;
+
       case 'payslips':
         return <EmployeePayslips />;
       case 'leaves':
@@ -544,6 +643,16 @@ const Dashboard = () => {
         return <PerformancePage />;
       case 'recruitment':
         return <RecruitmentPage />;
+      case 'manager-nomination':
+        return <ManagerNomination />;
+      case 'managers-list':
+        return <ManagersList />;
+      case 'task-management':
+        return <TaskManagement />;
+      case 'employee-evaluation':
+        return <EmployeeEvaluation />;
+      case 'my-performance':
+        return <MyPerformance />;
       case 'settings':
         return <SettingsPage />;
       default:
@@ -556,13 +665,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-900">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="flex-1 ml-64">
-        <Header />
-        {renderContent()}
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="flex min-h-screen bg-gray-50 text-gray-900">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <main className="flex-1 ml-64">
+          <Header />
+          {renderContent()}
+        </main>
+      </div>
+    </ThemeProvider>
   );
 };
 

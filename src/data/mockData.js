@@ -426,13 +426,51 @@ export const users = [
     password: "hashed_password",
     firstName: "Thomas",
     lastName: "Dubois",
-    role: "employee",
+    role: "manager",
     companyId: 1,
-    employeeId: 2, // Lien vers l'employé
+    employeeId: 2,
+    departmentIds: [2], // Manager du département Design
+    departments: ["Design"],
+    reportsTo: 1, // Rapporte à l'employeur
     isActive: true,
     createdDate: "2023-06-20",
     lastLogin: "2025-01-19T17:45:00",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+  },
+  {
+    id: 4,
+    email: "pierre.moreau@techcorp.com",
+    password: "hashed_password",
+    firstName: "Pierre",
+    lastName: "Moreau",
+    role: "manager",
+    companyId: 1,
+    employeeId: 4,
+    departmentIds: [4], // Manager du département Ventes
+    departments: ["Ventes"],
+    reportsTo: 1, // Rapporte à l'employeur
+    isActive: true,
+    createdDate: "2023-08-15",
+    lastLogin: "2025-01-20T14:20:00",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+  },
+  {
+    id: 5,
+    email: "emma.rousseau@techcorp.com",
+    password: "hashed_password",
+    firstName: "Emma",
+    lastName: "Rousseau",
+    role: "senior_manager",
+    companyId: 1,
+    employeeId: 3,
+    departmentIds: [3, 4], // Manager Marketing + supervise Ventes
+    departments: ["Marketing", "Ventes"],
+    reportsTo: 1, // Rapporte à l'employeur
+    subordinates: [4], // Pierre Moreau lui rapporte
+    isActive: true,
+    createdDate: "2020-01-10",
+    lastLogin: "2025-01-20T16:30:00",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop"
   }
 ];
 
@@ -443,6 +481,27 @@ export const roles = {
     description: "Propriétaire de l'entreprise avec tous les droits",
     permissions: ["*"], // Tous les droits
     color: "purple"
+  },
+  senior_manager: {
+    name: "Manager Senior",
+    description: "Manager avec supervision d'autres managers",
+    permissions: [
+      "team.view",
+      "team.manage",
+      "team.performance",
+      "managers.supervise",
+      "managers.reports",
+      "departments.multiple",
+      "reports.consolidated",
+      "leaves.approve",
+      "employees.view_extended",
+      "employees.evaluate",
+      "tasks.create",
+      "tasks.assign",
+      "evaluations.create",
+      "evaluations.manage_extended"
+    ],
+    color: "red"
   },
   hr_admin: {
     name: "Administrateur RH",
@@ -478,12 +537,29 @@ export const roles = {
   },
   manager: {
     name: "Manager",
-    description: "Gestion de son équipe",
+    description: "Gestion de son équipe et département",
     permissions: [
       "team.view",
+      "team.manage",
       "team.performance",
       "leaves.approve",
-      "reports.team"
+      "leaves.view_team",
+      "reports.team",
+      "reports.department",
+      "employees.view_team",
+      "employees.evaluate",
+      "attendance.view_team",
+      "goals.manage_team",
+      "promotions.propose",
+      "managers.propose",
+      "recruitment.participate",
+      "documents.team",
+      "timetracking.view_team",
+      "tasks.create",
+      "tasks.assign",
+      "tasks.view_team",
+      "evaluations.create",
+      "evaluations.manage_team"
     ],
     color: "orange"
   },
@@ -516,6 +592,7 @@ export const departments = [
     id: 2,
     name: "Design",
     manager: "Thomas Dubois",
+    managerId: 3, // ID de l'utilisateur manager
     employees: 18,
     budget: 180000,
     performance: "+8%",
@@ -534,6 +611,7 @@ export const departments = [
     id: 4,
     name: "Ventes",
     manager: "Pierre Moreau",
+    managerId: 4, // ID de l'utilisateur manager
     employees: 28,
     budget: 280000,
     performance: "-3%",
@@ -764,3 +842,279 @@ export const companyAssets = [
     condition: "excellent"
   }
 ];
+
+// 🔒 Configuration SMTP pour l'envoi d'emails
+export const smtpConfig = {
+  id: 1,
+  companyId: 1,
+  enabled: false,
+  host: "",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "",
+    pass: ""
+  },
+  from: {
+    name: "NovaCore RH",
+    email: ""
+  },
+  testEmail: "",
+  lastTested: null,
+  testStatus: null
+};
+
+// 🏖️ Politique de congés
+export const leavePolicy = {
+  id: 1,
+  companyId: 1,
+  annualLeave: {
+    daysPerYear: 25,
+    carryOverDays: 5,
+    maxCarryOver: 30,
+    accrualMethod: "monthly"
+  },
+  sickLeave: {
+    daysPerYear: 10,
+    requiresCertificate: 3,
+    carryOver: false
+  },
+  maternityLeave: {
+    duration: 112,
+    paidPercentage: 100
+  },
+  paternityLeave: {
+    duration: 25,
+    paidPercentage: 100
+  },
+  approvalWorkflow: {
+    autoApprove: false,
+    requiresManagerApproval: true,
+    requiresHRApproval: false,
+    advanceNotice: 15
+  },
+  blackoutPeriods: [
+    { start: "2025-12-15", end: "2025-01-05", reason: "Période de fin d'année" }
+  ]
+};
+
+// ⏰ Horaires de travail
+export const workSchedule = {
+  id: 1,
+  companyId: 1,
+  standardHours: {
+    hoursPerWeek: 35,
+    hoursPerDay: 7,
+    workDays: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+  },
+  flexTime: {
+    enabled: true,
+    coreHours: {
+      start: "10:00",
+      end: "16:00"
+    },
+    flexWindow: {
+      earliestStart: "07:00",
+      latestEnd: "20:00"
+    }
+  },
+  remoteWork: {
+    enabled: true,
+    maxDaysPerWeek: 3,
+    requiresApproval: false,
+    advanceNotice: 1
+  },
+  overtime: {
+    enabled: true,
+    requiresApproval: true,
+    maxHoursPerWeek: 10,
+    compensationType: "time_off"
+  },
+  breaks: {
+    lunchBreak: {
+      duration: 60,
+      mandatory: true
+    },
+    shortBreaks: {
+      duration: 15,
+      frequency: 2
+    }
+  }
+};
+
+// 🔐 Sécurité & Authentification
+export const securityConfig = {
+  id: 1,
+  companyId: 1,
+  passwordPolicy: {
+    minLength: 8,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumbers: true,
+    requireSpecialChars: true,
+    expirationDays: 90,
+    historyCount: 5
+  },
+  twoFactorAuth: {
+    enabled: false,
+    mandatory: false,
+    methods: ["sms", "email", "authenticator"]
+  },
+  sessionManagement: {
+    timeoutMinutes: 480,
+    maxConcurrentSessions: 3,
+    rememberMe: {
+      enabled: true,
+      durationDays: 30
+    }
+  },
+  accessControl: {
+    ipWhitelist: {
+      enabled: false,
+      addresses: []
+    },
+    deviceTrust: {
+      enabled: false,
+      requireApproval: false
+    },
+    locationRestrictions: {
+      enabled: false,
+      allowedCountries: ["FR"]
+    }
+  },
+  auditLog: {
+    enabled: true,
+    retentionDays: 365,
+    events: ["login", "logout", "password_change", "data_access", "settings_change"]
+  },
+  dataProtection: {
+    encryption: {
+      enabled: true,
+      algorithm: "AES-256"
+    },
+    backup: {
+      frequency: "daily",
+      retention: 30,
+      encryption: true
+    },
+    gdprCompliance: {
+      enabled: true,
+      dataRetentionDays: 2555,
+      rightToErasure: true
+    }
+  }
+};
+
+// 🎨 Configuration d'apparence
+export const appearanceConfig = {
+  id: 1,
+  companyId: 1,
+  darkMode: false,
+  logo: {
+    url: "",
+    width: 120,
+    height: 40
+  },
+  branding: {
+    primaryColor: "#3B82F6",
+    secondaryColor: "#1E40AF",
+    accentColor: "#06B6D4",
+    companyName: "TechCorp"
+  },
+  theme: {
+    borderRadius: "8px",
+    fontFamily: "Inter",
+    buttonStyle: "rounded"
+  }
+};
+
+// 🎨 Palette de couleurs prédéfinies
+export const colorPalettes = [
+  { name: "Bleu", primary: "#3B82F6", secondary: "#1E40AF", accent: "#06B6D4" },
+  { name: "Violet", primary: "#8B5CF6", secondary: "#7C3AED", accent: "#A855F7" },
+  { name: "Vert", primary: "#10B981", secondary: "#059669", accent: "#34D399" },
+  { name: "Rouge", primary: "#EF4444", secondary: "#DC2626", accent: "#F87171" },
+  { name: "Orange", primary: "#F59E0B", secondary: "#D97706", accent: "#FBBF24" },
+  { name: "Rose", primary: "#EC4899", secondary: "#DB2777", accent: "#F472B6" },
+  { name: "Indigo", primary: "#6366F1", secondary: "#4F46E5", accent: "#818CF8" },
+  { name: "Teal", primary: "#14B8A6", secondary: "#0D9488", accent: "#5EEAD4" }
+];
+
+// 📊 Activités managériales pour reporting hiérarchique
+export const managerActivities = [
+  {
+    id: 1,
+    managerId: 3, // Thomas Dubois
+    managerName: "Thomas Dubois",
+    department: "Design",
+    date: "2025-01-20",
+    activities: [
+      { type: "task_assigned", count: 5, description: "Tâches assignées à l'équipe" },
+      { type: "evaluation_completed", count: 2, description: "Évaluations complétées" },
+      { type: "leave_approved", count: 1, description: "Congés approuvés" },
+      { type: "meeting_held", count: 3, description: "Réunions d'équipe" }
+    ],
+    teamPerformance: 92,
+    teamSize: 6,
+    tasksCompleted: 18,
+    pendingApprovals: 2
+  },
+  {
+    id: 2,
+    managerId: 4, // Pierre Moreau
+    managerName: "Pierre Moreau",
+    department: "Ventes",
+    date: "2025-01-20",
+    activities: [
+      { type: "task_assigned", count: 8, description: "Tâches assignées à l'équipe" },
+      { type: "evaluation_completed", count: 3, description: "Évaluations complétées" },
+      { type: "leave_approved", count: 0, description: "Congés approuvés" },
+      { type: "meeting_held", count: 2, description: "Réunions d'équipe" }
+    ],
+    teamPerformance: 85,
+    teamSize: 8,
+    tasksCompleted: 22,
+    pendingApprovals: 3
+  },
+  {
+    id: 3,
+    managerId: 5, // Emma Rousseau
+    managerName: "Emma Rousseau",
+    department: "Marketing",
+    date: "2025-01-20",
+    activities: [
+      { type: "task_assigned", count: 12, description: "Tâches assignées aux équipes" },
+      { type: "evaluation_completed", count: 5, description: "Évaluations complétées" },
+      { type: "leave_approved", count: 2, description: "Congés approuvés" },
+      { type: "meeting_held", count: 4, description: "Réunions d'équipe" },
+      { type: "manager_review", count: 1, description: "Supervision manager Ventes" }
+    ],
+    teamPerformance: 88,
+    teamSize: 12, // Marketing + supervision Ventes
+    tasksCompleted: 35,
+    pendingApprovals: 1
+  }
+];
+
+// 📈 Métriques consolidées par niveau hiérarchique
+export const hierarchicalMetrics = {
+  employer: {
+    totalManagers: 3,
+    totalEmployees: 45,
+    avgPerformance: 88.3,
+    totalTasksCompleted: 75,
+    pendingApprovals: 6,
+    departmentPerformance: [
+      { name: "Design", performance: 92, manager: "Thomas Dubois" },
+      { name: "Ventes", performance: 85, manager: "Pierre Moreau" },
+      { name: "Marketing", performance: 88, manager: "Emma Rousseau" }
+    ]
+  },
+  senior_manager: {
+    subordinateManagers: 1, // Emma supervise Pierre
+    directReports: 12,
+    indirectReports: 8, // équipe de Pierre
+    totalResponsibility: 20,
+    consolidatedPerformance: 86.5
+  }
+};

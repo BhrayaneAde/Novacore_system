@@ -2,8 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import LandingPage from '../pages/Landing/LandingPage';
-import LoginPage from '../pages/Auth/LoginPage';
-import RegisterPage from '../pages/Auth/RegisterPage';
+import AuthPage from '../pages/Auth/AuthPage';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import PermissionGuard from '../components/auth/PermissionGuard';
 
@@ -62,12 +61,12 @@ const AppRouter = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={
           <PublicRoute>
-            <LoginPage />
+            <AuthPage />
           </PublicRoute>
         } />
         <Route path="/register" element={
           <PublicRoute>
-            <RegisterPage />
+            <AuthPage />
           </PublicRoute>
         } />
         <Route path="/app/*" element={

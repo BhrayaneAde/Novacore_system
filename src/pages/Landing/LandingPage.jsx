@@ -5,22 +5,13 @@ import {
   PlayCircle,
   X,
   Check,
-  Users,
-  FileText,
-  FileCheck,
-  UserCircle,
-  TrendingUp,
-  Shield,
-  Briefcase,
-  User,
-  Zap,
-  Calendar,
-  Edit,
-  PenTool,
-  Banknote,
   Crown,
   ShieldCheck,
+  Briefcase,
+  User,
 } from "lucide-react";
+import ModulesSection from "../../components/ModulesSection";
+import ThemeProvider from "../../components/ThemeProvider";
 
 const LandingPage = () => {
   useEffect(() => {
@@ -28,7 +19,8 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="bg-white text-gray-900 antialiased">
+    <ThemeProvider>
+      <div className="bg-white text-gray-900 antialiased">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -150,35 +142,7 @@ const LandingPage = () => {
       </section>
 
       {/* Modules */}
-      <section id="modules" className="py-24 px-6 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-4xl font-semibold tracking-tight mb-4">Modules intégrés pour tout le cycle RH</h2>
-            <p className="text-lg text-gray-600">De l'embauche au développement, gérez chaque étape avec des outils connectés.</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { icon: Users, color: "blue", title: "NovaHire", text: "Recrutement simplifié et suivi des candidatures." },
-              { icon: FileText, color: "purple", title: "NovaSign", text: "Signature électronique sécurisée pour tous vos documents RH." },
-              { icon: FileCheck, color: "green", title: "NovaContrat", text: "Gestion complète des contrats de travail." },
-              { icon: UserCircle, color: "orange", title: "NovaPeople", text: "Base de données employés complète et actualisée." },
-              { icon: TrendingUp, color: "red", title: "NovaPerform", text: "Évaluation des performances et objectifs SMART." },
-              { icon: Banknote, color: "indigo", title: "NovaPay", text: "Gestion automatisée de la paie avec conformité légale." },
-            ].map((m, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 hover:border-gray-300 transition">
-                <div className={`w-12 h-12 bg-${m.color}-100 rounded-lg flex items-center justify-center mb-4`}>
-                  <m.icon className={`w-6 h-6 text-${m.color}-600`} />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{m.title}</h3>
-                <p className="text-gray-600 text-sm mb-4">{m.text}</p>
-                <a href="#" className="text-sm font-medium text-gray-900 inline-flex items-center gap-1 hover:gap-2 transition-all">
-                  En savoir plus <ArrowRight className="w-4 h-4" />
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ModulesSection />
 
       {/* Roles */}
       <section id="roles" className="py-24 px-6">
@@ -276,6 +240,7 @@ const LandingPage = () => {
         </div>
       </footer>
     </div>
+    </ThemeProvider>
   );
 };
 

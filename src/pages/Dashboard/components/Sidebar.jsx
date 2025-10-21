@@ -22,6 +22,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   const employerMenuItems = [
     { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
     { icon: Users, label: "Employés", tab: "employees" },
+    { icon: CheckSquare, label: "Tâches", tab: "task-management" },
+    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
+    { icon: UserPlus, label: "Managers", tab: "managers-list" },
+    { icon: Target, label: "Nominations", tab: "manager-nomination" },
     { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
     { icon: Target, label: "Performance", tab: "performance" },
     { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
@@ -31,6 +35,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   const hrAdminMenuItems = [
     { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
     { icon: Users, label: "Employés", tab: "employees" },
+    { icon: CheckSquare, label: "Tâches", tab: "task-management" },
+    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
+    { icon: UserPlus, label: "Managers", tab: "managers-list" },
+    { icon: Target, label: "Nominations", tab: "manager-nomination" },
     { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
     { icon: Target, label: "Performance", tab: "performance" },
     { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
@@ -44,12 +52,15 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   const managerMenuItems = [
     { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
     { icon: Users, label: "Mes Employés", tab: "employees" },
+    { icon: CheckSquare, label: "Management", tab: "task-management" },
+    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
     { icon: Target, label: "Performance Équipe", tab: "performance" },
   ];
 
   const employeeMenuItems = [
     { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: CheckSquare, label: "Mes Tâches", tab: "tasks" },
+    { icon: CheckSquare, label: "Mes Tâches", tab: "task-management" },
+    { icon: Target, label: "Ma Performance", tab: "my-performance" },
     { icon: FileText, label: "Mes Fiches de Paie", tab: "payslips" },
     { icon: Calendar, label: "Mes Congés", tab: "leaves" },
     { icon: Clock, label: "Mes Heures", tab: "timesheet" },
