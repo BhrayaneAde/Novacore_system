@@ -32,6 +32,19 @@ import TaskManagement from "../Tasks/TaskManagement";
 import EmployeeEvaluation from "../Evaluations/EmployeeEvaluation";
 import MyPerformance from "../Evaluations/MyPerformance";
 import ContractEditor from "../Contracts/ContractEditor";
+import HRManagementPage from "./modules/HRManagementPage";
+import ManagerPlanningPage from "./modules/ManagerPlanningPage";
+import EmployeeSelfServicePage from "./modules/EmployeeSelfServicePage";
+import ManagerNominationsPage from "./modules/ManagerNominationPage";
+import GoalSettingPage from "./modules/GoalSettingPage";
+import OneOnOnePage from "./modules/OneOnOnePage";
+import OnboardingWorkflowPage from "./modules/OnboardingWorkflowPage";
+import AdvancedReportsPage from "./modules/AdvancedReportsPage";
+import AuditLogsPage from "./modules/AuditLogsPage";
+import SuccessionPlanningPage from "./modules/SuccessionPlanningPage";
+import EmployeeTasksPage from "./modules/EmployeeTasksPage";
+import PayrollManagementPage from "./modules/PayrollManagementPage";
+import ManagerDocumentsPage from "./modules/ManagerDocumentsPage";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -639,7 +652,7 @@ const Dashboard = () => {
       case 'employees':
         return <EmployeesPage />;
       case 'payroll':
-        return <PayrollPage />;
+        return <PayrollManagementPage />;
       case 'performance':
         return <PerformancePage />;
       case 'recruitment':
@@ -648,6 +661,8 @@ const Dashboard = () => {
         return <ManagerNomination />;
       case 'managers-list':
         return <ManagersList />;
+      case 'employee-tasks':
+        return <EmployeeTasksPage />;
       case 'task-management':
         return <TaskManagement />;
       case 'employee-evaluation':
@@ -656,6 +671,26 @@ const Dashboard = () => {
         return <MyPerformance />;
       case 'contract-editor':
         return <ContractEditor />;
+      case 'manager-planning':
+        return <ManagerPlanningPage />;
+      case 'employee-self-service':
+        return <EmployeeSelfServicePage />;
+      case 'manager-nominations':
+        return <ManagerNominationsPage />;
+      case 'goal-setting':
+        return <GoalSettingPage />;
+      case 'one-on-one':
+        return <OneOnOnePage />;
+      case 'manager-documents':
+        return <ManagerDocumentsPage />;
+      case 'onboarding-workflow':
+        return <OnboardingWorkflowPage />;
+      case 'advanced-reports':
+        return <AdvancedReportsPage />;
+      case 'audit-logs':
+        return <AuditLogsPage />;
+      case 'hr-management':
+        return <HRManagementPage />;
       case 'settings':
         return <SettingsPage />;
       default:

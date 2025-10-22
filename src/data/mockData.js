@@ -451,7 +451,7 @@ export const companies = [
     createdDate: "2023-01-15",
     settings: {
       timezone: "Europe/Paris",
-      currency: "EUR",
+      currency: "FCFA",
       language: "fr"
     },
     isActive: true
@@ -465,7 +465,7 @@ export const companies = [
     createdDate: "2024-03-20",
     settings: {
       timezone: "Europe/Paris",
-      currency: "EUR",
+      currency: "FCFA",
       language: "fr"
     },
     isActive: true
@@ -508,10 +508,10 @@ export const users = [
     lastName: "Dubois",
     role: "manager",
     companyId: 1,
-    employeeId: 2, // Correspond à Thomas dans employees
-    departmentIds: [2], // Manager du département Design
+    employeeId: 2,
+    departmentIds: [2],
     departments: ["Design"],
-    reportsTo: 1, // Rapporte à l'employeur
+    reportsTo: 1,
     isActive: true,
     createdDate: "2023-06-20",
     lastLogin: "2025-01-19T17:45:00",
@@ -525,10 +525,10 @@ export const users = [
     lastName: "Moreau",
     role: "manager",
     companyId: 1,
-    employeeId: 4, // Correspond à Pierre dans employees
-    departmentIds: [4], // Manager du département Ventes
+    employeeId: 4,
+    departmentIds: [4],
     departments: ["Ventes"],
-    reportsTo: 1, // Rapporte à l'employeur
+    reportsTo: 1,
     isActive: true,
     createdDate: "2023-08-15",
     lastLogin: "2025-01-20T14:20:00",
@@ -540,17 +540,47 @@ export const users = [
     password: "hashed_password",
     firstName: "Emma",
     lastName: "Rousseau",
-    role: "senior_manager",
+    role: "manager",
     companyId: 1,
-    employeeId: 3, // Correspond à Emma dans employees
-    departmentIds: [3, 4], // Manager Marketing + supervise Ventes
+    employeeId: 3,
+    departmentIds: [3, 4],
     departments: ["Marketing", "Ventes"],
-    reportsTo: 1, // Rapporte à l'employeur
-    subordinates: [4], // Pierre Moreau lui rapporte
+    reportsTo: 1,
+    subordinates: [4],
     isActive: true,
     createdDate: "2020-01-10",
     lastLogin: "2025-01-20T16:30:00",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop"
+  },
+  {
+    id: 6,
+    email: "employee@techcorp.com",
+    password: "hashed_password",
+    firstName: "Lucas",
+    lastName: "Martin",
+    role: "employee",
+    companyId: 1,
+    employeeId: 1,
+    departmentIds: [2],
+    departments: ["Design"],
+    reportsTo: 3,
+    isActive: true,
+    createdDate: "2024-03-15",
+    lastLogin: "2025-01-20T18:00:00",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+  },
+  {
+    id: 7,
+    email: "hruser@techcorp.com",
+    password: "hashed_password",
+    firstName: "Julie",
+    lastName: "Petit",
+    role: "hr_user",
+    companyId: 1,
+    isActive: true,
+    createdDate: "2024-06-01",
+    lastLogin: "2025-01-20T16:45:00",
+    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop"
   }
 ];
 
@@ -559,29 +589,8 @@ export const roles = {
   employer: {
     name: "Employeur",
     description: "Propriétaire de l'entreprise avec tous les droits",
-    permissions: ["*"], // Tous les droits
+    permissions: ["*"],
     color: "purple"
-  },
-  senior_manager: {
-    name: "Manager Senior",
-    description: "Manager avec supervision d'autres managers",
-    permissions: [
-      "team.view",
-      "team.manage",
-      "team.performance",
-      "managers.supervise",
-      "managers.reports",
-      "departments.multiple",
-      "reports.consolidated",
-      "leaves.approve",
-      "employees.view_extended",
-      "employees.evaluate",
-      "tasks.create",
-      "tasks.assign",
-      "evaluations.create",
-      "evaluations.manage_extended"
-    ],
-    color: "red"
   },
   hr_admin: {
     name: "Administrateur RH",
@@ -634,6 +643,7 @@ export const roles = {
       "managers.propose",
       "recruitment.participate",
       "documents.team",
+      "documents.share_team",
       "timetracking.view_team",
       "tasks.create",
       "tasks.assign",
@@ -651,11 +661,112 @@ export const roles = {
       "profile.edit",
       "payslips.view",
       "leaves.request",
-      "documents.own"
+      "documents.own",
+      "tasks.view_own",
+      "tasks.update_own"
     ],
     color: "gray"
   }
 };
+
+// 💰 Données de paie par défaut (FCFA)
+export const defaultCurrency = "FCFA";
+
+// 📋 Tâches assignées aux employés
+export const employeeTasks = [
+  {
+    id: 1,
+    title: "Créer maquette page d'accueil",
+    description: "Concevoir la nouvelle interface utilisateur pour la page d'accueil du site web",
+    assignedTo: 6, // Lucas Martin
+    assignedBy: 3, // Thomas Dubois (manager)
+    priority: "high",
+    status: "in_progress",
+    dueDate: "2025-01-25",
+    estimatedHours: 8,
+    actualHours: 4,
+    createdDate: "2025-01-20",
+    tags: ["design", "ui/ux"],
+    validatedByManager: false,
+    managerComments: ""
+  },
+  {
+    id: 2,
+    title: "Révision des wireframes",
+    description: "Revoir et corriger les wireframes selon les retours client",
+    assignedTo: 6, // Lucas Martin
+    assignedBy: 3, // Thomas Dubois
+    priority: "medium",
+    status: "pending",
+    dueDate: "2025-01-23",
+    estimatedHours: 4,
+    actualHours: 0,
+    createdDate: "2025-01-19",
+    tags: ["wireframe", "client"],
+    validatedByManager: false,
+    managerComments: ""
+  },
+  {
+    id: 3,
+    title: "Tests utilisateur interface mobile",
+    description: "Effectuer des tests d'utilisabilité sur l'application mobile",
+    assignedTo: 6, // Lucas Martin
+    assignedBy: 3, // Thomas Dubois
+    priority: "low",
+    status: "completed",
+    dueDate: "2025-01-22",
+    estimatedHours: 6,
+    actualHours: 5,
+    createdDate: "2025-01-18",
+    completedDate: "2025-01-21",
+    tags: ["mobile", "testing"],
+    validatedByManager: true,
+    managerComments: "Excellent travail, rapport très détaillé"
+  }
+];
+
+// 💼 Données de salaire
+export const salaryData = [
+  {
+    id: 1,
+    employeeId: 1, // Lucas Martin
+    baseSalary: 450000, // FCFA
+    allowances: {
+      transport: 25000,
+      meal: 30000,
+      housing: 50000
+    },
+    deductions: {
+      tax: 45000,
+      socialSecurity: 22500,
+      pension: 18000
+    },
+    netSalary: 469500,
+    currency: "FCFA",
+    payPeriod: "monthly",
+    lastUpdated: "2025-01-01"
+  },
+  {
+    id: 2,
+    employeeId: 2, // Thomas Dubois
+    baseSalary: 750000,
+    allowances: {
+      transport: 40000,
+      meal: 35000,
+      housing: 80000,
+      management: 50000
+    },
+    deductions: {
+      tax: 112500,
+      socialSecurity: 37500,
+      pension: 30000
+    },
+    netSalary: 775000,
+    currency: "FCFA",
+    payPeriod: "monthly",
+    lastUpdated: "2025-01-01"
+  }
+];
 
 // 🏢 Départements
 export const departments = [
@@ -784,6 +895,34 @@ export const sharedDocuments = [
       { employeeId: 2, action: "downloaded", date: "2025-01-19T09:30:00" }
     ],
     comments: []
+  },
+  {
+    id: 3,
+    documentId: 9,
+    ownerId: 3,
+    sharedWithIds: [6],
+    permissions: "read",
+    shareDate: "2025-01-21",
+    expiryDate: "2025-02-21",
+    message: "Guide de style pour les projets design",
+    isActive: true,
+    accessLog: [],
+    comments: []
+  }
+];
+
+// 📄 Documents managers
+export const managerDocuments = [
+  {
+    id: 9,
+    name: "Guide Style Design",
+    type: "pdf",
+    size: "2.1 MB",
+    uploadDate: "2025-01-21",
+    uploadedBy: 3,
+    category: "Guide",
+    isShared: true,
+    sharedWith: [6]
   }
 ];
 

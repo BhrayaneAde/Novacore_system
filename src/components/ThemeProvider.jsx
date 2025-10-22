@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useThemeStore } from '../store/useThemeStore';
 
 const ThemeProvider = ({ children }) => {
-  const { darkMode, primaryColor, fontFamily } = useThemeStore();
+  const store = useThemeStore();
+  const { darkMode = false, primaryColor = '#3B82F6', fontFamily = 'Inter' } = store || {};
 
   useEffect(() => {
     const root = document.documentElement;
