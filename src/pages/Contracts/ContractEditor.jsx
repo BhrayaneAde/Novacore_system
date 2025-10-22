@@ -212,7 +212,7 @@ const ContractEditor = ({ onBack }) => {
   if (currentView === 'templates') {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className=" mx-auto px-6 py-12">
           <div className="flex items-center mb-12">
             <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-lg mr-4">
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -305,7 +305,7 @@ const ContractEditor = ({ onBack }) => {
   if (currentView === 'employeeSelect') {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className=" mx-auto px-6 py-12">
           <div className="flex items-center mb-8">
             <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-lg mr-4">
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -344,7 +344,7 @@ const ContractEditor = ({ onBack }) => {
   // Contract Editor View
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className=" mx-auto px-6 py-12">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-lg">
