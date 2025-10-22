@@ -11,7 +11,6 @@ export const employees = [
     hireDate: "2022-03-15",
     salary: 55000,
     phone: "+33 6 12 34 56 78",
-    // Informations personnelles complètes
     birthDate: "1990-05-12",
     address: "45 Avenue des Champs-Élysées",
     city: "Paris",
@@ -21,8 +20,8 @@ export const employees = [
     emergencyContact: "Paul Martin",
     emergencyPhone: "+33 6 11 22 33 44",
     maritalStatus: "married",
-    companyId: 1, // Appartient à TechCorp
-    managerId: null, // Pas de manager
+    companyId: 1,
+    managerId: null, // HR Admin, pas de manager direct
     documents: [
       { id: 1, name: "Contrat de travail", type: "contract", uploadDate: "2022-03-15", url: "/docs/contract_1.pdf" },
       { id: 2, name: "CV", type: "cv", uploadDate: "2022-03-10", url: "/docs/cv_1.pdf" }
@@ -49,7 +48,7 @@ export const employees = [
     emergencyPhone: "+33 6 22 33 44 55",
     maritalStatus: "single",
     companyId: 1,
-    managerId: 1, // Manager: Sophie Martin
+    managerId: null, // Manager lui-même
     documents: [
       { id: 3, name: "Contrat de travail", type: "contract", uploadDate: "2021-06-20", url: "/docs/contract_2.pdf" }
     ]
@@ -58,7 +57,7 @@ export const employees = [
     id: 3,
     name: "Emma Rousseau",
     email: "emma.rousseau@novacore.com",
-    role: "Chef de Projet",
+    role: "Chef de Projet Marketing",
     department: "Marketing",
     status: "active",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
@@ -75,7 +74,7 @@ export const employees = [
     emergencyPhone: "+33 6 33 44 55 66",
     maritalStatus: "married",
     companyId: 1,
-    managerId: null,
+    managerId: null, // Senior Manager
     documents: [
       { id: 4, name: "Contrat de travail", type: "contract", uploadDate: "2020-01-10", url: "/docs/contract_3.pdf" },
       { id: 5, name: "Diplôme Master", type: "diploma", uploadDate: "2020-01-08", url: "/docs/diploma_3.pdf" }
@@ -83,64 +82,11 @@ export const employees = [
   },
   {
     id: 4,
-    name: "Lucas Bernard",
-    email: "lucas.bernard@novacore.com",
-    role: "Développeur Backend",
-    department: "Développement",
-    status: "active",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    hireDate: "2023-02-01",
-    salary: 52000,
-    phone: "+33 6 45 67 89 01",
-    birthDate: "1992-12-15",
-    address: "23 Rue de la République",
-    city: "Marseille",
-    postalCode: "13001",
-    socialSecurityNumber: "1 92 12 13 001 456 78",
-    iban: "FR76 4567 8901 2345 6789 0123 456",
-    emergencyContact: "Julie Bernard",
-    emergencyPhone: "+33 6 44 55 66 77",
-    maritalStatus: "single",
-    companyId: 1,
-    managerId: 1, // Manager: Sophie Martin
-    documents: [
-      { id: 6, name: "Contrat de travail", type: "contract", uploadDate: "2023-02-01", url: "/docs/contract_4.pdf" }
-    ]
-  },
-  {
-    id: 5,
-    name: "Marie Lefebvre",
-    email: "marie.lefebvre@novacore.com",
-    role: "Responsable RH",
-    department: "Ressources Humaines",
-    status: "active",
-    avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop",
-    hireDate: "2019-09-15",
-    salary: 58000,
-    phone: "+33 6 56 78 90 12",
-    birthDate: "1983-04-07",
-    address: "56 Avenue Montaigne",
-    city: "Paris",
-    postalCode: "75008",
-    socialSecurityNumber: "2 83 04 75 008 567 89",
-    iban: "FR76 5678 9012 3456 7890 1234 567",
-    emergencyContact: "Pierre Lefebvre",
-    emergencyPhone: "+33 6 55 66 77 88",
-    maritalStatus: "married",
-    companyId: 1,
-    managerId: null, // RH, pas de manager direct
-    documents: [
-      { id: 7, name: "Contrat de travail", type: "contract", uploadDate: "2019-09-15", url: "/docs/contract_5.pdf" },
-      { id: 8, name: "Certification RH", type: "certification", uploadDate: "2019-09-10", url: "/docs/cert_5.pdf" }
-    ]
-  },
-  {
-    id: 6,
     name: "Pierre Moreau",
     email: "pierre.moreau@novacore.com",
     role: "Commercial Senior",
     department: "Ventes",
-    status: "on_leave",
+    status: "active",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
     hireDate: "2021-11-05",
     salary: 54000,
@@ -155,11 +101,145 @@ export const employees = [
     emergencyPhone: "+33 6 66 77 88 99",
     maritalStatus: "divorced",
     companyId: 1,
-    managerId: 3, // Manager: Emma Rousseau
+    managerId: null, // Manager lui-même
     documents: [
       { id: 9, name: "Contrat de travail", type: "contract", uploadDate: "2021-11-05", url: "/docs/contract_6.pdf" }
     ]
   },
+  {
+    id: 5,
+    name: "Marie Lefebvre",
+    email: "marie.lefebvre@novacore.com",
+    role: "Directrice Générale",
+    department: "Direction",
+    status: "active",
+    avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop",
+    hireDate: "2019-09-15",
+    salary: 85000,
+    phone: "+33 6 56 78 90 12",
+    birthDate: "1983-04-07",
+    address: "56 Avenue Montaigne",
+    city: "Paris",
+    postalCode: "75008",
+    socialSecurityNumber: "2 83 04 75 008 567 89",
+    iban: "FR76 5678 9012 3456 7890 1234 567",
+    emergencyContact: "Pierre Lefebvre",
+    emergencyPhone: "+33 6 55 66 77 88",
+    maritalStatus: "married",
+    companyId: 1,
+    managerId: null, // Employeur, pas de manager
+    documents: [
+      { id: 7, name: "Contrat de travail", type: "contract", uploadDate: "2019-09-15", url: "/docs/contract_5.pdf" },
+      { id: 8, name: "Certification RH", type: "certification", uploadDate: "2019-09-10", url: "/docs/cert_5.pdf" }
+    ]
+  },
+  // Employés sous Thomas Dubois (Design)
+  {
+    id: 6,
+    name: "Lucas Bernard",
+    email: "lucas.bernard@novacore.com",
+    role: "Designer Junior",
+    department: "Design",
+    status: "active",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+    hireDate: "2023-02-01",
+    salary: 38000,
+    phone: "+33 6 45 67 89 01",
+    birthDate: "1992-12-15",
+    address: "23 Rue de la République",
+    city: "Marseille",
+    postalCode: "13001",
+    socialSecurityNumber: "1 92 12 13 001 456 78",
+    iban: "FR76 4567 8901 2345 6789 0123 456",
+    emergencyContact: "Julie Bernard",
+    emergencyPhone: "+33 6 44 55 66 77",
+    maritalStatus: "single",
+    companyId: 1,
+    managerId: 3, // Manager: Thomas Dubois
+    documents: [
+      { id: 6, name: "Contrat de travail", type: "contract", uploadDate: "2023-02-01", url: "/docs/contract_4.pdf" }
+    ]
+  },
+  {
+    id: 7,
+    name: "Camille Durand",
+    email: "camille.durand@novacore.com",
+    role: "UX Designer",
+    department: "Design",
+    status: "active",
+    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop",
+    hireDate: "2023-05-15",
+    salary: 42000,
+    phone: "+33 6 78 90 12 34",
+    birthDate: "1994-03-22",
+    address: "15 Rue de la Paix",
+    city: "Paris",
+    postalCode: "75001",
+    socialSecurityNumber: "2 94 03 75 001 789 01",
+    iban: "FR76 7890 1234 5678 9012 3456 789",
+    emergencyContact: "Paul Durand",
+    emergencyPhone: "+33 6 77 88 99 00",
+    maritalStatus: "single",
+    companyId: 1,
+    managerId: 3, // Manager: Thomas Dubois
+    documents: [
+      { id: 10, name: "Contrat de travail", type: "contract", uploadDate: "2023-05-15", url: "/docs/contract_7.pdf" }
+    ]
+  },
+  // Employés sous Pierre Moreau (Ventes)
+  {
+    id: 8,
+    name: "Antoine Leroy",
+    email: "antoine.leroy@novacore.com",
+    role: "Commercial Junior",
+    department: "Ventes",
+    status: "active",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+    hireDate: "2023-08-01",
+    salary: 35000,
+    phone: "+33 6 89 01 23 45",
+    birthDate: "1995-07-10",
+    address: "42 Avenue de la République",
+    city: "Lyon",
+    postalCode: "69002",
+    socialSecurityNumber: "1 95 07 69 002 890 12",
+    iban: "FR76 8901 2345 6789 0123 4567 890",
+    emergencyContact: "Marie Leroy",
+    emergencyPhone: "+33 6 88 99 00 11",
+    maritalStatus: "single",
+    companyId: 1,
+    managerId: 4, // Manager: Pierre Moreau
+    documents: [
+      { id: 11, name: "Contrat de travail", type: "contract", uploadDate: "2023-08-01", url: "/docs/contract_8.pdf" }
+    ]
+  },
+  // Employés sous Emma Rousseau (Marketing)
+  {
+    id: 9,
+    name: "Sarah Petit",
+    email: "sarah.petit@novacore.com",
+    role: "Chargée de Marketing",
+    department: "Marketing",
+    status: "active",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
+    hireDate: "2023-03-20",
+    salary: 40000,
+    phone: "+33 6 90 12 34 56",
+    birthDate: "1993-11-05",
+    address: "28 Rue Saint-Antoine",
+    city: "Paris",
+    postalCode: "75004",
+    socialSecurityNumber: "2 93 11 75 004 901 23",
+    iban: "FR76 9012 3456 7890 1234 5678 901",
+    emergencyContact: "Jean Petit",
+    emergencyPhone: "+33 6 99 00 11 22",
+    maritalStatus: "married",
+    companyId: 1,
+    managerId: 5, // Manager: Emma Rousseau
+    documents: [
+      { id: 12, name: "Contrat de travail", type: "contract", uploadDate: "2023-03-20", url: "/docs/contract_9.pdf" }
+    ]
+  }
 ];
 
 // 📄 Types de documents
@@ -428,7 +508,7 @@ export const users = [
     lastName: "Dubois",
     role: "manager",
     companyId: 1,
-    employeeId: 2,
+    employeeId: 2, // Correspond à Thomas dans employees
     departmentIds: [2], // Manager du département Design
     departments: ["Design"],
     reportsTo: 1, // Rapporte à l'employeur
@@ -445,7 +525,7 @@ export const users = [
     lastName: "Moreau",
     role: "manager",
     companyId: 1,
-    employeeId: 4,
+    employeeId: 4, // Correspond à Pierre dans employees
     departmentIds: [4], // Manager du département Ventes
     departments: ["Ventes"],
     reportsTo: 1, // Rapporte à l'employeur
@@ -462,7 +542,7 @@ export const users = [
     lastName: "Rousseau",
     role: "senior_manager",
     companyId: 1,
-    employeeId: 3,
+    employeeId: 3, // Correspond à Emma dans employees
     departmentIds: [3, 4], // Manager Marketing + supervise Ventes
     departments: ["Marketing", "Ventes"],
     reportsTo: 1, // Rapporte à l'employeur
@@ -593,7 +673,7 @@ export const departments = [
     name: "Design",
     manager: "Thomas Dubois",
     managerId: 3, // ID de l'utilisateur manager
-    employees: 18,
+    employees: 3, // Thomas + Lucas + Camille
     budget: 180000,
     performance: "+8%",
     companyId: 1
@@ -602,7 +682,8 @@ export const departments = [
     id: 3,
     name: "Marketing",
     manager: "Emma Rousseau",
-    employees: 32,
+    managerId: 5, // ID de l'utilisateur manager
+    employees: 2, // Emma + Sarah
     budget: 320000,
     performance: "+15%",
     companyId: 1
@@ -612,7 +693,7 @@ export const departments = [
     name: "Ventes",
     manager: "Pierre Moreau",
     managerId: 4, // ID de l'utilisateur manager
-    employees: 28,
+    employees: 2, // Pierre + Antoine
     budget: 280000,
     performance: "-3%",
     companyId: 1
@@ -1055,7 +1136,7 @@ export const managerActivities = [
       { type: "meeting_held", count: 3, description: "Réunions d'équipe" }
     ],
     teamPerformance: 92,
-    teamSize: 6,
+    teamSize: 3, // Thomas + Lucas + Camille
     tasksCompleted: 18,
     pendingApprovals: 2
   },
@@ -1072,7 +1153,7 @@ export const managerActivities = [
       { type: "meeting_held", count: 2, description: "Réunions d'équipe" }
     ],
     teamPerformance: 85,
-    teamSize: 8,
+    teamSize: 2, // Pierre + Antoine
     tasksCompleted: 22,
     pendingApprovals: 3
   },
@@ -1090,7 +1171,7 @@ export const managerActivities = [
       { type: "manager_review", count: 1, description: "Supervision manager Ventes" }
     ],
     teamPerformance: 88,
-    teamSize: 12, // Marketing + supervision Ventes
+    teamSize: 4, // Emma + Sarah + supervision Pierre + Antoine
     tasksCompleted: 35,
     pendingApprovals: 1
   }
@@ -1100,7 +1181,7 @@ export const managerActivities = [
 export const hierarchicalMetrics = {
   employer: {
     totalManagers: 3,
-    totalEmployees: 45,
+    totalEmployees: 9, // Total réel des employés
     avgPerformance: 88.3,
     totalTasksCompleted: 75,
     pendingApprovals: 6,

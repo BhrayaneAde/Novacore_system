@@ -31,6 +31,7 @@ import ManagersList from "../Managers/ManagersList";
 import TaskManagement from "../Tasks/TaskManagement";
 import EmployeeEvaluation from "../Evaluations/EmployeeEvaluation";
 import MyPerformance from "../Evaluations/MyPerformance";
+import ContractEditor from "../Contracts/ContractEditor";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -653,6 +654,8 @@ const Dashboard = () => {
         return <EmployeeEvaluation />;
       case 'my-performance':
         return <MyPerformance />;
+      case 'contract-editor':
+        return <ContractEditor />;
       case 'settings':
         return <SettingsPage />;
       default:

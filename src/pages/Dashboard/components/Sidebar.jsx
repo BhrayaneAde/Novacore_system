@@ -13,6 +13,7 @@ import {
   Calendar,
   Clock,
   CheckSquare,
+  Edit3,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
 
@@ -26,6 +27,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
     { icon: UserPlus, label: "Managers", tab: "managers-list" },
     { icon: Target, label: "Nominations", tab: "manager-nomination" },
+    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor" },
     { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
     { icon: Target, label: "Performance", tab: "performance" },
     { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
@@ -39,6 +41,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
     { icon: UserPlus, label: "Managers", tab: "managers-list" },
     { icon: Target, label: "Nominations", tab: "manager-nomination" },
+    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor" },
     { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
     { icon: Target, label: "Performance", tab: "performance" },
     { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
