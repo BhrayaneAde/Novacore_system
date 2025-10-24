@@ -1,11 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Wallet, Calculator, FileText, Download, Plus, Edit3, Eye, AlertCircle } from "lucide-react";
-import { salaryData, employees, defaultCurrency } from "../../../data/mockData";
+import { employeesService, hrService } from "../../../services";
 
 const PayrollManagementPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showPayslipModal, setShowPayslipModal] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [salaryData, setSalaryData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const defaultCurrency = "FCFA";
+
+  useEffect(() => {
+    loadPayrollData();
+  }, []);
+
+  const loadPayrollData = async () => {
+    setLoading(true);
+    try {
+      const [employeesRes, payrollRes] = await Promise.all([
+        employeesService.getAll().catch(() => ({ data: [] })),
+        hrService.payroll.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      setEmployees(employeesRes.data || []);
+      
+      // Simuler des données de paie si l'API n'est pas encore implémentée
+      const mockSalaryData = (employeesRes.data || []).map(emp => ({
+        id: emp.id,
+        employeeId: emp.id,
+        baseSalary: emp.salary || Math.floor(Math.random() * 500000) + 300000,
+        allowances: {
+          transport: 25000,
+          meal: 30000,
+          housing: 50000
+        },
+        deductions: {
+          tax: Math.floor((emp.salary || 400000) * 0.1),
+          socialSecurity: Math.floor((emp.salary || 400000) * 0.05),
+          pension: Math.floor((emp.salary || 400000) * 0.04)
+        },
+        currency: "FCFA",
+        payPeriod: "monthly",
+        lastUpdated: new Date().toISOString().split('T')[0]
+      }));
+      
+      setSalaryData(payrollRes.data?.length > 0 ? payrollRes.data : mockSalaryData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des données de paie:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateNetSalary = (salary) => {
     const totalAllowances = Object.values(salary.allowances).reduce((sum, val) => sum + val, 0);
@@ -18,6 +64,15 @@ const PayrollManagementPage = () => {
   };
 
   const totalPayroll = salaryData.reduce((sum, salary) => sum + calculateNetSalary(salary), 0);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement des données de paie...</span>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "overview", label: "Vue d'ensemble", icon: Wallet },
@@ -48,7 +103,7 @@ const PayrollManagementPage = () => {
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Employé</h3>
-              <p className="text-gray-700">{employee?.firstName} {employee?.lastName}</p>
+              <p className="text-gray-700">{employee?.first_name} {employee?.last_name}</p>
               <p className="text-gray-600 text-sm">ID: {employee?.id}</p>
               <p className="text-gray-600 text-sm">Poste: {employee?.position}</p>
             </div>
@@ -78,7 +133,7 @@ const PayrollManagementPage = () => {
                 <tr className="bg-green-50">
                   <td className="px-4 py-3 text-sm font-medium text-green-800" colSpan="2">INDEMNITÉS</td>
                 </tr>
-                {Object.entries(salary.allowances).map(([key, value]) => (
+                {Object.entries(salary.allowances || {}).map(([key, value]) => (
                   <tr key={key}>
                     <td className="px-4 py-3 text-sm text-gray-700 pl-8">
                       {key === 'transport' ? 'Indemnité transport' :
@@ -93,7 +148,7 @@ const PayrollManagementPage = () => {
                 <tr className="bg-red-50">
                   <td className="px-4 py-3 text-sm font-medium text-red-800" colSpan="2">DÉDUCTIONS</td>
                 </tr>
-                {Object.entries(salary.deductions).map(([key, value]) => (
+                {Object.entries(salary.deductions || {}).map(([key, value]) => (
                   <tr key={key}>
                     <td className="px-4 py-3 text-sm text-gray-700 pl-8">
                       {key === 'tax' ? 'Impôt sur le revenu' :
@@ -232,21 +287,21 @@ const PayrollManagementPage = () => {
                 <tbody className="divide-y divide-gray-200">
                   {salaryData.map((salary) => {
                     const employee = employees.find(emp => emp.id === salary.employeeId);
-                    const totalAllowances = Object.values(salary.allowances).reduce((sum, val) => sum + val, 0);
-                    const totalDeductions = Object.values(salary.deductions).reduce((sum, val) => sum + val, 0);
+                    const totalAllowances = Object.values(salary.allowances || {}).reduce((sum, val) => sum + val, 0);
+                    const totalDeductions = Object.values(salary.deductions || {}).reduce((sum, val) => sum + val, 0);
                     
                     return (
                       <tr key={salary.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <img
-                              src={`https://images.unsplash.com/photo-${salary.employeeId === 1 ? '1507003211169-0a1dd7228f2d' : '1472099645785-5658abf4ff4e'}?w=40&h=40&fit=crop`}
-                              alt=""
-                              className="w-8 h-8 rounded-full mr-3"
-                            />
+                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                              <span className="text-xs font-medium text-blue-600">
+                                {employee?.first_name?.[0]}{employee?.last_name?.[0]}
+                              </span>
+                            </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {employee?.firstName} {employee?.lastName}
+                                {employee?.first_name} {employee?.last_name}
                               </div>
                               <div className="text-sm text-gray-500">{employee?.position}</div>
                             </div>

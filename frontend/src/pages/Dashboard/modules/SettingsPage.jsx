@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Moon, Sun, Bell, Lock, User, Building, Save, Shield, Mail, Server, Send, Calendar, Clock, ShieldCheck, Palette, Upload } from "lucide-react";
-import { smtpConfig, leavePolicy, workSchedule, securityConfig, appearanceConfig, colorPalettes } from "../../../data/mockData";
+import { setupService, hrService } from "../../../services";
 import { useThemeStore } from "../../../store/useThemeStore";
 import ThemedButton from "../../../components/ThemedButton";
 
 const SettingsPage = () => {
+  const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -26,43 +27,120 @@ const SettingsPage = () => {
   });
   
   const [smtp, setSmtp] = useState({
-    enabled: smtpConfig.enabled,
-    host: smtpConfig.host,
-    port: smtpConfig.port,
-    secure: smtpConfig.secure,
-    user: smtpConfig.auth.user,
-    pass: smtpConfig.auth.pass,
-    fromName: smtpConfig.from.name,
-    fromEmail: smtpConfig.from.email,
-    testEmail: smtpConfig.testEmail
+    enabled: false,
+    host: '',
+    port: 587,
+    secure: false,
+    user: '',
+    pass: '',
+    fromName: 'NovaCore RH',
+    fromEmail: '',
+    testEmail: ''
   });
   
   const [testStatus, setTestStatus] = useState(null);
   
   const [leave, setLeave] = useState({
-    annualDays: leavePolicy.annualLeave.daysPerYear,
-    carryOverDays: leavePolicy.annualLeave.carryOverDays,
-    sickDays: leavePolicy.sickLeave.daysPerYear,
-    requiresManagerApproval: leavePolicy.approvalWorkflow.requiresManagerApproval,
-    advanceNotice: leavePolicy.approvalWorkflow.advanceNotice
+    annualDays: 25,
+    carryOverDays: 5,
+    sickDays: 10,
+    requiresManagerApproval: true,
+    advanceNotice: 15
   });
   
   const [schedule, setSchedule] = useState({
-    hoursPerWeek: workSchedule.standardHours.hoursPerWeek,
-    flexTimeEnabled: workSchedule.flexTime.enabled,
-    coreStart: workSchedule.flexTime.coreHours.start,
-    coreEnd: workSchedule.flexTime.coreHours.end,
-    remoteEnabled: workSchedule.remoteWork.enabled,
-    maxRemoteDays: workSchedule.remoteWork.maxDaysPerWeek
+    hoursPerWeek: 35,
+    flexTimeEnabled: true,
+    coreStart: '10:00',
+    coreEnd: '16:00',
+    remoteEnabled: true,
+    maxRemoteDays: 3
   });
   
   const [security, setSecurity] = useState({
-    minPasswordLength: securityConfig.passwordPolicy.minLength,
-    requireUppercase: securityConfig.passwordPolicy.requireUppercase,
-    twoFactorEnabled: securityConfig.twoFactorAuth.enabled,
-    sessionTimeout: securityConfig.sessionManagement.timeoutMinutes,
-    auditLogEnabled: securityConfig.auditLog.enabled
+    minPasswordLength: 8,
+    requireUppercase: true,
+    twoFactorEnabled: false,
+    sessionTimeout: 480,
+    auditLogEnabled: true
   });
+
+  // Palettes de couleurs prédéfinies
+  const colorPalettes = [
+    { name: "Bleu", primary: "#3B82F6", secondary: "#1E40AF", accent: "#06B6D4" },
+    { name: "Violet", primary: "#8B5CF6", secondary: "#7C3AED", accent: "#A855F7" },
+    { name: "Vert", primary: "#10B981", secondary: "#059669", accent: "#34D399" },
+    { name: "Rouge", primary: "#EF4444", secondary: "#DC2626", accent: "#F87171" },
+    { name: "Orange", primary: "#F59E0B", secondary: "#D97706", accent: "#FBBF24" },
+    { name: "Rose", primary: "#EC4899", secondary: "#DB2777", accent: "#F472B6" },
+    { name: "Indigo", primary: "#6366F1", secondary: "#4F46E5", accent: "#818CF8" },
+    { name: "Teal", primary: "#14B8A6", secondary: "#0D9488", accent: "#5EEAD4" }
+  ];
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    setLoading(true);
+    try {
+      const [smtpRes, leaveRes, scheduleRes, securityRes] = await Promise.all([
+        setupService.getSmtpConfig().catch(() => ({ data: null })),
+        setupService.getLeavePolicy().catch(() => ({ data: null })),
+        setupService.getWorkSchedule().catch(() => ({ data: null })),
+        setupService.getSecurityConfig().catch(() => ({ data: null }))
+      ]);
+      
+      if (smtpRes.data) {
+        setSmtp({
+          enabled: smtpRes.data.enabled || false,
+          host: smtpRes.data.host || '',
+          port: smtpRes.data.port || 587,
+          secure: smtpRes.data.secure || false,
+          user: smtpRes.data.auth?.user || '',
+          pass: smtpRes.data.auth?.pass || '',
+          fromName: smtpRes.data.from?.name || 'NovaCore RH',
+          fromEmail: smtpRes.data.from?.email || '',
+          testEmail: smtpRes.data.testEmail || ''
+        });
+      }
+      
+      if (leaveRes.data) {
+        setLeave({
+          annualDays: leaveRes.data.annualLeave?.daysPerYear || 25,
+          carryOverDays: leaveRes.data.annualLeave?.carryOverDays || 5,
+          sickDays: leaveRes.data.sickLeave?.daysPerYear || 10,
+          requiresManagerApproval: leaveRes.data.approvalWorkflow?.requiresManagerApproval || true,
+          advanceNotice: leaveRes.data.approvalWorkflow?.advanceNotice || 15
+        });
+      }
+      
+      if (scheduleRes.data) {
+        setSchedule({
+          hoursPerWeek: scheduleRes.data.standardHours?.hoursPerWeek || 35,
+          flexTimeEnabled: scheduleRes.data.flexTime?.enabled || true,
+          coreStart: scheduleRes.data.flexTime?.coreHours?.start || '10:00',
+          coreEnd: scheduleRes.data.flexTime?.coreHours?.end || '16:00',
+          remoteEnabled: scheduleRes.data.remoteWork?.enabled || true,
+          maxRemoteDays: scheduleRes.data.remoteWork?.maxDaysPerWeek || 3
+        });
+      }
+      
+      if (securityRes.data) {
+        setSecurity({
+          minPasswordLength: securityRes.data.passwordPolicy?.minLength || 8,
+          requireUppercase: securityRes.data.passwordPolicy?.requireUppercase || true,
+          twoFactorEnabled: securityRes.data.twoFactorAuth?.enabled || false,
+          sessionTimeout: securityRes.data.sessionManagement?.timeoutMinutes || 480,
+          auditLogEnabled: securityRes.data.auditLog?.enabled || true
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des paramètres:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const { 
     darkMode, primaryColor, secondaryColor, companyName, logoUrl, fontFamily,
@@ -72,6 +150,32 @@ const SettingsPage = () => {
   const handleNotificationChange = (key) => {
     setNotifications({ ...notifications, [key]: !notifications[key] });
   };
+
+  const saveSettings = async () => {
+    try {
+      await Promise.all([
+        setupService.updateSmtpConfig(smtp),
+        setupService.updateLeavePolicy(leave),
+        setupService.updateWorkSchedule(schedule),
+        setupService.updateSecurityConfig(security)
+      ]);
+      
+      updateTheme();
+      alert('Paramètres sauvegardés avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde des paramètres');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement des paramètres...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 mx-auto">
@@ -837,10 +941,7 @@ const SettingsPage = () => {
       {/* Save Button */}
       <div className="mt-8 flex justify-end">
         <ThemedButton
-          onClick={() => {
-            updateTheme();
-            alert('Paramètres sauvegardés avec succès !');
-          }}
+          onClick={saveSettings}
           className="px-6 py-3 font-semibold flex items-center space-x-2"
         >
           <Save className="w-5 h-5" />

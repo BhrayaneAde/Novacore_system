@@ -1,21 +1,48 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useHRStore } from "../../store/useHRStore";
+import { employeesService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { ArrowLeft, Clock, User, DollarSign, Building, Calendar, FileText } from "lucide-react";
-import { employeeHistory } from "../../data/mockData";
 
 const EmployeeHistory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { employees } = useHRStore();
+  const [employee, setEmployee] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  const employee = employees.find(emp => emp.id === parseInt(id));
-  const history = employeeHistory.filter(h => h.employeeId === parseInt(id));
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [employeeData, historyData] = await Promise.all([
+          employeesService.getById(parseInt(id)),
+          employeesService.getHistory(parseInt(id))
+        ]);
+        setEmployee(employeeData);
+        setHistory(historyData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        setHistory([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [id]);
   
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p>Chargement...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (!employee) {
     return (
       <DashboardLayout>
@@ -35,9 +62,9 @@ const EmployeeHistory = () => {
     {
       id: 'hire',
       action: 'hire',
-      date: employee.hireDate,
+      date: employee.hire_date,
       modifiedBy: 'Système',
-      reason: `Embauche en tant que ${employee.role}`
+      reason: `Embauche en tant que ${employee.position}`
     }
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -114,7 +141,7 @@ const EmployeeHistory = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Historique</h1>
-            <p className="text-gray-600">{employee.name}</p>
+            <p className="text-gray-600">{employee.first_name} {employee.last_name}</p>
           </div>
         </div>
 

@@ -1,23 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Users, TrendingUp, CheckSquare, Clock } from 'lucide-react';
-import { employees } from '../../data/mockData';
-import { evaluations } from '../../data/evaluations';
+import { employeesService, performanceService } from '../../services';
 
 const ManagerDetails = ({ manager, onBack }) => {
-  // Trouver les employés sous ce manager
-  const teamMembers = employees.filter(emp => emp.managerId === manager.id);
-  
-  // Obtenir les évaluations pour chaque membre de l'équipe
-  const getEmployeeStats = (employeeId) => {
-    const empEvaluations = evaluations.filter(evaluation => evaluation.employeeId === employeeId);
-    const latest = empEvaluations[empEvaluations.length - 1];
-    
-    return {
-      performance: latest?.overallScore || 0,
-      tasksCompleted: latest?.automaticMetrics?.tasksCompleted || 0,
-      onTimeDelivery: latest?.automaticMetrics?.onTimeDelivery || 0,
-      qualityScore: latest?.automaticMetrics?.qualityScore || 0
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTeamData = async () => {
+      try {
+        const team = await employeesService.getTeamMembers(manager.id);
+        setTeamMembers(team || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'équipe:', error);
+        setTeamMembers([]);
+      } finally {
+        setLoading(false);
+      }
     };
+    loadTeamData();
+  }, [manager.id]);
+
+  const getEmployeeStats = async (employeeId) => {
+    try {
+      const stats = await performanceService.getEmployeeStats(employeeId);
+      return {
+        performance: stats?.overallScore || 0,
+        tasksCompleted: stats?.tasksCompleted || 0,
+        onTimeDelivery: stats?.onTimeDelivery || 0,
+        qualityScore: stats?.qualityScore || 0
+      };
+    } catch (error) {
+      return {
+        performance: 0,
+        tasksCompleted: 0,
+        onTimeDelivery: 0,
+        qualityScore: 0
+      };
+    }
   };
 
   return (
@@ -31,7 +51,7 @@ const ManagerDetails = ({ manager, onBack }) => {
         </button>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Équipe de {manager.firstName} {manager.lastName}
+            Équipe de {manager.first_name} {manager.last_name}
           </h1>
           <p className="text-gray-600 mt-1">
             {manager.department?.name} • {teamMembers.length} membres
@@ -55,7 +75,7 @@ const ManagerDetails = ({ manager, onBack }) => {
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-3xl font-bold text-green-600">
-            {Math.round(teamMembers.reduce((acc, emp) => acc + getEmployeeStats(emp.id).performance, 0) / teamMembers.length || 0)}%
+            {loading ? '...' : Math.round(teamMembers.reduce((acc, emp) => acc + (emp.performance || 0), 0) / teamMembers.length || 0)}%
           </p>
         </div>
         
@@ -65,7 +85,7 @@ const ManagerDetails = ({ manager, onBack }) => {
             <CheckSquare className="w-5 h-5 text-purple-500" />
           </div>
           <p className="text-3xl font-bold text-purple-600">
-            {teamMembers.reduce((acc, emp) => acc + getEmployeeStats(emp.id).tasksCompleted, 0)}
+            {loading ? '...' : teamMembers.reduce((acc, emp) => acc + (emp.tasksCompleted || 0), 0)}
           </p>
         </div>
         
@@ -75,7 +95,7 @@ const ManagerDetails = ({ manager, onBack }) => {
             <Clock className="w-5 h-5 text-orange-500" />
           </div>
           <p className="text-3xl font-bold text-orange-600">
-            {Math.round(teamMembers.reduce((acc, emp) => acc + getEmployeeStats(emp.id).onTimeDelivery, 0) / teamMembers.length || 0)}%
+            {loading ? '...' : Math.round(teamMembers.reduce((acc, emp) => acc + (emp.onTimeDelivery || 0), 0) / teamMembers.length || 0)}%
           </p>
         </div>
       </div>
@@ -88,7 +108,6 @@ const ManagerDetails = ({ manager, onBack }) => {
         
         <div className="divide-y divide-gray-200">
           {teamMembers.map((employee) => {
-            const stats = getEmployeeStats(employee.id);
             
             return (
               <div key={employee.id} className="p-6">
@@ -100,26 +119,26 @@ const ManagerDetails = ({ manager, onBack }) => {
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div>
-                      <h3 className="font-semibold text-gray-900">{employee.name}</h3>
-                      <p className="text-sm text-gray-600">{employee.role}</p>
+                      <h3 className="font-semibold text-gray-900">{employee.first_name} {employee.last_name}</h3>
+                      <p className="text-sm text-gray-600">{employee.position}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-4 gap-8 text-center">
                     <div>
-                      <p className="text-2xl font-bold text-blue-600">{stats.performance}%</p>
+                      <p className="text-2xl font-bold text-blue-600">{employee.performance || 0}%</p>
                       <p className="text-xs text-gray-500">Performance</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-green-600">{stats.tasksCompleted}</p>
+                      <p className="text-2xl font-bold text-green-600">{employee.tasksCompleted || 0}</p>
                       <p className="text-xs text-gray-500">Tâches</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-orange-600">{stats.onTimeDelivery}%</p>
+                      <p className="text-2xl font-bold text-orange-600">{employee.onTimeDelivery || 0}%</p>
                       <p className="text-xs text-gray-500">Ponctualité</p>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-purple-600">{stats.qualityScore}%</p>
+                      <p className="text-2xl font-bold text-purple-600">{employee.qualityScore || 0}%</p>
                       <p className="text-xs text-gray-500">Qualité</p>
                     </div>
                   </div>

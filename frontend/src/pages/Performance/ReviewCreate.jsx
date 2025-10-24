@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHRStore } from "../../store/useHRStore";
+import { performanceService, employeesService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -8,25 +8,50 @@ import { ArrowLeft, Save } from "lucide-react";
 
 const ReviewCreate = () => {
   const navigate = useNavigate();
-  const { employees, addPerformanceReview } = useHRStore();
-  
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    employeeId: "",
+    employee_id: "",
     period: "",
-    rating: 3,
+    overall_score: 3,
     feedback: "",
+    goals: [],
+    strengths: "",
+    areas_for_improvement: "",
   });
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const employeesData = await employeesService.getAll();
+        setEmployees(employeesData.data || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des employés:', error);
+      }
+    };
+    loadEmployees();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const employee = employees.find((emp) => emp.id === parseInt(formData.employeeId));
-    addPerformanceReview({
-      ...formData,
-      employeeName: employee?.name || "",
-      reviewDate: new Date().toISOString().split("T")[0],
-      goals: [],
-    });
-    navigate("/app/performance");
+    setLoading(true);
+    
+    try {
+      await performanceService.createEvaluation({
+        employee_id: parseInt(formData.employee_id),
+        period: formData.period,
+        overall_score: parseFloat(formData.overall_score),
+        feedback: formData.feedback,
+        strengths: formData.strengths,
+        areas_for_improvement: formData.areas_for_improvement,
+        goals: formData.goals,
+      });
+      navigate("/app/performance");
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'évaluation:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -51,8 +76,8 @@ const ReviewCreate = () => {
                   Employé *
                 </label>
                 <select
-                  name="employeeId"
-                  value={formData.employeeId}
+                  name="employee_id"
+                  value={formData.employee_id}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -60,7 +85,7 @@ const ReviewCreate = () => {
                   <option value="">Sélectionner un employé</option>
                   {employees.map((emp) => (
                     <option key={emp.id} value={emp.id}>
-                      {emp.name} - {emp.role}
+                      {emp.first_name} {emp.last_name} - {emp.position}
                     </option>
                   ))}
                 </select>
@@ -87,11 +112,11 @@ const ReviewCreate = () => {
                 </label>
                 <input
                   type="number"
-                  name="rating"
+                  name="overall_score"
                   min="1"
                   max="5"
                   step="0.5"
-                  value={formData.rating}
+                  value={formData.overall_score}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -109,7 +134,35 @@ const ReviewCreate = () => {
                   required
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Commentaires sur la performance..."
+                  placeholder="Commentaires généraux sur la performance..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Points forts
+                </label>
+                <textarea
+                  name="strengths"
+                  value={formData.strengths}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Points forts identifiés..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Axes d'amélioration
+                </label>
+                <textarea
+                  name="areas_for_improvement"
+                  value={formData.areas_for_improvement}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Domaines à améliorer..."
                 />
               </div>
             </div>
@@ -118,8 +171,8 @@ const ReviewCreate = () => {
               <Button type="button" variant="outline" onClick={() => navigate("/app/performance")} className="flex-1">
                 Annuler
               </Button>
-              <Button type="submit" icon={Save} className="flex-1">
-                Créer l'évaluation
+              <Button type="submit" icon={Save} className="flex-1" disabled={loading}>
+                {loading ? 'Création...' : 'Créer l\'évaluation'}
               </Button>
             </div>
           </Card>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useHRStore } from "../../store/useHRStore";
+import { hrService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -8,24 +8,34 @@ import { ArrowLeft, Save } from "lucide-react";
 
 const JobOpeningCreate = () => {
   const navigate = useNavigate();
-  const { addJobOpening } = useHRStore();
-  
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     department: "",
     location: "",
-    type: "CDI",
+    contract_type: "CDI",
+    description: "",
+    requirements: "",
+    salary_min: "",
+    salary_max: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addJobOpening({
-      ...formData,
-      status: "open",
-      applicants: 0,
-      postedDate: new Date().toISOString().split("T")[0],
-    });
-    navigate("/app/recruitment");
+    setLoading(true);
+    
+    try {
+      await hrService.recruitment.createJobOpening({
+        ...formData,
+        salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
+        salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
+      });
+      navigate("/app/recruitment");
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'offre:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -100,8 +110,8 @@ const JobOpeningCreate = () => {
                   Type de contrat *
                 </label>
                 <select
-                  name="type"
-                  value={formData.type}
+                  name="contract_type"
+                  value={formData.contract_type}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -112,14 +122,72 @@ const JobOpeningCreate = () => {
                   <option value="Alternance">Alternance</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description du poste *
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  required
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Décrivez le poste et les responsabilités..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exigences et compétences
+                </label>
+                <textarea
+                  name="requirements"
+                  value={formData.requirements}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Compétences requises, expérience..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Salaire minimum (€)
+                  </label>
+                  <input
+                    type="number"
+                    name="salary_min"
+                    value={formData.salary_min}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="45000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Salaire maximum (€)
+                  </label>
+                  <input
+                    type="number"
+                    name="salary_max"
+                    value={formData.salary_max}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="65000"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
               <Button type="button" variant="outline" onClick={() => navigate("/app/recruitment")} className="flex-1">
                 Annuler
               </Button>
-              <Button type="submit" icon={Save} className="flex-1">
-                Publier l'offre
+              <Button type="submit" icon={Save} className="flex-1" disabled={loading}>
+                {loading ? 'Publication...' : 'Publier l\'offre'}
               </Button>
             </div>
           </Card>

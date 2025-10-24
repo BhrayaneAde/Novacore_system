@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, TrendingUp, TrendingDown, Target, MessageSquare, Calendar, User, Building2 } from 'lucide-react';
-import { evaluations, getPerformanceLevel } from '../../data/evaluations';
-import { employees, users, departments } from '../../data/mockData';
+import { performanceService, employeesService, usersService, hrService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const EmployeeEvaluation = () => {
-  const { user } = useAuthStore();
+  const { currentUser: user } = useAuthStore();
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
+  const [evaluations, setEvaluations] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [evaluationData, setEvaluationData] = useState({
     communication: 5,
     teamwork: 5,
@@ -19,11 +23,45 @@ const EmployeeEvaluation = () => {
     objectives: ''
   });
 
+  // Niveaux de performance
+  const getPerformanceLevel = (score) => {
+    if (score >= 90) return { label: 'Excellent', color: 'green', icon: '🌟' };
+    if (score >= 80) return { label: 'Très bien', color: 'blue', icon: '👍' };
+    if (score >= 70) return { label: 'Bien', color: 'yellow', icon: '👌' };
+    if (score >= 60) return { label: 'Satisfaisant', color: 'orange', icon: '⚠️' };
+    return { label: 'À améliorer', color: 'red', icon: '⚡' };
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [evaluationsRes, employeesRes, usersRes, departmentsRes] = await Promise.all([
+        performanceService.getAll().catch(() => ({ data: [] })),
+        employeesService.getAll().catch(() => ({ data: [] })),
+        usersService.getAll().catch(() => ({ data: [] })),
+        hrService.departments.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      setEvaluations(evaluationsRes.data || []);
+      setEmployees(employeesRes.data || []);
+      setUsers(usersRes.data || []);
+      setDepartments(departmentsRes.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getFilteredEvaluations = () => {
     if (user?.role === 'manager') {
-      return evaluations.filter(evaluation => evaluation.managerId === user.id);
+      return evaluations.filter(evaluation => evaluation.manager_id === user.id);
     } else if (user?.role === 'employee') {
-      return evaluations.filter(evaluation => evaluation.employeeId === user.employeeId);
+      return evaluations.filter(evaluation => evaluation.employee_id === user.employee_id);
     }
     return evaluations;
   };
@@ -32,12 +70,12 @@ const EmployeeEvaluation = () => {
 
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? `${employee.firstName} ${employee.lastName}` : 'Inconnu';
+    return employee ? `${employee.first_name} ${employee.last_name}` : 'Inconnu';
   };
 
   const getManagerName = (managerId) => {
     const manager = users.find(u => u.id === managerId);
-    return manager ? `${manager.firstName} ${manager.lastName}` : 'Inconnu';
+    return manager ? `${manager.first_name} ${manager.last_name}` : 'Inconnu';
   };
 
   const handleEvaluate = (employeeId) => {
@@ -45,50 +83,74 @@ const EmployeeEvaluation = () => {
     setShowEvaluationForm(true);
   };
 
-  const handleSubmitEvaluation = (e) => {
+  const handleSubmitEvaluation = async (e) => {
     e.preventDefault();
-    console.log('Nouvelle évaluation:', {
-      employeeId: selectedEmployee,
-      managerId: user.id,
-      ...evaluationData
-    });
-    setShowEvaluationForm(false);
-    setSelectedEmployee(null);
-    setEvaluationData({
-      communication: 5,
-      teamwork: 5,
-      initiative: 5,
-      problemSolving: 5,
-      comments: '',
-      strengths: '',
-      improvements: '',
-      objectives: ''
-    });
+    try {
+      const newEvaluation = {
+        employee_id: selectedEmployee,
+        manager_id: user.id,
+        period: new Date().getFullYear() + '-Q' + Math.ceil((new Date().getMonth() + 1) / 3),
+        communication: evaluationData.communication,
+        teamwork: evaluationData.teamwork,
+        initiative: evaluationData.initiative,
+        problem_solving: evaluationData.problemSolving,
+        comments: evaluationData.comments,
+        strengths: evaluationData.strengths.split('\n').filter(Boolean),
+        improvements: evaluationData.improvements.split('\n').filter(Boolean),
+        objectives: evaluationData.objectives.split('\n').filter(Boolean)
+      };
+      
+      const result = await performanceService.create(newEvaluation);
+      setEvaluations([...evaluations, result]);
+      setShowEvaluationForm(false);
+      setSelectedEmployee(null);
+      setEvaluationData({
+        communication: 5,
+        teamwork: 5,
+        initiative: 5,
+        problemSolving: 5,
+        comments: '',
+        strengths: '',
+        improvements: '',
+        objectives: ''
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'évaluation:', error);
+    }
   };
 
   const canEvaluate = user?.role === 'manager' || user?.role === 'employer' || user?.role === 'hr_admin';
 
   const getTeamMembers = () => {
     if (user?.role === 'manager') {
-      return employees.filter(emp => emp.department === user.department);
+      return employees.filter(emp => emp.department_id === user.department_id);
     }
     return employees;
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement...</span>
+      </div>
+    );
+  }
 
   const getDepartmentStats = () => {
     const stats = {};
     departments.forEach(dept => {
       const deptEvaluations = filteredEvaluations.filter(evaluation => {
-        const employee = employees.find(emp => emp.id === evaluation.employeeId);
-        return employee?.department === dept.name;
+        const employee = employees.find(emp => emp.id === evaluation.employee_id);
+        return employee?.department_id === dept.id;
       });
       
       if (deptEvaluations.length > 0) {
         stats[dept.name] = {
-          avgScore: Math.round(deptEvaluations.reduce((acc, evaluation) => acc + evaluation.globalScore, 0) / deptEvaluations.length),
-          improvements: deptEvaluations.filter(evaluation => evaluation.previousPeriod?.trend === 'improvement').length,
-          declines: deptEvaluations.filter(evaluation => evaluation.previousPeriod?.trend === 'decline').length,
-          taskCompletion: Math.round(deptEvaluations.reduce((acc, evaluation) => acc + evaluation.automaticMetrics.taskCompletion, 0) / deptEvaluations.length),
+          avgScore: Math.round(deptEvaluations.reduce((acc, evaluation) => acc + (evaluation.global_score || 0), 0) / deptEvaluations.length),
+          improvements: deptEvaluations.filter(evaluation => evaluation.trend === 'improvement').length,
+          declines: deptEvaluations.filter(evaluation => evaluation.trend === 'decline').length,
+          taskCompletion: Math.round(deptEvaluations.reduce((acc, evaluation) => acc + (evaluation.task_completion || 0), 0) / deptEvaluations.length),
           totalEmployees: deptEvaluations.length
         };
       }
@@ -119,7 +181,7 @@ const EmployeeEvaluation = () => {
               <p className="text-sm text-gray-600">Score Moyen</p>
               <p className="text-2xl font-bold text-blue-600">
                 {filteredEvaluations.length > 0 
-                  ? Math.round(filteredEvaluations.reduce((acc, evaluation) => acc + evaluation.globalScore, 0) / filteredEvaluations.length)
+                  ? Math.round(filteredEvaluations.reduce((acc, evaluation) => acc + (evaluation.global_score || 0), 0) / filteredEvaluations.length)
                   : 0}%
               </p>
             </div>
@@ -133,7 +195,7 @@ const EmployeeEvaluation = () => {
             <div>
               <p className="text-sm text-gray-600">En Progression</p>
               <p className="text-2xl font-bold text-green-600">
-                {filteredEvaluations.filter(evaluation => evaluation.previousPeriod?.trend === 'improvement').length}
+                {filteredEvaluations.filter(evaluation => evaluation.trend === 'improvement').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -146,7 +208,7 @@ const EmployeeEvaluation = () => {
             <div>
               <p className="text-sm text-gray-600">En Baisse</p>
               <p className="text-2xl font-bold text-red-600">
-                {filteredEvaluations.filter(evaluation => evaluation.previousPeriod?.trend === 'decline').length}
+                {filteredEvaluations.filter(evaluation => evaluation.trend === 'decline').length}
               </p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -159,7 +221,7 @@ const EmployeeEvaluation = () => {
             <div>
               <p className="text-sm text-gray-600">Objectifs Atteints</p>
               <p className="text-2xl font-bold text-purple-600">
-                {Math.round(filteredEvaluations.reduce((acc, evaluation) => acc + evaluation.automaticMetrics.taskCompletion, 0) / filteredEvaluations.length || 0)}%
+                {Math.round(filteredEvaluations.reduce((acc, evaluation) => acc + (evaluation.task_completion || 0), 0) / filteredEvaluations.length || 0)}%
               </p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -216,14 +278,14 @@ const EmployeeEvaluation = () => {
             {getTeamMembers().map((employee) => (
               <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={employee.avatar}
-                    alt={`${employee.firstName} ${employee.lastName}`}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-blue-600">
+                      {employee.first_name?.[0]}{employee.last_name?.[0]}
+                    </span>
+                  </div>
                   <div>
                     <h3 className="font-medium text-gray-900">
-                      {employee.firstName} {employee.lastName}
+                      {employee.first_name} {employee.last_name}
                     </h3>
                     <p className="text-sm text-gray-600">{employee.position}</p>
                   </div>
@@ -247,31 +309,31 @@ const EmployeeEvaluation = () => {
         </div>
         <div className="divide-y divide-gray-200">
           {filteredEvaluations.map((evaluation) => {
-            const performanceLevel = getPerformanceLevel(evaluation.globalScore);
-            const employee = employees.find(emp => emp.id === evaluation.employeeId);
+            const performanceLevel = getPerformanceLevel(evaluation.global_score || 0);
+            const employee = employees.find(emp => emp.id === evaluation.employee_id);
             
             return (
               <div key={evaluation.id} className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={employee?.avatar}
-                      alt={getEmployeeName(evaluation.employeeId)}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-lg font-medium text-blue-600">
+                        {employee?.first_name?.[0]}{employee?.last_name?.[0]}
+                      </span>
+                    </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {getEmployeeName(evaluation.employeeId)}
+                        {getEmployeeName(evaluation.employee_id)}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Période: {evaluation.period} • Évalué par: {getManagerName(evaluation.managerId)}
+                        Période: {evaluation.period} • Évalué par: {getManagerName(evaluation.manager_id)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-2xl font-bold text-gray-900">
-                        {Math.round(evaluation.globalScore)}%
+                        {Math.round(evaluation.global_score || 0)}%
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium bg-${performanceLevel.color}-100 text-${performanceLevel.color}-800`}>
                         {performanceLevel.icon} {performanceLevel.label}

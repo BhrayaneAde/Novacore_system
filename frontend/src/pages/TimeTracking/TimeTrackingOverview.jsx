@@ -1,19 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { hrService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import PermissionGuard from "../../components/auth/PermissionGuard";
 import { Clock, Play, Pause, Plus, Calendar, BarChart3, Download } from "lucide-react";
-import { timeEntries } from "../../data/mockData";
 
 const TimeTrackingOverview = () => {
   const { currentUser, currentCompany } = useAuthStore();
   const [isTracking, setIsTracking] = useState(false);
   const [currentSession, setCurrentSession] = useState(null);
+  const [myTimeEntries, setMyTimeEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const myTimeEntries = timeEntries.filter(entry => entry.employeeId === currentUser?.employeeId);
+  useEffect(() => {
+    const loadTimeEntries = async () => {
+      try {
+        const entries = await hrService.timeTracking.getMyEntries();
+        setMyTimeEntries(entries || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des entrées:', error);
+        setMyTimeEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTimeEntries();
+  }, []);
   const todayEntries = myTimeEntries.filter(entry => entry.date === new Date().toISOString().split('T')[0]);
   
   const weeklyHours = myTimeEntries
@@ -23,20 +38,28 @@ const TimeTrackingOverview = () => {
       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       return entryDate >= weekStart;
     })
-    .reduce((total, entry) => total + entry.totalHours, 0);
+    .reduce((total, entry) => total + (entry.total_hours || entry.totalHours || 0), 0);
 
-  const handleStartTracking = () => {
-    setIsTracking(true);
-    setCurrentSession({
-      startTime: new Date(),
-      project: "",
-      description: ""
-    });
+  const handleStartTracking = async () => {
+    try {
+      const session = await hrService.timeTracking.startSession();
+      setIsTracking(true);
+      setCurrentSession(session);
+    } catch (error) {
+      console.error('Erreur lors du démarrage:', error);
+    }
   };
 
-  const handleStopTracking = () => {
-    setIsTracking(false);
-    setCurrentSession(null);
+  const handleStopTracking = async () => {
+    try {
+      if (currentSession) {
+        await hrService.timeTracking.stopSession(currentSession.id);
+      }
+      setIsTracking(false);
+      setCurrentSession(null);
+    } catch (error) {
+      console.error('Erreur lors de l\'arrêt:', error);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -135,7 +158,7 @@ const TimeTrackingOverview = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Aujourd'hui</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatDuration(todayEntries.reduce((total, entry) => total + entry.totalHours, 0))}
+                  {formatDuration(todayEntries.reduce((total, entry) => total + (entry.total_hours || entry.totalHours || 0), 0))}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -187,8 +210,13 @@ const TimeTrackingOverview = () => {
 
         {/* Entrées récentes */}
         <Card title="Entrées récentes">
-          <div className="space-y-4">
-            {myTimeEntries.slice(0, 5).map((entry) => (
+          {loading ? (
+            <div className="text-center py-8">
+              <p>Chargement des entrées...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {myTimeEntries.slice(0, 5).map((entry) => (
               <div key={entry.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
@@ -207,7 +235,7 @@ const TimeTrackingOverview = () => {
                 
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900">{formatDuration(entry.totalHours)}</div>
+                    <div className="font-semibold text-gray-900">{formatDuration(entry.total_hours || entry.totalHours || 0)}</div>
                     {entry.overtime && (
                       <div className="text-xs text-orange-600">+{formatDuration(entry.overtime)} sup.</div>
                     )}
@@ -215,10 +243,11 @@ const TimeTrackingOverview = () => {
                   {getStatusBadge(entry.status)}
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
           
-          {myTimeEntries.length === 0 && (
+          {!loading && myTimeEntries.length === 0 && (
             <div className="text-center py-8">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucune entrée de temps enregistrée</p>

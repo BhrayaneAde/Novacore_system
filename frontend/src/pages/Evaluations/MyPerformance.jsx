@@ -1,27 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, TrendingUp, TrendingDown, Target, Calendar, CheckCircle, Clock, Award } from 'lucide-react';
-import { evaluations, getPerformanceLevel } from '../../data/evaluations';
-import { tasks } from '../../data/tasks';
-import { employees, users } from '../../data/mockData';
+import { performanceService, tasksService, usersService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const MyPerformance = () => {
   const { currentUser } = useAuthStore();
   const [selectedPeriod, setSelectedPeriod] = useState('2025-01');
+  const [evaluations, setEvaluations] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fonction pour déterminer le niveau de performance
+  const getPerformanceLevel = (score) => {
+    if (score >= 90) return { label: 'Excellent', color: 'green', icon: '🌟' };
+    if (score >= 80) return { label: 'Très bien', color: 'blue', icon: '👍' };
+    if (score >= 70) return { label: 'Bien', color: 'yellow', icon: '👌' };
+    if (score >= 60) return { label: 'Satisfaisant', color: 'orange', icon: '⚠️' };
+    return { label: 'À améliorer', color: 'red', icon: '⚡' };
+  };
+
+  useEffect(() => {
+    loadMyPerformanceData();
+  }, [currentUser]);
+
+  const loadMyPerformanceData = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      const [evaluationsRes, tasksRes, usersRes] = await Promise.all([
+        performanceService.getMyEvaluations().catch(() => ({ data: [] })),
+        tasksService.getMyTasks().catch(() => ({ data: [] })),
+        usersService.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      setEvaluations(evaluationsRes.data || []);
+      setTasks(tasksRes.data || []);
+      setUsers(usersRes.data || []);
+      
+      // Définir la période par défaut
+      if (evaluationsRes.data?.length > 0) {
+        setSelectedPeriod(evaluationsRes.data[0].period);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données de performance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Obtenir les évaluations de l'employé connecté
-  const myEvaluations = evaluations.filter(evaluation => evaluation.employeeId === currentUser?.employeeId);
+  const myEvaluations = evaluations.filter(evaluation => evaluation.employee_id === currentUser?.employee_id);
   const currentEvaluation = myEvaluations.find(evaluation => evaluation.period === selectedPeriod);
   
   // Obtenir les tâches de l'employé
-  const myTasks = tasks.filter(task => task.assignedTo === currentUser?.employeeId);
+  const myTasks = tasks.filter(task => task.assigned_to === currentUser?.employee_id);
   const completedTasks = myTasks.filter(task => task.status === 'completed');
   const inProgressTasks = myTasks.filter(task => task.status === 'in_progress');
 
   const getManagerName = (managerId) => {
     const manager = users.find(u => u.id === managerId);
-    return manager ? `${manager.firstName} ${manager.lastName}` : 'Inconnu';
+    return manager ? `${manager.first_name} ${manager.last_name}` : 'Inconnu';
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement de vos données de performance...</span>
+      </div>
+    );
+  }
 
   const getProgressColor = (trend) => {
     if (trend === 'improvement') return 'text-green-600';
@@ -64,23 +114,23 @@ const MyPerformance = () => {
                 <h2 className="text-2xl font-bold mb-2">Score Global</h2>
                 <div className="flex items-center gap-4">
                   <span className="text-5xl font-bold">
-                    {Math.round(currentEvaluation.globalScore)}%
+                    {Math.round(currentEvaluation.global_score || 0)}%
                   </span>
                   <div className="flex items-center gap-2">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium bg-white/20`}>
-                      {getPerformanceLevel(currentEvaluation.globalScore).icon} {getPerformanceLevel(currentEvaluation.globalScore).label}
+                      {getPerformanceLevel(currentEvaluation.global_score || 0).icon} {getPerformanceLevel(currentEvaluation.global_score || 0).label}
                     </span>
                   </div>
                 </div>
               </div>
-              {currentEvaluation.previousPeriod && (
+              {currentEvaluation.trend && (
                 <div className="text-right">
                   <p className="text-blue-100 mb-2">Évolution vs mois précédent</p>
                   <div className="flex items-center gap-2 justify-end">
-                    <span className={`flex items-center gap-1 ${getProgressColor(currentEvaluation.previousPeriod.trend)}`}>
-                      {getProgressIcon(currentEvaluation.previousPeriod.trend)}
+                    <span className={`flex items-center gap-1 ${getProgressColor(currentEvaluation.trend)}`}>
+                      {getProgressIcon(currentEvaluation.trend)}
                       <span className="text-2xl font-bold text-white">
-                        {currentEvaluation.previousPeriod.progression > 0 ? '+' : ''}{currentEvaluation.previousPeriod.progression.toFixed(1)}%
+                        {currentEvaluation.progression > 0 ? '+' : ''}{(currentEvaluation.progression || 0).toFixed(1)}%
                       </span>
                     </span>
                   </div>
@@ -102,12 +152,12 @@ const MyPerformance = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-bold text-gray-900">
-                      {currentEvaluation.automaticMetrics.taskCompletion}%
+                      {currentEvaluation.task_completion || 0}%
                     </span>
                     <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                       <div 
                         className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${currentEvaluation.automaticMetrics.taskCompletion}%` }}
+                        style={{ width: `${currentEvaluation.task_completion || 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -119,12 +169,12 @@ const MyPerformance = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-bold text-gray-900">
-                      {currentEvaluation.automaticMetrics.deadlineRespect}%
+                      {currentEvaluation.deadline_respect || 0}%
                     </span>
                     <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                       <div 
                         className="bg-green-600 h-2 rounded-full" 
-                        style={{ width: `${currentEvaluation.automaticMetrics.deadlineRespect}%` }}
+                        style={{ width: `${currentEvaluation.deadline_respect || 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -136,12 +186,12 @@ const MyPerformance = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-bold text-gray-900">
-                      {currentEvaluation.automaticMetrics.quality}%
+                      {currentEvaluation.quality || 0}%
                     </span>
                     <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                       <div 
                         className="bg-purple-600 h-2 rounded-full" 
-                        style={{ width: `${currentEvaluation.automaticMetrics.quality}%` }}
+                        style={{ width: `${currentEvaluation.quality || 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -153,12 +203,12 @@ const MyPerformance = () => {
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-bold text-gray-900">
-                      {currentEvaluation.automaticMetrics.workload}%
+                      {currentEvaluation.workload || 0}%
                     </span>
                     <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                       <div 
                         className="bg-orange-600 h-2 rounded-full" 
-                        style={{ width: `${Math.min(currentEvaluation.automaticMetrics.workload, 100)}%` }}
+                        style={{ width: `${Math.min(currentEvaluation.workload || 0, 100)}%` }}
                       ></div>
                     </div>
                   </div>
@@ -171,10 +221,10 @@ const MyPerformance = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Évaluation Manager (30%)</h3>
               <div className="space-y-4">
                 {[
-                  { key: 'communication', label: 'Communication', value: currentEvaluation.manualEvaluation.communication },
-                  { key: 'teamwork', label: 'Travail d\'équipe', value: currentEvaluation.manualEvaluation.teamwork },
-                  { key: 'initiative', label: 'Initiative', value: currentEvaluation.manualEvaluation.initiative },
-                  { key: 'problemSolving', label: 'Résolution problèmes', value: currentEvaluation.manualEvaluation.problemSolving }
+                  { key: 'communication', label: 'Communication', value: currentEvaluation.communication || 0 },
+                  { key: 'teamwork', label: 'Travail d\'équipe', value: currentEvaluation.teamwork || 0 },
+                  { key: 'initiative', label: 'Initiative', value: currentEvaluation.initiative || 0 },
+                  { key: 'problemSolving', label: 'Résolution problèmes', value: currentEvaluation.problem_solving || 0 }
                 ].map((criterion) => (
                   <div key={criterion.key} className="flex justify-between items-center">
                     <span className="text-gray-700">{criterion.label}</span>
@@ -206,9 +256,9 @@ const MyPerformance = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Commentaires de mon Manager</h3>
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <p className="text-gray-700 italic">"{currentEvaluation.managerComments}"</p>
+                <p className="text-gray-700 italic">"{currentEvaluation.comments || 'Aucun commentaire'}"</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  - {getManagerName(currentEvaluation.managerId)}
+                  - {getManagerName(currentEvaluation.manager_id)}
                 </p>
               </div>
               
@@ -216,7 +266,7 @@ const MyPerformance = () => {
                 <div>
                   <h4 className="font-medium text-green-700 mb-2">💪 Points Forts</h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {currentEvaluation.strengths.map((strength, index) => (
+                    {(currentEvaluation.strengths || []).map((strength, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                         {strength}
@@ -227,7 +277,7 @@ const MyPerformance = () => {
                 <div>
                   <h4 className="font-medium text-orange-700 mb-2">🎯 À Améliorer</h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    {currentEvaluation.improvements.map((improvement, index) => (
+                    {(currentEvaluation.improvements || []).map((improvement, index) => (
                       <li key={index} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                         {improvement}
@@ -242,7 +292,7 @@ const MyPerformance = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Mes Objectifs</h3>
               <div className="space-y-3">
-                {currentEvaluation.nextObjectives.map((objective, index) => (
+                {(currentEvaluation.objectives || []).map((objective, index) => (
                   <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                     <Target className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
@@ -279,21 +329,21 @@ const MyPerformance = () => {
                 </thead>
                 <tbody>
                   {myEvaluations.map((evaluation) => {
-                    const performanceLevel = getPerformanceLevel(evaluation.globalScore);
+                    const performanceLevel = getPerformanceLevel(evaluation.global_score || 0);
                     return (
                       <tr key={evaluation.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium">{evaluation.period}</td>
                         <td className="py-3 px-4">
                           <span className="text-lg font-bold text-gray-900">
-                            {Math.round(evaluation.globalScore)}%
+                            {Math.round(evaluation.global_score || 0)}%
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          {evaluation.previousPeriod && (
+                          {evaluation.trend && (
                             <div className="flex items-center gap-1">
-                              {getProgressIcon(evaluation.previousPeriod.trend)}
-                              <span className={getProgressColor(evaluation.previousPeriod.trend)}>
-                                {evaluation.previousPeriod.progression > 0 ? '+' : ''}{evaluation.previousPeriod.progression.toFixed(1)}%
+                              {getProgressIcon(evaluation.trend)}
+                              <span className={getProgressColor(evaluation.trend)}>
+                                {evaluation.progression > 0 ? '+' : ''}{(evaluation.progression || 0).toFixed(1)}%
                               </span>
                             </div>
                           )}
@@ -304,7 +354,7 @@ const MyPerformance = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-gray-600">
-                          {getManagerName(evaluation.managerId)}
+                          {getManagerName(evaluation.manager_id)}
                         </td>
                       </tr>
                     );

@@ -1,22 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useHRStore } from "../../store/useHRStore";
+import { employeesService, hrService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { ArrowLeft, Eye, Download, MessageSquare, Clock, User } from "lucide-react";
-import { documentTypes } from "../../data/mockData";
 
 const SharedWithMe = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { employees, getSharedWithMe, logDocumentAccess } = useHRStore();
+  const [employee, setEmployee] = useState(null);
+  const [sharedDocs, setSharedDocs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedShare, setSelectedShare] = useState(null);
   
-  const employee = employees.find(emp => emp.id === parseInt(id));
-  const sharedDocs = getSharedWithMe(parseInt(id));
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [employeeData, sharedData] = await Promise.all([
+          employeesService.getById(parseInt(id)),
+          hrService.documents.getSharedWithMe(parseInt(id))
+        ]);
+        setEmployee(employeeData);
+        setSharedDocs(sharedData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        setSharedDocs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [id]);
   
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p>Chargement...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (!employee) {
     return (
       <DashboardLayout>
@@ -31,8 +58,15 @@ const SharedWithMe = () => {
   }
 
   const getDocumentIcon = (type) => {
-    const docType = documentTypes.find(dt => dt.value === type);
-    return docType ? docType.icon : '📎';
+    const icons = {
+      contract: '📄',
+      policy: '📋',
+      handbook: '📖',
+      form: '📝',
+      certificate: '🏆',
+      other: '📎'
+    };
+    return icons[type] || '📎';
   };
 
   const getPermissionLabel = (permission) => {
@@ -44,19 +78,27 @@ const SharedWithMe = () => {
     }
   };
 
-  const handleView = (share) => {
-    logDocumentAccess(share.id, parseInt(id), 'viewed');
-    setSelectedShare(share);
+  const handleView = async (share) => {
+    try {
+      await hrService.documents.logAccess(share.id, parseInt(id), 'viewed');
+      setSelectedShare(share);
+    } catch (error) {
+      console.error('Erreur lors de l\'accès:', error);
+    }
   };
 
-  const handleDownload = (share) => {
+  const handleDownload = async (share) => {
     if (share.permissions === 'read') return;
-    logDocumentAccess(share.id, parseInt(id), 'downloaded');
-    // Simulation du téléchargement
-    const link = document.createElement('a');
-    link.href = share.document?.url || '#';
-    link.download = share.document?.name || 'document';
-    link.click();
+    try {
+      await hrService.documents.logAccess(share.id, parseInt(id), 'downloaded');
+      // Simulation du téléchargement
+      const link = document.createElement('a');
+      link.href = share.document?.url || '#';
+      link.download = share.document?.name || 'document';
+      link.click();
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+    }
   };
 
   const isExpired = (expiryDate) => {
@@ -79,7 +121,7 @@ const SharedWithMe = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Documents partagés avec moi</h1>
-            <p className="text-gray-600">{employee.name}</p>
+            <p className="text-gray-600">{employee.first_name} {employee.last_name}</p>
           </div>
         </div>
 

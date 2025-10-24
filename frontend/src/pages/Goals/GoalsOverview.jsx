@@ -1,19 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { performanceService, employeesService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import PermissionGuard from "../../components/auth/PermissionGuard";
 import { Target, Plus, TrendingUp, Calendar, CheckCircle, AlertCircle } from "lucide-react";
-import { goals } from "../../data/mockData";
 
 const GoalsOverview = () => {
   const { currentUser, hasRole } = useAuthStore();
   const [activeTab, setActiveTab] = useState("my-goals");
+  const [myGoals, setMyGoals] = useState([]);
+  const [teamGoals, setTeamGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const myGoals = goals.filter(goal => goal.employeeId === currentUser?.employeeId);
-  const teamGoals = hasRole('manager') ? goals : [];
+  useEffect(() => {
+    const loadGoals = async () => {
+      try {
+        const myGoalsData = await performanceService.getMyGoals();
+        setMyGoals(myGoalsData || []);
+        
+        if (hasRole('manager')) {
+          const teamGoalsData = await performanceService.getTeamGoals();
+          setTeamGoals(teamGoalsData || []);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des objectifs:', error);
+        setMyGoals([]);
+        setTeamGoals([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadGoals();
+  }, [hasRole]);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -166,8 +187,13 @@ const GoalsOverview = () => {
         </div>
 
         {/* Liste des objectifs */}
-        <div className="space-y-4">
-          {(activeTab === 'my-goals' ? myGoals : teamGoals).map((goal) => {
+        {loading ? (
+          <div className="text-center py-8">
+            <p>Chargement des objectifs...</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {(activeTab === 'my-goals' ? myGoals : teamGoals).map((goal) => {
             const daysRemaining = calculateDaysRemaining(goal.dueDate);
             const isOverdue = daysRemaining < 0 && goal.status !== 'completed';
             
@@ -238,8 +264,9 @@ const GoalsOverview = () => {
                 </div>
               </Card>
             );
-          })}
-        </div>
+            })}
+          </div>
+        )}
 
         {myGoals.length === 0 && activeTab === 'my-goals' && (
           <Card className="p-12 text-center">

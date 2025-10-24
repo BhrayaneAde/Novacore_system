@@ -34,8 +34,9 @@ const BenefitsManagement = () => {
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

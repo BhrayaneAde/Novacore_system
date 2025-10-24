@@ -1,15 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CheckSquare, Clock, Calendar, AlertCircle, CheckCircle, User, MessageSquare } from "lucide-react";
-import { employeeTasks } from "../../../data/mockData";
+import { tasksService } from "../../../services";
 import { useAuthStore } from "../../../store/useAuthStore";
 
 const EmployeeTasksPage = () => {
   const { currentUser } = useAuthStore();
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskUpdate, setTaskUpdate] = useState({});
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadMyTasks();
+  }, [currentUser]);
+
+  const loadMyTasks = async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      const response = await tasksService.getMyTasks();
+      setTasks(response.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des tâches:', error);
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrer les tâches de l'employé connecté
-  const myTasks = employeeTasks.filter(task => task.assignedTo === currentUser?.id);
+  const myTasks = tasks.filter(task => task.assigned_to === currentUser?.employee_id);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -52,15 +73,49 @@ const EmployeeTasksPage = () => {
     }));
   };
 
-  const submitTaskUpdate = (taskId) => {
-    // Simulation de mise à jour - en production: appel API
-    console.log('Mise à jour tâche:', taskId, taskUpdate[taskId]);
-    alert('Mise à jour envoyée au manager pour validation');
+  const submitTaskUpdate = async (taskId) => {
+    try {
+      const updates = taskUpdate[taskId];
+      if (!updates) return;
+      
+      await tasksService.update(taskId, {
+        status: updates.status,
+        actual_hours: updates.actualHours
+      });
+      
+      // Mettre à jour la tâche localement
+      setTasks(tasks.map(task => 
+        task.id === taskId 
+          ? { ...task, status: updates.status, actual_hours: updates.actualHours }
+          : task
+      ));
+      
+      // Réinitialiser les mises à jour
+      setTaskUpdate(prev => {
+        const newUpdate = { ...prev };
+        delete newUpdate[taskId];
+        return newUpdate;
+      });
+      
+      alert('Mise à jour envoyée au manager pour validation');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      alert('Erreur lors de la mise à jour de la tâche');
+    }
   };
 
   const completedTasks = myTasks.filter(task => task.status === 'completed').length;
   const inProgressTasks = myTasks.filter(task => task.status === 'in_progress').length;
   const pendingTasks = myTasks.filter(task => task.status === 'pending').length;
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement de vos tâches...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -156,15 +211,15 @@ const EmployeeTasksPage = () => {
                     <div className="flex items-center gap-6 text-sm text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span>Échéance: {new Date(task.dueDate).toLocaleDateString('fr-FR')}</span>
+                        <span>Échéance: {new Date(task.due_date).toLocaleDateString('fr-FR')}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>Estimé: {task.estimatedHours}h</span>
+                        <span>Estimé: {task.estimated_hours}h</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>Réalisé: {task.actualHours}h</span>
+                        <span>Réalisé: {task.actual_hours || 0}h</span>
                       </div>
                     </div>
 
@@ -207,8 +262,8 @@ const EmployeeTasksPage = () => {
                         <input
                           type="number"
                           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                          value={taskUpdate[task.id]?.actualHours || task.actualHours}
-                          onChange={(e) => handleHoursUpdate(task.id, parseInt(e.target.value))}
+                          value={taskUpdate[task.id]?.actualHours || task.actual_hours || 0}
+                          onChange={(e) => handleHoursUpdate(task.id, parseFloat(e.target.value))}
                           min="0"
                           step="0.5"
                         />
@@ -239,17 +294,17 @@ const EmployeeTasksPage = () => {
 
                 {/* Validation manager */}
                 {task.status === 'completed' && (
-                  <div className={`mt-4 p-4 rounded-lg ${task.validatedByManager ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+                  <div className={`mt-4 p-4 rounded-lg ${task.validated_by_manager ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-4 h-4" />
                       <span className="font-medium text-sm">
-                        {task.validatedByManager ? 'Validé par le manager' : 'En attente de validation'}
+                        {task.validated_by_manager ? 'Validé par le manager' : 'En attente de validation'}
                       </span>
                     </div>
-                    {task.managerComments && (
+                    {task.manager_comments && (
                       <div className="flex items-start gap-2">
                         <MessageSquare className="w-4 h-4 text-gray-500 mt-0.5" />
-                        <p className="text-sm text-gray-700">{task.managerComments}</p>
+                        <p className="text-sm text-gray-700">{task.manager_comments}</p>
                       </div>
                     )}
                   </div>

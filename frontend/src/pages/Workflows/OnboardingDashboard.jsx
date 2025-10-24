@@ -1,42 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
+import { hrService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import PermissionGuard from "../../components/auth/PermissionGuard";
 import { UserPlus, CheckCircle, Clock, AlertTriangle, Users, Calendar, Settings } from "lucide-react";
-import { workflowTemplates } from "../../data/mockData";
 
 const OnboardingDashboard = () => {
   const { currentUser, currentCompany } = useAuthStore();
   const [activeTab, setActiveTab] = useState("active");
+  const [activeWorkflows, setActiveWorkflows] = useState([]);
+  const [workflowTemplates, setWorkflowTemplates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Simulation de workflows actifs
-  const activeWorkflows = [
-    {
-      id: 1,
-      employeeName: "Alice Dupont",
-      position: "Développeuse Frontend",
-      startDate: "2025-02-01",
-      progress: 60,
-      tasksCompleted: 3,
-      totalTasks: 5,
-      status: "in_progress",
-      daysRemaining: 3
-    },
-    {
-      id: 2,
-      employeeName: "Marc Lambert",
-      position: "Designer UX",
-      startDate: "2025-01-28",
-      progress: 100,
-      tasksCompleted: 4,
-      totalTasks: 4,
-      status: "completed",
-      daysRemaining: 0
-    }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [workflows, templates] = await Promise.all([
+          hrService.workflows.getActive(),
+          hrService.workflows.getTemplates()
+        ]);
+        setActiveWorkflows(workflows || []);
+        setWorkflowTemplates(templates || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        setActiveWorkflows([]);
+        setWorkflowTemplates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -159,8 +156,13 @@ const OnboardingDashboard = () => {
 
         {/* Contenu des onglets */}
         {activeTab === 'active' && (
-          <div className="space-y-4">
-            {activeWorkflows.filter(w => w.status === 'in_progress').map((workflow) => (
+          loading ? (
+            <div className="text-center py-8">
+              <p>Chargement des workflows...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {activeWorkflows.filter(w => w.status === 'in_progress').map((workflow) => (
               <Card key={workflow.id} className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -203,13 +205,19 @@ const OnboardingDashboard = () => {
                   </div>
                 </div>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
 
         {activeTab === 'templates' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {workflowTemplates.map((template) => (
+          loading ? (
+            <div className="text-center py-8">
+              <p>Chargement des templates...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {workflowTemplates.map((template) => (
               <Card key={template.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
@@ -238,8 +246,9 @@ const OnboardingDashboard = () => {
                   </Button>
                 </div>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </DashboardLayout>

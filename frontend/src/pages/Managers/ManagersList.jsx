@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Building2, Mail, Phone, Calendar, MoreVertical, UserMinus, Edit, Eye } from 'lucide-react';
-import { employees, departments, users } from '../../data/mockData';
+import { hrService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 import ManagerDetails from './ManagerDetails';
 
@@ -8,15 +8,32 @@ const ManagersList = () => {
   const { user } = useAuthStore();
   const [showRevokeModal, setShowRevokeModal] = useState(null);
   const [selectedManager, setSelectedManager] = useState(null);
+  const [managers, setManagers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const managers = users.filter(u => u.role === 'manager').map(manager => {
-    const employee = employees.find(emp => emp.id === manager.employeeId);
-    const department = departments.find(dept => dept.managerId === manager.id);
-    return { ...manager, employee, department };
-  });
+  useEffect(() => {
+    const loadManagers = async () => {
+      try {
+        const managersData = await hrService.managers.getAll();
+        setManagers(managersData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des managers:', error);
+        setManagers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadManagers();
+  }, []);
 
-  const handleRevoke = (managerId) => {
-    console.log('Révoquer manager:', managerId);
+  const handleRevoke = async (managerId) => {
+    try {
+      await hrService.managers.revoke(managerId);
+      const managersData = await hrService.managers.getAll();
+      setManagers(managersData || []);
+    } catch (error) {
+      console.error('Erreur lors de la révocation:', error);
+    }
     setShowRevokeModal(null);
   };
 
@@ -40,8 +57,13 @@ const ManagersList = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {managers.map((manager) => (
+      {loading ? (
+        <div className="text-center py-8">
+          <p>Chargement des managers...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {managers.map((manager) => (
           <div key={manager.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -52,9 +74,9 @@ const ManagersList = () => {
                 />
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {manager.firstName} {manager.lastName}
+                    {manager.first_name} {manager.last_name}
                   </h3>
-                  <p className="text-sm text-gray-600">{manager.employee?.position}</p>
+                  <p className="text-sm text-gray-600">{manager.position}</p>
                 </div>
               </div>
               
@@ -82,7 +104,7 @@ const ManagersList = () => {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                <span>Depuis {new Date(manager.createdDate).toLocaleDateString('fr-FR')}</span>
+                <span>Depuis {new Date(manager.created_at || manager.createdDate).toLocaleDateString('fr-FR')}</span>
               </div>
             </div>
 
@@ -119,10 +141,11 @@ const ManagersList = () => {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {managers.length === 0 && (
+      {!loading && managers.length === 0 && (
         <div className="text-center py-12">
           <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun manager</h3>

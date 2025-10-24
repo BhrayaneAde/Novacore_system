@@ -1,61 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { employeesService } from "../../../services";
 import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical } from "lucide-react";
 
 const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const employeesData = await employeesService.getAll();
+        setEmployees(employeesData.data || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des employés:', error);
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadEmployees();
+  }, []);
   
-  const employees = [
-    {
-      id: 1,
-      name: "Marie Dubois",
-      email: "marie.dubois@techcorp.com",
-      role: "Développeuse Senior",
-      department: "Développement",
-      status: "active",
-      hireDate: "2022-03-15",
-      salary: 65000,
-      phone: "+33 6 12 34 56 78"
-    },
-    {
-      id: 2,
-      name: "Thomas Martin",
-      email: "thomas.martin@techcorp.com",
-      role: "Chef de Projet",
-      department: "Management",
-      status: "active",
-      hireDate: "2021-09-01",
-      salary: 75000,
-      phone: "+33 6 23 45 67 89"
-    },
-    {
-      id: 3,
-      name: "Sophie Laurent",
-      email: "sophie.laurent@techcorp.com",
-      role: "Designer UX/UI",
-      department: "Design",
-      status: "active",
-      hireDate: "2023-01-10",
-      salary: 55000,
-      phone: "+33 6 34 56 78 90"
-    },
-    {
-      id: 4,
-      name: "Pierre Moreau",
-      email: "pierre.moreau@techcorp.com",
-      role: "Responsable Marketing",
-      department: "Marketing",
-      status: "leave",
-      hireDate: "2020-11-20",
-      salary: 68000,
-      phone: "+33 6 45 67 89 01"
-    }
-  ];
-  
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    (selectedDepartment === 'all' || emp.department === selectedDepartment)
-  );
+  const filteredEmployees = employees.filter(emp => {
+    const fullName = `${emp.first_name} ${emp.last_name}`;
+    return fullName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+           (selectedDepartment === 'all' || emp.department === selectedDepartment);
+  });
 
 
 
@@ -64,7 +36,7 @@ const EmployeesPage = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des employés</h1>
-        <p className="text-gray-600">{employees.length} employés au total</p>
+        <p className="text-gray-600">{loading ? 'Chargement...' : `${employees.length} employés au total`}</p>
       </div>
 
       {/* Stats Cards */}
@@ -84,7 +56,7 @@ const EmployeesPage = () => {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <UserPlus className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-2xl font-bold text-green-600">{employees.filter(e => e.status === 'active').length}</span>
+            <span className="text-2xl font-bold text-green-600">{employees.filter(e => e.is_active).length}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Employés actifs</h3>
           <p className="text-sm text-gray-600">En poste</p>
@@ -94,7 +66,7 @@ const EmployeesPage = () => {
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-2xl font-bold text-orange-600">{employees.filter(e => e.status === 'leave').length}</span>
+            <span className="text-2xl font-bold text-orange-600">{employees.filter(e => !e.is_active).length}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">En congé</h3>
           <p className="text-sm text-gray-600">Temporairement</p>
@@ -170,16 +142,16 @@ const EmployeesPage = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">
-                          {employee.name.split(' ').map(n => n[0]).join('')}
+                          {employee.first_name?.[0]}{employee.last_name?.[0]}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{employee.name}</p>
+                        <p className="font-medium text-gray-900">{employee.first_name} {employee.last_name}</p>
                         <p className="text-sm text-gray-500">{employee.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-gray-900">{employee.role}</td>
+                  <td className="py-4 px-6 text-gray-900">{employee.position}</td>
                   <td className="py-4 px-6">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {employee.department}
@@ -187,17 +159,17 @@ const EmployeesPage = () => {
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      employee.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      employee.is_active ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {employee.status === 'active' ? 'Actif' : 'En congé'}
+                      {employee.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-gray-600">
-                    {new Date(employee.hireDate).toLocaleDateString('fr-FR')}
+                    {new Date(employee.hire_date).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="py-4 px-6">
                     <span className="font-semibold text-gray-900">
-                      {employee.salary.toLocaleString('fr-FR')} €
+                      {employee.salary?.toLocaleString('fr-FR') || 'N/A'} €
                     </span>
                   </td>
                   <td className="py-4 px-6">

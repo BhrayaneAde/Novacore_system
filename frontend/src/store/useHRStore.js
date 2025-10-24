@@ -1,54 +1,93 @@
 import { create } from "zustand";
-import {
-  employees as initialEmployees,
-  attendanceRecords as initialAttendance,
-  leaveRequests as initialLeaveRequests,
-  payrollRecords as initialPayroll,
-  performanceReviews as initialPerformance,
-  jobOpenings as initialJobOpenings,
-  candidates as initialCandidates,
-  departments as initialDepartments,
-  documentTypes,
-  employeeHistory,
-  sharedDocuments as initialSharedDocuments,
-  shareNotifications as initialShareNotifications,
-  shareGroups,
-  companies,
-  users,
-  roles,
-} from "../data/mockData";
+import { 
+  employeesService, 
+  usersService, 
+  hrService, 
+  leavesService, 
+  performanceService,
+  tasksService 
+} from "../services";
 
 export const useHRStore = create((set, get) => ({
   // 👥 Employés
-  employees: initialEmployees,
+  employees: [],
   
   // 🤝 Partage de documents
-  sharedDocuments: initialSharedDocuments,
-  shareNotifications: initialShareNotifications,
+  sharedDocuments: [],
+  shareNotifications: [],
   
   // 🏢 Multi-tenant
-  companies: companies,
-  users: users,
-  roles: roles,
-  addEmployee: (employee) =>
-    set((state) => ({
-      employees: [...state.employees, { 
-        ...employee, 
-        id: Date.now(),
-        documents: employee.documents || [],
-        companyId: employee.companyId // Assurer l'appartenance à l'entreprise
-      }],
-    })),
-  updateEmployee: (id, updates) =>
-    set((state) => ({
-      employees: state.employees.map((emp) =>
-        emp.id === id ? { ...emp, ...updates } : emp
-      ),
-    })),
-  deleteEmployee: (id) =>
-    set((state) => ({
-      employees: state.employees.filter((emp) => emp.id !== id),
-    })),
+  companies: [],
+  users: [],
+  departments: [],
+  leaveRequests: [],
+  payrollRecords: [],
+  performanceReviews: [],
+  jobOpenings: [],
+  candidates: [],
+  attendanceRecords: [],
+  
+  // État de chargement
+  loading: false,
+  
+  // Initialisation des données
+  initializeData: async () => {
+    set({ loading: true });
+    try {
+      const [employeesRes, usersRes, departmentsRes, leavesRes] = await Promise.all([
+        employeesService.getAll().catch(() => ({ data: [] })),
+        usersService.getAll().catch(() => ({ data: [] })),
+        hrService.departments.getAll().catch(() => ({ data: [] })),
+        leavesService.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      set({
+        employees: employeesRes.data || [],
+        users: usersRes.data || [],
+        departments: departmentsRes.data || [],
+        leaveRequests: leavesRes.data || [],
+        loading: false
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation:', error);
+      set({ loading: false });
+    }
+  },
+  addEmployee: async (employeeData) => {
+    try {
+      const newEmployee = await employeesService.create(employeeData);
+      set((state) => ({
+        employees: [...state.employees, newEmployee]
+      }));
+      return { success: true, employee: newEmployee };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de l\'ajout' };
+    }
+  },
+  updateEmployee: async (id, updates) => {
+    try {
+      const updatedEmployee = await employeesService.update(id, updates);
+      set((state) => ({
+        employees: state.employees.map((emp) =>
+          emp.id === id ? updatedEmployee : emp
+        )
+      }));
+      return { success: true, employee: updatedEmployee };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la mise à jour' };
+    }
+  },
+  deleteEmployee: async (id) => {
+    try {
+      await employeesService.delete(id);
+      set((state) => ({
+        employees: state.employees.filter((emp) => emp.id !== id)
+      }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la suppression' };
+    }
+  },
   
   // 📄 Gestion des documents
   addEmployeeDocument: (employeeId, document) =>
@@ -90,82 +129,155 @@ export const useHRStore = create((set, get) => ({
     
     const searchTerm = query.toLowerCase();
     return employees.filter(emp => 
-      emp.name.toLowerCase().includes(searchTerm) ||
-      emp.email.toLowerCase().includes(searchTerm) ||
-      emp.role.toLowerCase().includes(searchTerm) ||
-      emp.department.toLowerCase().includes(searchTerm)
+      `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(searchTerm) ||
+      emp.email?.toLowerCase().includes(searchTerm) ||
+      emp.position?.toLowerCase().includes(searchTerm) ||
+      emp.department?.name?.toLowerCase().includes(searchTerm)
     );
   },
 
   // 📅 Présences et congés
-  attendanceRecords: initialAttendance,
-  leaveRequests: initialLeaveRequests,
-  addLeaveRequest: (request) =>
-    set((state) => ({
-      leaveRequests: [...state.leaveRequests, { ...request, id: Date.now() }],
-    })),
-  updateLeaveRequest: (id, updates) =>
-    set((state) => ({
-      leaveRequests: state.leaveRequests.map((req) =>
-        req.id === id ? { ...req, ...updates } : req
-      ),
-    })),
+  addLeaveRequest: async (requestData) => {
+    try {
+      const newRequest = await leavesService.create(requestData);
+      set((state) => ({
+        leaveRequests: [...state.leaveRequests, newRequest]
+      }));
+      return { success: true, request: newRequest };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la demande' };
+    }
+  },
+  
+  updateLeaveRequest: async (id, updates) => {
+    try {
+      const updatedRequest = await leavesService.update(id, updates);
+      set((state) => ({
+        leaveRequests: state.leaveRequests.map((req) =>
+          req.id === id ? updatedRequest : req
+        )
+      }));
+      return { success: true, request: updatedRequest };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la mise à jour' };
+    }
+  },
 
   // 💰 Paie
-  payrollRecords: initialPayroll,
-  addPayrollRecord: (record) =>
-    set((state) => ({
-      payrollRecords: [...state.payrollRecords, { ...record, id: Date.now() }],
-    })),
-  updatePayrollRecord: (id, updates) =>
-    set((state) => ({
-      payrollRecords: state.payrollRecords.map((rec) =>
-        rec.id === id ? { ...rec, ...updates } : rec
-      ),
-    })),
+  addPayrollRecord: async (recordData) => {
+    try {
+      // À implémenter selon l'API de paie
+      const newRecord = { ...recordData, id: Date.now() };
+      set((state) => ({
+        payrollRecords: [...state.payrollRecords, newRecord]
+      }));
+      return { success: true, record: newRecord };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de l\'ajout du record de paie' };
+    }
+  },
+  
+  updatePayrollRecord: async (id, updates) => {
+    try {
+      set((state) => ({
+        payrollRecords: state.payrollRecords.map((rec) =>
+          rec.id === id ? { ...rec, ...updates } : rec
+        )
+      }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de la mise à jour' };
+    }
+  },
 
   // 🎯 Performance
-  performanceReviews: initialPerformance,
-  addPerformanceReview: (review) =>
-    set((state) => ({
-      performanceReviews: [
-        ...state.performanceReviews,
-        { ...review, id: Date.now() },
-      ],
-    })),
-  updatePerformanceReview: (id, updates) =>
-    set((state) => ({
-      performanceReviews: state.performanceReviews.map((rev) =>
-        rev.id === id ? { ...rev, ...updates } : rev
-      ),
-    })),
+  addPerformanceReview: async (reviewData) => {
+    try {
+      const newReview = await performanceService.create(reviewData);
+      set((state) => ({
+        performanceReviews: [...state.performanceReviews, newReview]
+      }));
+      return { success: true, review: newReview };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de l\'ajout' };
+    }
+  },
+  
+  updatePerformanceReview: async (id, updates) => {
+    try {
+      const updatedReview = await performanceService.update(id, updates);
+      set((state) => ({
+        performanceReviews: state.performanceReviews.map((rev) =>
+          rev.id === id ? updatedReview : rev
+        )
+      }));
+      return { success: true, review: updatedReview };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la mise à jour' };
+    }
+  },
 
   // 👔 Recrutement
-  jobOpenings: initialJobOpenings,
-  candidates: initialCandidates,
-  addJobOpening: (job) =>
-    set((state) => ({
-      jobOpenings: [...state.jobOpenings, { ...job, id: Date.now() }],
-    })),
-  updateJobOpening: (id, updates) =>
-    set((state) => ({
-      jobOpenings: state.jobOpenings.map((job) =>
-        job.id === id ? { ...job, ...updates } : job
-      ),
-    })),
-  addCandidate: (candidate) =>
-    set((state) => ({
-      candidates: [...state.candidates, { ...candidate, id: Date.now() }],
-    })),
-  updateCandidate: (id, updates) =>
-    set((state) => ({
-      candidates: state.candidates.map((cand) =>
-        cand.id === id ? { ...cand, ...updates } : cand
-      ),
-    })),
+  addJobOpening: async (jobData) => {
+    try {
+      const newJob = { ...jobData, id: Date.now() };
+      set((state) => ({
+        jobOpenings: [...state.jobOpenings, newJob]
+      }));
+      return { success: true, job: newJob };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de l\'ajout' };
+    }
+  },
+  
+  updateJobOpening: async (id, updates) => {
+    try {
+      set((state) => ({
+        jobOpenings: state.jobOpenings.map((job) =>
+          job.id === id ? { ...job, ...updates } : job
+        )
+      }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de la mise à jour' };
+    }
+  },
+  
+  addCandidate: async (candidateData) => {
+    try {
+      const newCandidate = { ...candidateData, id: Date.now() };
+      set((state) => ({
+        candidates: [...state.candidates, newCandidate]
+      }));
+      return { success: true, candidate: newCandidate };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de l\'ajout' };
+    }
+  },
+  
+  updateCandidate: async (id, updates) => {
+    try {
+      set((state) => ({
+        candidates: state.candidates.map((cand) =>
+          cand.id === id ? { ...cand, ...updates } : cand
+        )
+      }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: 'Erreur lors de la mise à jour' };
+    }
+  },
 
   // 🏢 Départements
-  departments: initialDepartments,
+  loadDepartments: async () => {
+    try {
+      const response = await hrService.departments.getAll();
+      set({ departments: response.data || [] });
+      return { success: true, departments: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors du chargement' };
+    }
+  },
 
   // 🌙 Dark Mode
   darkMode: false,
@@ -175,19 +287,17 @@ export const useHRStore = create((set, get) => ({
   searchQuery: "",
   setSearchQuery: (query) => set({ searchQuery: query }),
   
-  // 📈 Statistiques (filtrées par entreprise)
-  getEmployeeStats: (companyId = null) => {
+  // 📈 Statistiques
+  getEmployeeStats: () => {
     const { employees } = get();
-    const filteredEmployees = companyId 
-      ? employees.filter(emp => emp.companyId === companyId)
-      : employees;
       
-    const totalEmployees = filteredEmployees.length;
-    const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active').length;
-    const onLeaveEmployees = filteredEmployees.filter(emp => emp.status === 'on_leave').length;
+    const totalEmployees = employees.length;
+    const activeEmployees = employees.filter(emp => emp.status === 'active').length;
+    const onLeaveEmployees = employees.filter(emp => emp.status === 'on_leave').length;
     
-    const departmentStats = filteredEmployees.reduce((acc, emp) => {
-      acc[emp.department] = (acc[emp.department] || 0) + 1;
+    const departmentStats = employees.reduce((acc, emp) => {
+      const deptName = emp.department?.name || 'Non assigné';
+      acc[deptName] = (acc[deptName] || 0) + 1;
       return acc;
     }, {});
     
@@ -199,31 +309,52 @@ export const useHRStore = create((set, get) => ({
     };
   },
   
-  // Filtrage des employés par entreprise
-  getCompanyEmployees: (companyId) => {
+  // Filtrage des employés
+  getActiveEmployees: () => {
     const { employees } = get();
-    return employees.filter(emp => emp.companyId === companyId);
+    return employees.filter(emp => emp.status === 'active');
   },
   
   // Gestion des utilisateurs
-  addUser: (userData) =>
-    set((state) => ({
-      users: [...state.users, { ...userData, id: Date.now() }]
-    })),
+  addUser: async (userData) => {
+    try {
+      const newUser = await usersService.create(userData);
+      set((state) => ({
+        users: [...state.users, newUser]
+      }));
+      return { success: true, user: newUser };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de l\'ajout' };
+    }
+  },
     
-  updateUser: (userId, updates) =>
-    set((state) => ({
-      users: state.users.map(user =>
-        user.id === userId ? { ...user, ...updates } : user
-      )
-    })),
+  updateUser: async (userId, updates) => {
+    try {
+      const updatedUser = await usersService.update(userId, updates);
+      set((state) => ({
+        users: state.users.map(user =>
+          user.id === userId ? updatedUser : user
+        )
+      }));
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la mise à jour' };
+    }
+  },
     
-  deactivateUser: (userId) =>
-    set((state) => ({
-      users: state.users.map(user =>
-        user.id === userId ? { ...user, isActive: false } : user
-      )
-    })),
+  deactivateUser: async (userId) => {
+    try {
+      await usersService.deactivate(userId);
+      set((state) => ({
+        users: state.users.map(user =>
+          user.id === userId ? { ...user, is_active: false } : user
+        )
+      }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.detail || 'Erreur lors de la désactivation' };
+    }
+  },
   
   // 🤝 Actions de partage de documents
   shareDocument: (documentId, ownerId, sharedWithIds, permissions, options = {}) =>

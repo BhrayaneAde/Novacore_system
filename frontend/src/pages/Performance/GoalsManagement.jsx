@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { performanceService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -6,12 +7,23 @@ import Badge from "../../components/ui/Badge";
 import { Plus, Target } from "lucide-react";
 
 const GoalsManagement = () => {
-  const goals = [
-    { id: 1, title: "Livrer le projet X", employee: "Sophie Martin", progress: 100, status: "completed" },
-    { id: 2, title: "Mentorer 2 juniors", employee: "Sophie Martin", progress: 75, status: "in_progress" },
-    { id: 3, title: "Refonte UI Dashboard", employee: "Thomas Dubois", progress: 100, status: "completed" },
-    { id: 4, title: "Design System v2", employee: "Thomas Dubois", progress: 60, status: "in_progress" },
-  ];
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadGoals = async () => {
+      try {
+        const goalsData = await performanceService.getAllGoals();
+        setGoals(goalsData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des objectifs:', error);
+        setGoals([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadGoals();
+  }, []);
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return "bg-green-500";
@@ -27,8 +39,13 @@ const GoalsManagement = () => {
           <Button icon={Plus}>Nouvel objectif</Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {goals.map((goal) => (
+        {loading ? (
+          <div className="text-center py-8">
+            <p>Chargement des objectifs...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {goals.map((goal) => (
             <Card key={goal.id}>
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
@@ -72,8 +89,9 @@ const GoalsManagement = () => {
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -1,147 +1,123 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useHRStore } from "../../store/useHRStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import { ArrowLeft, Save } from "lucide-react";
+import { employeesService } from "../../services";
 
 const EmployeeEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { employees, updateEmployee } = useHRStore();
-  
-  const employee = employees.find((emp) => emp.id === parseInt(id));
-  const [formData, setFormData] = useState(employee || {});
+  const [loading, setLoading] = useState(false);
+  const [employee, setEmployee] = useState(null);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    position: "",
+    department: "",
+    hire_date: "",
+    salary: "",
+    manager_id: ""
+  });
 
-  if (!employee) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900">Employé non trouvé</h2>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  useEffect(() => {
+    loadEmployee();
+  }, [id]);
 
-  const handleSubmit = (e) => {
+  const loadEmployee = async () => {
+    try {
+      setLoading(true);
+      const data = await employeesService.getById(id);
+      setEmployee(data);
+      setFormData({
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        position: data.position || "",
+        department: data.department || "",
+        hire_date: data.hire_date || "",
+        salary: data.salary || "",
+        manager_id: data.manager_id || ""
+      });
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'employé:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateEmployee(parseInt(id), formData);
-    navigate(`/app/employees/${id}`);
+    try {
+      setLoading(true);
+      await employeesService.update(id, formData);
+      navigate("/employees");
+    } catch (error) {
+      console.error("Erreur lors de la modification:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  if (loading && !employee) return <div>Chargement...</div>;
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" icon={ArrowLeft} onClick={() => navigate(`/app/employees/${id}`)}>
-            Retour
-          </Button>
-          <h1 className="text-3xl font-semibold tracking-tight">Modifier l'employé</h1>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <Card>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <h1 className="text-3xl font-semibold">Modifier l'employé</h1>
+        <Card>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium mb-1">Prénom</label>
+                <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} className="w-full p-2 border rounded" required />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium mb-1">Nom</label>
+                <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} className="w-full p-2 border rounded" required />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Poste</label>
-                <input
-                  type="text"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-2 border rounded" required />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Département</label>
-                <select
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Développement">Développement</option>
-                  <option value="Design">Design</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Ventes">Ventes</option>
-                  <option value="Support">Support</option>
-                </select>
+                <label className="block text-sm font-medium mb-1">Téléphone</label>
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full p-2 border rounded" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium mb-1">Poste</label>
+                <input type="text" name="position" value={formData.position} onChange={handleChange} className="w-full p-2 border rounded" required />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Salaire annuel (€)</label>
-                <input
-                  type="number"
-                  name="salary"
-                  value={formData.salary}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium mb-1">Département</label>
+                <input type="text" name="department" value={formData.department} onChange={handleChange} className="w-full p-2 border rounded" required />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="active">Actif</option>
-                  <option value="on_leave">En congé</option>
-                </select>
+                <label className="block text-sm font-medium mb-1">Date d'embauche</label>
+                <input type="date" name="hire_date" value={formData.hire_date} onChange={handleChange} className="w-full p-2 border rounded" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Salaire</label>
+                <input type="number" name="salary" value={formData.salary} onChange={handleChange} className="w-full p-2 border rounded" />
               </div>
             </div>
-
-            <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
-              <Button type="button" variant="outline" onClick={() => navigate(`/app/employees/${id}`)} className="flex-1">
+            <div className="flex gap-2">
+              <Button type="submit" disabled={loading}>
+                {loading ? "Modification..." : "Modifier"}
+              </Button>
+              <Button type="button" variant="outline" onClick={() => navigate("/employees")}>
                 Annuler
               </Button>
-              <Button type="submit" icon={Save} className="flex-1">
-                Enregistrer les modifications
-              </Button>
             </div>
-          </Card>
-        </form>
+          </form>
+        </Card>
       </div>
     </DashboardLayout>
   );

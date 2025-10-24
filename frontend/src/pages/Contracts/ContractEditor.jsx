@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Play, FileText, Plus, Trash2, Download, Save, Eye, Edit3 } from 'lucide-react';
-import { employees } from '../../data/mockData';
+import { employeesService } from '../../services';
 import jsPDF from 'jspdf';
 
 const ContractEditor = ({ onBack }) => {
@@ -14,6 +14,26 @@ const ContractEditor = ({ onBack }) => {
   const [companyLogo, setCompanyLogo] = useState(null);
   const [currentArticleId, setCurrentArticleId] = useState(null);
   const [nextArticleId, setNextArticleId] = useState(7);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentView === 'employeeSelect') {
+      loadEmployees();
+    }
+  }, [currentView]);
+
+  const loadEmployees = async () => {
+    setLoading(true);
+    try {
+      const response = await employeesService.getAll();
+      setEmployees(response.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des employés:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const [articles, setArticles] = useState([
     {
@@ -84,13 +104,13 @@ const ContractEditor = ({ onBack }) => {
   const handleEmployeeSelect = (employee) => {
     setSelectedEmployee(employee);
     setContractVariables({
-      'NOM EMPLOYE': employee.name || '',
-      'DATE NAISSANCE': employee.birthDate || '',
-      'LIEU NAISSANCE': employee.city || '',
+      'NOM EMPLOYE': `${employee.first_name} ${employee.last_name}` || '',
+      'DATE NAISSANCE': employee.birth_date || '',
+      'LIEU NAISSANCE': employee.birth_place || '',
       'NATIONALITE': 'Française',
       'ADRESSE EMPLOYE': employee.address || '',
-      'NUMERO SECU': employee.socialSecurityNumber || '',
-      'POSTE': employee.role || '',
+      'NUMERO SECU': employee.social_security_number || '',
+      'POSTE': employee.position || '',
       'SALAIRE': employee.salary || ''
     });
     setCurrentView('editor');
@@ -205,7 +225,7 @@ const ContractEditor = ({ onBack }) => {
       yPosition += 6;
     });
     
-    doc.save(`contrat-${selectedEmployee?.name || 'nouveau'}.pdf`);
+    doc.save(`contrat-${selectedEmployee?.first_name}-${selectedEmployee?.last_name || 'nouveau'}.pdf`);
   };
 
   // Templates View
@@ -316,26 +336,33 @@ const ContractEditor = ({ onBack }) => {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {employees.map((employee) => (
-              <div
-                key={employee.id}
-                onClick={() => handleEmployeeSelect(employee)}
-                className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {employee.name?.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{employee.name}</h3>
-                    <p className="text-sm text-gray-600">{employee.role}</p>
-                    <p className="text-xs text-gray-500">{employee.department}</p>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">Chargement des employés...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {employees.map((employee) => (
+                <div
+                  key={employee.id}
+                  onClick={() => handleEmployeeSelect(employee)}
+                  className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                      {employee.first_name?.[0]}{employee.last_name?.[0]}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{employee.first_name} {employee.last_name}</h3>
+                      <p className="text-sm text-gray-600">{employee.position}</p>
+                      <p className="text-xs text-gray-500">{employee.department?.name}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -352,7 +379,7 @@ const ContractEditor = ({ onBack }) => {
             </button>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{selectedContract?.title}</h1>
-              <p className="text-gray-600">Employé: {selectedEmployee?.name}</p>
+              <p className="text-gray-600">Employé: {selectedEmployee?.first_name} {selectedEmployee?.last_name}</p>
             </div>
           </div>
           <div className="flex gap-2">

@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Target, TrendingUp, Award, CheckCircle, Search, Filter, Star } from "lucide-react";
-import { employees } from "../../../data/mockData";
+import { employeesService, performanceService } from "../../../services";
 import { useAuthStore } from "../../../store/useAuthStore";
 
 const PerformancePage = () => {
-  const { user } = useAuthStore();
+  const { currentUser: user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [showEvaluationForm, setShowEvaluationForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [performanceReviews, setPerformanceReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [evaluationData, setEvaluationData] = useState({
     communication: 5,
     teamwork: 5,
@@ -19,9 +22,74 @@ const PerformancePage = () => {
     objectives: ''
   });
 
+  useEffect(() => {
+    loadPerformanceData();
+  }, []);
+
+  const loadPerformanceData = async () => {
+    setLoading(true);
+    try {
+      const [employeesRes, performanceRes] = await Promise.all([
+        employeesService.getAll().catch(() => ({ data: [] })),
+        performanceService.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      setEmployees(employeesRes.data || []);
+      
+      // Simuler des données de performance si l'API n'est pas encore implémentée
+      const mockPerformanceData = [
+        {
+          id: 1,
+          employeeName: "Marie Dubois",
+          period: "Q4 2023",
+          rating: 4,
+          reviewDate: "2024-01-15",
+          feedback: "Excellente performance, dépasse les attentes sur tous les objectifs.",
+          goals: [
+            { title: "Améliorer les compétences techniques", progress: 90, status: "completed" },
+            { title: "Encadrer l'équipe junior", progress: 75, status: "in_progress" },
+            { title: "Finaliser le projet client", progress: 100, status: "completed" }
+          ]
+        },
+        {
+          id: 2,
+          employeeName: "Thomas Martin",
+          period: "Q4 2023",
+          rating: 5,
+          reviewDate: "2024-01-12",
+          feedback: "Performance exceptionnelle, leadership remarquable et résultats dépassant les objectifs.",
+          goals: [
+            { title: "Optimiser les processus", progress: 95, status: "completed" },
+            { title: "Former l'équipe", progress: 85, status: "in_progress" },
+            { title: "Augmenter la productivité", progress: 100, status: "completed" }
+          ]
+        },
+        {
+          id: 3,
+          employeeName: "Sophie Laurent",
+          period: "Q4 2023",
+          rating: 3,
+          reviewDate: "2024-01-10",
+          feedback: "Bonne performance générale, quelques axes d'amélioration identifiés.",
+          goals: [
+            { title: "Améliorer la communication", progress: 60, status: "in_progress" },
+            { title: "Développer les compétences design", progress: 80, status: "in_progress" },
+            { title: "Respecter les délais", progress: 70, status: "in_progress" }
+          ]
+        }
+      ];
+      
+      setPerformanceReviews(performanceRes.data?.length > 0 ? performanceRes.data : mockPerformanceData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des données de performance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTeamMembers = () => {
     if (user?.role === 'manager') {
-      return employees.filter(emp => emp.department === user.department);
+      return employees.filter(emp => emp.department_id === user.department_id);
     }
     return employees;
   };
@@ -31,73 +99,49 @@ const PerformancePage = () => {
     setShowEvaluationForm(true);
   };
 
-  const handleSubmitEvaluation = (e) => {
+  const handleSubmitEvaluation = async (e) => {
     e.preventDefault();
-    console.log('Nouvelle évaluation:', {
-      employeeId: selectedEmployee,
-      managerId: user.id,
-      ...evaluationData
-    });
-    setShowEvaluationForm(false);
-    setSelectedEmployee(null);
-    setEvaluationData({
-      communication: 5,
-      teamwork: 5,
-      initiative: 5,
-      problemSolving: 5,
-      comments: '',
-      strengths: '',
-      improvements: '',
-      objectives: ''
-    });
+    try {
+      const newEvaluation = {
+        employee_id: selectedEmployee,
+        manager_id: user.id,
+        period: new Date().getFullYear() + '-Q' + Math.ceil((new Date().getMonth() + 1) / 3),
+        communication: evaluationData.communication,
+        teamwork: evaluationData.teamwork,
+        initiative: evaluationData.initiative,
+        problem_solving: evaluationData.problemSolving,
+        comments: evaluationData.comments,
+        strengths: evaluationData.strengths.split('\n').filter(Boolean),
+        improvements: evaluationData.improvements.split('\n').filter(Boolean),
+        objectives: evaluationData.objectives.split('\n').filter(Boolean)
+      };
+      
+      await performanceService.create(newEvaluation);
+      await loadPerformanceData(); // Recharger les données
+      
+      setShowEvaluationForm(false);
+      setSelectedEmployee(null);
+      setEvaluationData({
+        communication: 5,
+        teamwork: 5,
+        initiative: 5,
+        problemSolving: 5,
+        comments: '',
+        strengths: '',
+        improvements: '',
+        objectives: ''
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'évaluation:', error);
+    }
   };
 
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? employee.name : 'Inconnu';
+    return employee ? `${employee.first_name} ${employee.last_name}` : 'Inconnu';
   };
   
-  const performanceReviews = [
-    {
-      id: 1,
-      employeeName: "Marie Dubois",
-      period: "Q4 2023",
-      rating: 4,
-      reviewDate: "2024-01-15",
-      feedback: "Excellente performance, dépasse les attentes sur tous les objectifs.",
-      goals: [
-        { title: "Améliorer les compétences techniques", progress: 90, status: "completed" },
-        { title: "Encadrer l'équipe junior", progress: 75, status: "in_progress" },
-        { title: "Finaliser le projet client", progress: 100, status: "completed" }
-      ]
-    },
-    {
-      id: 2,
-      employeeName: "Thomas Martin",
-      period: "Q4 2023",
-      rating: 5,
-      reviewDate: "2024-01-12",
-      feedback: "Performance exceptionnelle, leadership remarquable et résultats dépassant les objectifs.",
-      goals: [
-        { title: "Optimiser les processus", progress: 95, status: "completed" },
-        { title: "Former l'équipe", progress: 85, status: "in_progress" },
-        { title: "Augmenter la productivité", progress: 100, status: "completed" }
-      ]
-    },
-    {
-      id: 3,
-      employeeName: "Sophie Laurent",
-      period: "Q4 2023",
-      rating: 3,
-      reviewDate: "2024-01-10",
-      feedback: "Bonne performance générale, quelques axes d'amélioration identifiés.",
-      goals: [
-        { title: "Améliorer la communication", progress: 60, status: "in_progress" },
-        { title: "Développer les compétences design", progress: 80, status: "in_progress" },
-        { title: "Respecter les délais", progress: 70, status: "in_progress" }
-      ]
-    }
-  ];
+
   
   const filteredReviews = performanceReviews.filter(review => 
     review.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -124,10 +168,21 @@ const PerformancePage = () => {
     return "bg-amber-500";
   };
   
-  const averageRating = performanceReviews.reduce((sum, review) => sum + review.rating, 0) / performanceReviews.length;
-  const completedGoals = performanceReviews.flatMap(r => r.goals).filter(g => g.status === 'completed').length;
-  const totalGoals = performanceReviews.flatMap(r => r.goals).length;
-  const completionRate = Math.round((completedGoals / totalGoals) * 100);
+  const averageRating = performanceReviews.length > 0 
+    ? performanceReviews.reduce((sum, review) => sum + review.rating, 0) / performanceReviews.length 
+    : 0;
+  const completedGoals = performanceReviews.flatMap(r => r.goals || []).filter(g => g.status === 'completed').length;
+  const totalGoals = performanceReviews.flatMap(r => r.goals || []).length;
+  const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement des données de performance...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6  mx-auto">
@@ -288,14 +343,14 @@ const PerformancePage = () => {
                       onClick={() => setSelectedEmployee(employee.id)}
                       className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                     >
-                      <img
-                        src={employee.avatar}
-                        alt={employee.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-600">
+                          {employee.first_name?.[0]}{employee.last_name?.[0]}
+                        </span>
+                      </div>
                       <div>
-                        <h3 className="font-medium text-gray-900">{employee.name}</h3>
-                        <p className="text-sm text-gray-600">{employee.role}</p>
+                        <h3 className="font-medium text-gray-900">{employee.first_name} {employee.last_name}</h3>
+                        <p className="text-sm text-gray-600">{employee.position}</p>
                       </div>
                     </button>
                   ))}

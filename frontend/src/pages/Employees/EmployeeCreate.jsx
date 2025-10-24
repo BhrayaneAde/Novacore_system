@@ -462,8 +462,8 @@ const EmployeeCreate = () => {
             <Button type="button" variant="outline" onClick={() => navigate("/app/employees")} className="flex-1">
               Annuler
             </Button>
-            <Button type="submit" icon={Save} className="flex-1">
-              Créer l'employé
+            <Button type="submit" icon={Save} className="flex-1" disabled={loading}>
+              {loading ? 'Création...' : 'Créer l\'employé'}
             </Button>
           </div>
         </form>

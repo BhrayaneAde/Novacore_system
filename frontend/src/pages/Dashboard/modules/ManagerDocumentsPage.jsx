@@ -1,23 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FileText, Share2, Upload, Users, Eye, Download, Plus, Send } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
-import { managerDocuments, users } from "../../../data/mockData";
+import { hrService, usersService } from "../../../services";
 
 const ManagerDocumentsPage = () => {
   const { currentUser } = useAuthStore();
-  const [documents, setDocuments] = useState(managerDocuments);
+  const [documents, setDocuments] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
 
-  // Obtenir les membres de l'équipe
-  const teamMembers = users.filter(user => user.reportsTo === currentUser?.id);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [docsData, teamData] = await Promise.all([
+          hrService.documents.getMyDocuments(),
+          usersService.getTeamMembers()
+        ]);
+        setDocuments(docsData || []);
+        setTeamMembers(teamData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        setDocuments([]);
+        setTeamMembers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  const handleShare = (docId, memberIds, message) => {
-    setDocuments(prev => prev.map(doc => 
-      doc.id === docId 
-        ? { ...doc, isShared: true, sharedWith: memberIds }
-        : doc
-    ));
+  const handleShare = async (docId, memberIds, message) => {
+    try {
+      await hrService.documents.shareDocument(docId, memberIds, message);
+      setDocuments(prev => prev.map(doc => 
+        doc.id === docId 
+          ? { ...doc, isShared: true, sharedWith: memberIds }
+          : doc
+      ));
+    } catch (error) {
+      console.error('Erreur lors du partage:', error);
+    }
     setShowShareModal(false);
   };
 
@@ -93,8 +117,8 @@ const ManagerDocumentsPage = () => {
                 <div className="mt-4 p-3 bg-green-50 rounded-lg">
                   <p className="text-sm text-green-800">
                     Partagé avec: {doc.sharedWith.map(id => {
-                      const user = users.find(u => u.id === id);
-                      return user ? `${user.firstName} ${user.lastName}` : '';
+                      const user = teamMembers.find(u => u.id === id);
+                      return user ? `${user.first_name} ${user.last_name}` : '';
                     }).join(', ')}
                   </p>
                 </div>
@@ -129,7 +153,7 @@ const ManagerDocumentsPage = () => {
                         className="w-8 h-8 rounded-full"
                       />
                       <span className="text-sm text-gray-900">
-                        {member.firstName} {member.lastName}
+                        {member.first_name} {member.last_name}
                       </span>
                     </label>
                   ))}

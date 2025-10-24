@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users, Building2, MessageSquare, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
-import { employees, departments, users } from '../../data/mockData';
-import { managerNominations, nominationStatuses } from '../../data/managerNominations';
+import { employeesService, hrService, usersService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const ManagerNomination = () => {
@@ -13,41 +12,80 @@ const ManagerNomination = () => {
     reason: '',
     comments: ''
   });
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  const [nominations, setNominations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const availableEmployees = employees.filter(emp => 
-    !departments.some(dept => dept.managerId === users.find(u => u.employeeId === emp.id)?.id)
-  );
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [employees, departments, nominationsData] = await Promise.all([
+          employeesService.getAvailableForManagement(),
+          hrService.departments.getAvailable(),
+          hrService.managers.getNominations()
+        ]);
+        setAvailableEmployees(employees || []);
+        setAvailableDepartments(departments || []);
+        setNominations(nominationsData || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        setAvailableEmployees([]);
+        setAvailableDepartments([]);
+        setNominations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-  const availableDepartments = departments.filter(dept => !dept.managerId);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Nouvelle nomination:', formData);
-    setShowForm(false);
-    setFormData({ proposedManagerId: '', departmentId: '', reason: '', comments: '' });
+    try {
+      await hrService.managers.createNomination(formData);
+      setShowForm(false);
+      setFormData({ proposedManagerId: '', departmentId: '', reason: '', comments: '' });
+      // Recharger les nominations
+      const nominationsData = await hrService.managers.getNominations();
+      setNominations(nominationsData || []);
+    } catch (error) {
+      console.error('Erreur lors de la nomination:', error);
+    }
   };
 
-  const handleApprove = (nominationId) => {
-    console.log('Approuver nomination:', nominationId);
+  const handleApprove = async (nominationId) => {
+    try {
+      await hrService.managers.approveNomination(nominationId);
+      const nominationsData = await hrService.managers.getNominations();
+      setNominations(nominationsData || []);
+    } catch (error) {
+      console.error('Erreur lors de l\'approbation:', error);
+    }
   };
 
-  const handleReject = (nominationId) => {
-    console.log('Refuser nomination:', nominationId);
+  const handleReject = async (nominationId) => {
+    try {
+      await hrService.managers.rejectNomination(nominationId);
+      const nominationsData = await hrService.managers.getNominations();
+      setNominations(nominationsData || []);
+    } catch (error) {
+      console.error('Erreur lors du refus:', error);
+    }
   };
 
   const getEmployeeName = (employeeId) => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? `${employee.firstName} ${employee.lastName}` : 'Inconnu';
+    const employee = availableEmployees.find(emp => emp.id === employeeId);
+    return employee ? `${employee.first_name} ${employee.last_name}` : 'Inconnu';
   };
 
   const getDepartmentName = (deptId) => {
-    const dept = departments.find(d => d.id === deptId);
+    const dept = availableDepartments.find(d => d.id === deptId);
     return dept ? dept.name : 'Inconnu';
   };
 
   const getProposerName = (userId) => {
-    const proposer = users.find(u => u.id === userId);
-    return proposer ? `${proposer.firstName} ${proposer.lastName}` : 'Inconnu';
+    return 'Utilisateur'; // Simplifié pour l'instant
   };
 
   const canNominate = user?.role === 'employer' || user?.role === 'hr_admin';
@@ -88,7 +126,7 @@ const ManagerNomination = () => {
                   <option value="">Sélectionner un employé</option>
                   {availableEmployees.map(emp => (
                     <option key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName} - {emp.position}
+                      {emp.first_name} {emp.last_name} - {emp.position}
                     </option>
                   ))}
                 </select>
@@ -160,9 +198,22 @@ const ManagerNomination = () => {
           <h2 className="text-lg font-semibold text-gray-900">Demandes de Nomination</h2>
         </div>
         <div className="divide-y divide-gray-200">
-          {managerNominations.map((nomination) => {
-            const status = nominationStatuses[nomination.status];
-            const proposedEmployee = employees.find(emp => emp.id === nomination.proposedManagerId);
+          {loading ? (
+            <div className="p-6 text-center">
+              <p>Chargement des nominations...</p>
+            </div>
+          ) : (
+            nominations.map((nomination) => {
+              const getStatusInfo = (status) => {
+                const statusMap = {
+                  pending: { label: 'En attente', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
+                  approved: { label: 'Approuvé', bgColor: 'bg-green-100', textColor: 'text-green-800' },
+                  rejected: { label: 'Refusé', bgColor: 'bg-red-100', textColor: 'text-red-800' }
+                };
+                return statusMap[status] || statusMap.pending;
+              };
+              const status = getStatusInfo(nomination.status);
+              const proposedEmployee = availableEmployees.find(emp => emp.id === nomination.proposedManagerId);
             
             return (
               <div key={nomination.id} className="p-6">
@@ -174,7 +225,7 @@ const ManagerNomination = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {proposedEmployee ? `${proposedEmployee.firstName} ${proposedEmployee.lastName}` : 'Employé inconnu'}
+                          {proposedEmployee ? `${proposedEmployee.first_name} ${proposedEmployee.last_name}` : 'Employé inconnu'}
                         </h3>
                         <p className="text-sm text-gray-600">
                           Proposé pour: {getDepartmentName(nomination.departmentId)}
@@ -245,7 +296,8 @@ const ManagerNomination = () => {
                 </div>
               </div>
             );
-          })}
+            })
+          )}
         </div>
       </div>
     </div>

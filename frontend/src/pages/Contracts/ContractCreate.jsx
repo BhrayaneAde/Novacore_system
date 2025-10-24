@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { employeesService, hrService } from "../../services";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -15,6 +16,8 @@ import ContractSummary from "./components/ContractSummary";
 const ContractCreate = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     // Étape 1: Type de contrat
     contractType: "",
@@ -85,11 +88,20 @@ const ContractCreate = () => {
     },
   ];
 
-  const employees = [
-    { id: 1, name: "Jean Dupont", department: "IT", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Marie Martin", department: "RH", avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: 3, name: "Pierre Bernard", department: "Finance", avatar: "https://i.pravatar.cc/150?img=3" },
-  ];
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const employeesData = await employeesService.getAll();
+        setEmployees(employeesData.data || []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des employés:', error);
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadEmployees();
+  }, []);
 
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -103,9 +115,13 @@ const ContractCreate = () => {
     setStep(step - 1);
   };
 
-  const handleSubmit = () => {
-    console.log("Génération du contrat:", formData);
-    navigate("/app/contracts/preview", { state: { contractData: formData } });
+  const handleSubmit = async () => {
+    try {
+      const contract = await hrService.contracts.create(formData);
+      navigate("/app/contracts/preview", { state: { contractData: contract } });
+    } catch (error) {
+      console.error('Erreur lors de la création du contrat:', error);
+    }
   };
 
   const steps = [
@@ -157,14 +173,20 @@ const ContractCreate = () => {
         {step === 2 && (
           <Card>
             <h2 className="text-xl font-semibold mb-4">Sélectionnez un employé</h2>
-            <EmployeeSelector
-              employees={employees}
-              selectedId={formData.employeeId}
-              onSelect={(employee) => {
-                handleChange("employeeId", employee.id);
-                handleChange("employeeName", employee.name);
-              }}
-            />
+            {loading ? (
+              <div className="text-center py-8">
+                <p>Chargement des employés...</p>
+              </div>
+            ) : (
+              <EmployeeSelector
+                employees={employees}
+                selectedId={formData.employeeId}
+                onSelect={(employee) => {
+                  handleChange("employeeId", employee.id);
+                  handleChange("employeeName", `${employee.first_name} ${employee.last_name}`);
+                }}
+              />
+            )}
             <div className="mt-6 flex justify-between">
               <Button variant="outline" onClick={handlePrevious}>
                 Précédent

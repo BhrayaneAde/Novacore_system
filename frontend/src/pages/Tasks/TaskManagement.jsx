@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, User, AlertCircle, CheckCircle, Play, Pause, CheckSquare } from 'lucide-react';
-import { tasks, taskStatuses, taskPriorities } from '../../data/tasks';
-import { employees, users } from '../../data/mockData';
+import { tasksService, employeesService, usersService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const TaskManagement = () => {
   const { currentUser: user } = useAuthStore();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,14 +21,52 @@ const TaskManagement = () => {
     tags: ''
   });
 
+  // Statuts et priorités des tâches
+  const taskStatuses = {
+    pending: { label: 'En attente', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
+    in_progress: { label: 'En cours', bgColor: 'bg-blue-100', textColor: 'text-blue-800' },
+    completed: { label: 'Terminée', bgColor: 'bg-green-100', textColor: 'text-green-800' },
+    cancelled: { label: 'Annulée', bgColor: 'bg-gray-100', textColor: 'text-gray-800' }
+  };
+
+  const taskPriorities = {
+    low: { label: 'Basse', icon: '🟢', bgColor: 'bg-green-100', textColor: 'text-green-800' },
+    normal: { label: 'Normale', icon: '🟡', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' },
+    high: { label: 'Haute', icon: '🟠', bgColor: 'bg-orange-100', textColor: 'text-orange-800' },
+    urgent: { label: 'Urgente', icon: '🔴', bgColor: 'bg-red-100', textColor: 'text-red-800' }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [tasksRes, employeesRes, usersRes] = await Promise.all([
+        tasksService.getAll().catch(() => ({ data: [] })),
+        employeesService.getAll().catch(() => ({ data: [] })),
+        usersService.getAll().catch(() => ({ data: [] }))
+      ]);
+      
+      setTasks(tasksRes.data || []);
+      setEmployees(employeesRes.data || []);
+      setUsers(usersRes.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtrer les tâches selon le rôle
   const getFilteredTasks = () => {
     if (user?.role === 'manager') {
       // Manager voit les tâches de son département
-      return tasks.filter(task => task.departmentId === user.departmentId);
+      return tasks.filter(task => task.department_id === user.department_id);
     } else if (user?.role === 'employee') {
       // Employé voit ses propres tâches
-      return tasks.filter(task => task.assignedTo === user.employeeId);
+      return tasks.filter(task => task.assigned_to === user.employee_id);
     }
     // Admin/Employer voient toutes les tâches
     return tasks;
@@ -35,31 +76,54 @@ const TaskManagement = () => {
 
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? `${employee.firstName} ${employee.lastName}` : 'Inconnu';
+    return employee ? `${employee.first_name} ${employee.last_name}` : 'Inconnu';
   };
 
   const getAssignerName = (userId) => {
     const assigner = users.find(u => u.id === userId);
-    return assigner ? `${assigner.firstName} ${assigner.lastName}` : 'Inconnu';
+    return assigner ? `${assigner.first_name} ${assigner.last_name}` : 'Inconnu';
   };
 
-  const handleCreateTask = (e) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault();
-    console.log('Nouvelle tâche:', formData);
-    setShowCreateForm(false);
-    setFormData({
-      title: '',
-      description: '',
-      assignedTo: [],
-      priority: 'normal',
-      estimatedHours: '',
-      dueDate: '',
-      tags: ''
-    });
+    try {
+      const taskData = {
+        title: formData.title,
+        description: formData.description,
+        assigned_to: formData.assignedTo[0], // Prendre le premier assigné
+        priority: formData.priority,
+        estimated_hours: parseFloat(formData.estimatedHours),
+        due_date: formData.dueDate,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        status: 'pending'
+      };
+      
+      const newTask = await tasksService.create(taskData);
+      setTasks([...tasks, newTask]);
+      setShowCreateForm(false);
+      setFormData({
+        title: '',
+        description: '',
+        assignedTo: [],
+        priority: 'normal',
+        estimatedHours: '',
+        dueDate: '',
+        tags: ''
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+    }
   };
 
-  const handleStatusChange = (taskId, newStatus) => {
-    console.log('Changement statut:', taskId, newStatus);
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await tasksService.update(taskId, { status: newStatus });
+      setTasks(tasks.map(task => 
+        task.id === taskId ? { ...task, status: newStatus } : task
+      ));
+    } catch (error) {
+      console.error('Erreur lors du changement de statut:', error);
+    }
   };
 
   const canCreateTasks = user?.role === 'manager' || user?.role === 'employer' || user?.role === 'hr_admin';
@@ -69,10 +133,19 @@ const TaskManagement = () => {
 
   const getTeamMembers = () => {
     if (user?.role === 'manager') {
-      return employees.filter(emp => emp.department === user.department);
+      return employees.filter(emp => emp.department_id === user.department_id);
     }
     return employees;
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -183,7 +256,7 @@ const TaskManagement = () => {
           {filteredTasks.map((task) => {
             const status = taskStatuses[task.status];
             const priority = taskPriorities[task.priority];
-            const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'completed';
+            const isOverdue = new Date(task.due_date) < new Date() && task.status !== 'completed';
             
             return (
               <div key={task.id} className="p-6 hover:bg-gray-50 transition-colors">
@@ -209,21 +282,21 @@ const TaskManagement = () => {
                         <span className="text-gray-600">
                           {user?.role === 'employee' ? 'Assigné par' : 'Assigné à'}: {' '}
                           {user?.role === 'employee' 
-                            ? getAssignerName(task.assignedBy)
-                            : getEmployeeName(task.assignedTo)
+                            ? getAssignerName(task.assigned_by)
+                            : getEmployeeName(task.assigned_to)
                           }
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">
-                          Échéance: {new Date(task.dueDate).toLocaleDateString('fr-FR')}
+                          Échéance: {new Date(task.due_date).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-600">
-                          {task.actualHours}h / {task.estimatedHours}h
+                          {task.actual_hours || 0}h / {task.estimated_hours}h
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -245,7 +318,7 @@ const TaskManagement = () => {
                   </div>
 
                   <div className="ml-6 flex flex-col gap-2">
-                    {(canEditAllTasks || (user?.role === 'employee' && task.assignedTo === user.employeeId)) && (
+                    {(canEditAllTasks || (user?.role === 'employee' && task.assigned_to === user.employee_id)) && (
                       <select
                         value={task.status}
                         onChange={(e) => handleStatusChange(task.id, e.target.value)}
@@ -368,14 +441,14 @@ const TaskManagement = () => {
                             )}
                           </div>
                         </div>
-                        <img
-                          src={employee.avatar}
-                          alt={employee.name}
-                          className="w-9 h-9 rounded-full object-cover"
-                        />
+                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="text-sm font-medium text-blue-600">
+                            {employee.first_name?.[0]}{employee.last_name?.[0]}
+                          </span>
+                        </div>
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">{employee.name}</div>
-                          <div className="text-xs text-gray-500">{employee.role}</div>
+                          <div className="text-sm font-medium text-gray-900">{employee.first_name} {employee.last_name}</div>
+                          <div className="text-xs text-gray-500">{employee.position}</div>
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
                           <CheckSquare className="w-3.5 h-3.5" />

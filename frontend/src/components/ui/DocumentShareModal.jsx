@@ -1,21 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Share2, Users, Calendar, MessageSquare } from 'lucide-react';
 import { useHRStore } from '../../store/useHRStore';
-import { shareGroups } from '../../data/mockData';
+import { usersService, employeesService } from '../../services';
+import { useAuthStore } from '../../store/useAuthStore';
 import Button from './Button';
 
 const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
-  const { employees, shareDocument } = useHRStore();
+  const { shareDocument } = useHRStore();
+  const { currentUser } = useAuthStore();
+  const [employees, setEmployees] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [permissions, setPermissions] = useState('read');
   const [message, setMessage] = useState('');
   const [expiryDays, setExpiryDays] = useState(30);
   const [selectedGroup, setSelectedGroup] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Groupes prédéfinis
+  const shareGroups = [
+    { id: 'my_team', name: 'Mon équipe', description: 'Membres de mon équipe directe' },
+    { id: 'my_department', name: 'Mon département', description: 'Tous les membres du département' },
+    { id: 'managers', name: 'Managers', description: 'Tous les managers' },
+    { id: 'all_employees', name: 'Tous les employés', description: 'Tous les employés de l\'entreprise' }
+  ];
+
+  useEffect(() => {
+    if (isOpen) {
+      loadEmployees();
+    }
+  }, [isOpen]);
+
+  const loadEmployees = async () => {
+    setLoading(true);
+    try {
+      const response = await employeesService.getAll();
+      setEmployees(response.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des employés:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen || !document) return null;
 
-  const currentEmployee = employees.find(emp => emp.id === ownerId);
-  const availableEmployees = employees.filter(emp => emp.id !== ownerId);
+  const currentEmployee = employees.find(emp => emp.user_id === currentUser?.id);
+  const availableEmployees = employees.filter(emp => emp.user_id !== currentUser?.id);
 
   const handleGroupSelect = (groupId) => {
     setSelectedGroup(groupId);
@@ -25,13 +55,13 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
       switch (groupId) {
         case 'my_team':
         case 'my_department':
-          groupMembers = availableEmployees.filter(emp => emp.department === currentEmployee?.department);
+          groupMembers = availableEmployees.filter(emp => emp.department_id === currentEmployee?.department_id);
           break;
         case 'managers':
           groupMembers = availableEmployees.filter(emp => 
-            emp.role.toLowerCase().includes('manager') || 
-            emp.role.toLowerCase().includes('chef') ||
-            emp.role.toLowerCase().includes('responsable')
+            emp.position?.toLowerCase().includes('manager') || 
+            emp.position?.toLowerCase().includes('chef') ||
+            emp.position?.toLowerCase().includes('responsable')
           );
           break;
         case 'all_employees':
@@ -132,14 +162,14 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
                   onChange={() => handleEmployeeToggle(employee.id)}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-                <img
-                  src={employee.avatar}
-                  alt={employee.name}
-                  className="w-8 h-8 rounded-full"
-                />
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-sm font-medium text-blue-600">
+                    {employee.first_name?.[0]}{employee.last_name?.[0]}
+                  </span>
+                </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{employee.name}</p>
-                  <p className="text-xs text-gray-500">{employee.role} • {employee.department}</p>
+                  <p className="text-sm font-medium text-gray-900">{employee.first_name} {employee.last_name}</p>
+                  <p className="text-xs text-gray-500">{employee.position} • {employee.department?.name}</p>
                 </div>
               </label>
             ))}

@@ -1,32 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, X, CheckCircle, Clock, Users, AlertCircle } from 'lucide-react';
-import { managerNominations } from '../data/managerNominations';
-import { employees, users } from '../data/mockData';
 import { useAuthStore } from '../store/useAuthStore';
+import { hrService, usersService } from '../services';
 
 const NotificationCenter = () => {
-  const { user } = useAuthStore();
+  const { currentUser } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const pendingNominations = managerNominations.filter(n => n.status === 'pending');
-  
-  const notifications = [
-    ...pendingNominations.map(nomination => {
-      const employee = employees.find(emp => emp.id === nomination.proposedManagerId);
-      const proposer = users.find(u => u.id === nomination.proposedBy);
+  useEffect(() => {
+    if (currentUser) {
+      loadNotifications();
+    }
+  }, [currentUser]);
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const notificationsList = [];
       
-      return {
-        id: `nomination-${nomination.id}`,
-        type: 'manager_nomination',
-        title: 'Nouvelle nomination de manager',
-        message: `${proposer?.firstName} ${proposer?.lastName} propose ${employee?.firstName} ${employee?.lastName} comme manager`,
-        time: nomination.proposedAt,
-        icon: Users,
-        color: 'blue',
-        actionRequired: user?.role === 'employer'
-      };
-    })
-  ];
+      // Charger les nominations de managers en attente (pour employeurs)
+      if (currentUser?.role === 'employer') {
+        try {
+          const nominations = await hrService.managers.getPendingNominations();
+          const users = await usersService.getAll();
+          
+          nominations.forEach(nomination => {
+            const proposer = users.data?.find(u => u.id === nomination.proposed_by);
+            const employee = users.data?.find(u => u.employee_id === nomination.proposed_manager_id);
+            
+            notificationsList.push({
+              id: `nomination-${nomination.id}`,
+              type: 'manager_nomination',
+              title: 'Nouvelle nomination de manager',
+              message: `${proposer?.first_name} ${proposer?.last_name} propose ${employee?.first_name} ${employee?.last_name} comme manager`,
+              time: nomination.proposed_at,
+              icon: Users,
+              color: 'blue',
+              actionRequired: true
+            });
+          });
+        } catch (error) {
+          console.error('Erreur lors du chargement des nominations:', error);
+        }
+      }
+      
+      setNotifications(notificationsList);
+    } catch (error) {
+      console.error('Erreur lors du chargement des notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const unreadCount = notifications.filter(n => n.actionRequired).length;
 
