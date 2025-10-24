@@ -11,8 +11,11 @@ const ProtectedRoute = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    initializeAuth();
-    setIsLoading(false);
+    const init = async () => {
+      await initializeAuth();
+      setIsLoading(false);
+    };
+    init();
   }, [initializeAuth]);
 
   if (isLoading) {
@@ -35,8 +38,11 @@ const PublicRoute = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    initializeAuth();
-    setIsLoading(false);
+    const init = async () => {
+      await initializeAuth();
+      setIsLoading(false);
+    };
+    init();
   }, [initializeAuth]);
 
   if (isLoading) {

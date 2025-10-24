@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { users, companies, roles } from "../data/mockData";
+import { authService, usersService } from "../services";
 
 export const useAuthStore = create((set, get) => ({
   // État d'authentification
@@ -12,14 +12,13 @@ export const useAuthStore = create((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true });
     
-    // Simulation d'API - En production: appel API réel
-    const user = users.find(u => u.email === email && u.isActive);
-    
-    if (user) {
-      const company = companies.find(c => c.id === user.companyId);
+    try {
+      // Appel API réel
+      const response = await authService.login(email, password);
       
-      localStorage.setItem('authToken', 'mock_jwt_token');
-      localStorage.setItem('userId', user.id.toString());
+      // Récupérer les infos utilisateur
+      const user = await authService.getCurrentUser();
+      const company = await usersService.companies.getMe();
       
       set({
         currentUser: user,
@@ -29,15 +28,17 @@ export const useAuthStore = create((set, get) => ({
       });
       
       return { success: true };
+    } catch (error) {
+      set({ isLoading: false });
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Email ou mot de passe incorrect" 
+      };
     }
-    
-    set({ isLoading: false });
-    return { success: false, error: "Email ou mot de passe incorrect" };
   },
 
   logout: () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
+    authService.logout();
     
     set({
       currentUser: null,
@@ -51,14 +52,17 @@ export const useAuthStore = create((set, get) => ({
     const { currentUser } = get();
     if (!currentUser) return false;
     
-    const userRole = roles[currentUser.role];
-    if (!userRole) return false;
-    
     // Employeur a tous les droits
-    if (userRole.permissions.includes("*")) return true;
+    if (currentUser.role === 'employer') return true;
     
-    // Vérification permission spécifique
-    return userRole.permissions.includes(permission);
+    // Permissions par rôle
+    const rolePermissions = {
+      hr_admin: ['users.manage', 'employees.manage', 'leaves.manage'],
+      manager: ['team.manage', 'leaves.approve', 'tasks.assign'],
+      employee: ['profile.view', 'leaves.request', 'tasks.view']
+    };
+    
+    return rolePermissions[currentUser.role]?.includes(permission) || false;
   },
 
   hasAnyPermission: (permissions) => {
@@ -78,70 +82,66 @@ export const useAuthStore = create((set, get) => ({
   isEmployee: () => get().hasRole('employee'),
 
   // Gestion des utilisateurs (pour employeurs/RH)
-  inviteUser: (userData) => {
-    const { currentUser, currentCompany } = get();
+  inviteUser: async (userData) => {
+    const { currentUser } = get();
     
     if (!get().hasPermission('users.manage')) {
       return { success: false, error: "Permission refusée" };
     }
 
-    // Simulation d'invitation
-    const newUser = {
-      id: Date.now(),
-      ...userData,
-      companyId: currentCompany.id,
-      isActive: false, // En attente d'activation
-      createdDate: new Date().toISOString(),
-      invitedBy: currentUser.id
-    };
-
-    // En production: envoi d'email d'invitation
-    console.log('Invitation envoyée à:', userData.email);
-    
-    return { success: true, user: newUser };
+    try {
+      const result = await usersService.inviteUser(userData);
+      return { success: true, user: result };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Erreur lors de l'invitation" 
+      };
+    }
   },
 
   // Initialisation depuis le localStorage
-  initializeAuth: () => {
-    const token = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
-    
-    if (token && userId) {
-      const user = users.find(u => u.id === parseInt(userId));
-      if (user) {
-        const company = companies.find(c => c.id === user.companyId);
+  initializeAuth: async () => {
+    if (authService.isAuthenticated()) {
+      try {
+        const user = await authService.getCurrentUser();
+        const company = await usersService.companies.getMe();
+        
         set({
           currentUser: user,
           currentCompany: company,
           isAuthenticated: true
         });
+      } catch (error) {
+        // Token invalide, déconnexion
+        authService.logout();
+        set({
+          currentUser: null,
+          currentCompany: null,
+          isAuthenticated: false
+        });
       }
     }
   },
 
-  // Filtrage des données par entreprise
-  getCompanyEmployees: () => {
-    const { currentCompany } = get();
-    if (!currentCompany) return [];
-    
-    const { employees } = require('./useHRStore').useHRStore.getState();
-    return employees.filter(emp => emp.companyId === currentCompany.id);
-  },
-
   // Statistiques de l'entreprise
-  getCompanyStats: () => {
+  getCompanyStats: async () => {
     const { currentCompany } = get();
     if (!currentCompany) return null;
 
-    const companyEmployees = get().getCompanyEmployees();
-    const companyUsers = users.filter(u => u.companyId === currentCompany.id);
-    
-    return {
-      totalEmployees: companyEmployees.length,
-      totalUsers: companyUsers.length,
-      activeUsers: companyUsers.filter(u => u.isActive).length,
-      plan: currentCompany.plan,
-      maxEmployees: currentCompany.maxEmployees
-    };
+    try {
+      const users = await usersService.getAll();
+      const employees = await usersService.getAll(); // À adapter selon l'API
+      
+      return {
+        totalEmployees: employees.data?.length || 0,
+        totalUsers: users.data?.length || 0,
+        activeUsers: users.data?.filter(u => u.is_active).length || 0,
+        plan: currentCompany.plan,
+        maxEmployees: currentCompany.max_employees
+      };
+    } catch (error) {
+      return null;
+    }
   }
 }));
