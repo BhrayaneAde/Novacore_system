@@ -6,5 +6,5 @@ export { leavesService } from './leaves';
 export { performanceService } from './performance';
 export { hrService } from './hr';
 export { systemService } from './system';
-
+export { setupService } from './setup';
 export { emailService } from './email';
