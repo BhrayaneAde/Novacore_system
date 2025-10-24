@@ -54,3 +54,59 @@ async def read_users(
     """Récupère la liste des utilisateurs de l'entreprise."""
     users = crud_user.get_users(db, company_id=current_user.company_id, skip=skip, limit=limit)
     return users
+
+@router.put("/{user_id}/role")
+async def update_user_role(
+    user_id: int,
+    role: str,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Met à jour le rôle d'un utilisateur"""
+    # Vérifier permissions (employer ou hr_admin)
+    if current_user.role not in [models.RoleEnum.employer, models.RoleEnum.hr_admin]:
+        raise HTTPException(status_code=403, detail="Permission insuffisante")
+    
+    # Trouver l'utilisateur
+    target_user = crud_user.get_user(db, user_id)
+    if not target_user or target_user.company_id != current_user.company_id:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    # Valider le rôle
+    valid_roles = ["employee", "manager", "hr_admin"]
+    if current_user.role == models.RoleEnum.employer:
+        valid_roles.append("employer")
+    
+    if role not in valid_roles:
+        raise HTTPException(status_code=400, detail="Rôle invalide")
+    
+    # Empêcher de modifier son propre rôle
+    if target_user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Impossible de modifier son propre rôle")
+    
+    target_user.role = role
+    db.commit()
+    db.refresh(target_user)
+    
+    return {"message": "Rôle mis à jour", "user": target_user}
+
+@router.put("/{user_id}/permissions")
+async def update_user_permissions(
+    user_id: int,
+    permissions: List[str],
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Met à jour les permissions d'un utilisateur"""
+    # Vérifier permissions (employer seulement)
+    if current_user.role != models.RoleEnum.employer:
+        raise HTTPException(status_code=403, detail="Seul l'employeur peut modifier les permissions")
+    
+    # Trouver l'utilisateur
+    target_user = crud_user.get_user(db, user_id)
+    if not target_user or target_user.company_id != current_user.company_id:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    
+    # Pour l'instant, on stocke les permissions dans un champ JSON (si nécessaire)
+    # Ici on retourne juste un message de succès
+    return {"message": "Permissions mises à jour", "permissions": permissions}

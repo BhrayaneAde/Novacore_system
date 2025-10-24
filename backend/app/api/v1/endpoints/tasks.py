@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -76,3 +77,84 @@ async def update_task(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé")
             
     return crud_task.update_task(db=db, db_task=db_task, task_in=task_in)
+
+@router.post("/{task_id}/complete")
+async def complete_task(
+    task_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Marque une tâche comme terminée"""
+    db_task = crud_task.get_task(db, task_id=task_id)
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Tâche non trouvée")
+    
+    # Vérifier permissions
+    if (db_task.assigned_to.user_id != current_user.id and 
+        db_task.assigned_by_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Permission insuffisante")
+    
+    db_task.status = models.TaskStatusEnum.completed
+    db_task.completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(db_task)
+    
+    return {"message": "Tâche terminée", "task": db_task}
+
+@router.post("/{task_id}/assign")
+async def assign_task(
+    task_id: int,
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Assigne une tâche à un utilisateur"""
+    db_task = crud_task.get_task(db, task_id=task_id)
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Tâche non trouvée")
+    
+    # Vérifier permissions (manager ou créateur)
+    if (db_task.assigned_by_id != current_user.id and 
+        current_user.role not in [models.RoleEnum.manager, models.RoleEnum.hr_admin, models.RoleEnum.employer]):
+        raise HTTPException(status_code=403, detail="Permission insuffisante")
+    
+    # Vérifier que l'employé existe
+    employee = crud_employee.get_employee(db, user_id)
+    if not employee or employee.company_id != current_user.company_id:
+        raise HTTPException(status_code=404, detail="Employé non trouvé")
+    
+    db_task.assigned_to_id = user_id
+    db.commit()
+    db.refresh(db_task)
+    
+    return {"message": "Tâche assignée", "task": db_task}
+
+@router.put("/{task_id}/status")
+async def update_task_status(
+    task_id: int,
+    status: str,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Met à jour le statut d'une tâche"""
+    db_task = crud_task.get_task(db, task_id=task_id)
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Tâche non trouvée")
+    
+    # Vérifier permissions
+    if (db_task.assigned_to.user_id != current_user.id and 
+        db_task.assigned_by_id != current_user.id):
+        raise HTTPException(status_code=403, detail="Permission insuffisante")
+    
+    # Valider le statut
+    valid_statuses = ["todo", "in_progress", "in_review", "completed", "cancelled"]
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail="Statut invalide")
+    
+    db_task.status = status
+    if status == "completed":
+        db_task.completed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(db_task)
+    
+    return {"message": "Statut mis à jour", "task": db_task}

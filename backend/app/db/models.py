@@ -63,6 +63,7 @@ class Company(Base):
     users = relationship("User", back_populates="company")
     employees = relationship("Employee", back_populates="company")
     departments = relationship("Department", back_populates="company")
+    invitations = relationship("Invitation", back_populates="company")
 
 class User(Base):
     __tablename__ = "users"
@@ -398,3 +399,46 @@ class SharedDocument(Base):
     document = relationship("EmployeeDocument")
     owner = relationship("Employee", foreign_keys=[owner_id])
     shared_with = relationship("Employee", foreign_keys=[shared_with_id])
+
+class Invitation(Base):
+    __tablename__ = "invitations"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), nullable=False, index=True)
+    first_name = Column(String(50), nullable=False)
+    last_name = Column(String(50), nullable=False)
+    role = Column(SAEnum(RoleEnum), nullable=False)
+    token = Column(String(255), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    accepted_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    
+    # Statut email et invitation
+    email_status = Column(String(50), default="pending")  # pending, sent, opened, accepted, failed
+    email_sent_at = Column(DateTime, nullable=True)
+    email_opened_at = Column(DateTime, nullable=True)
+    
+    # Informations employé
+    job_title = Column(String(100), nullable=True)
+    salary = Column(Float, nullable=True)
+    manager_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    invited_by_id = Column(Integer, ForeignKey("users.id"))
+    
+    company = relationship("Company")
+    department = relationship("Department")
+    invited_by = relationship("User", foreign_keys=[invited_by_id])
+    manager = relationship("User", foreign_keys=[manager_id])
+
+class PasswordReset(Base):
+    __tablename__ = "password_resets"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), nullable=False, index=True)
+    token = Column(String(255), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User")

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { User, Mail, Lock, Building, Phone, Eye, EyeOff, AlertCircle, CheckCircle, Sparkles, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '../../services';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -72,12 +73,21 @@ const RegisterPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Données d\'inscription:', formData);
-      setTimeout(() => {
-        navigate('/login?registered=true');
-      }, 1500);
+      // Inscription entreprise + employeur
+      const result = await authService.register({
+        companyName: formData.companyName,
+        companyEmail: formData.email,
+        adminFirstName: formData.firstName,
+        adminLastName: formData.lastName,
+        adminEmail: formData.email,
+        adminPassword: formData.password
+      });
+      console.log('✅ Entreprise créée:', result);
+      
+      // Redirection vers login avec message de succès
+      navigate('/login?registered=true');
     } catch (err) {
-      setError('Une erreur est survenue lors de l\'inscription. Veuillez réessayer.');
+      setError(err.response?.data?.detail || 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.');
       console.error('Erreur d\'inscription:', err);
     } finally {
       setIsSubmitting(false);

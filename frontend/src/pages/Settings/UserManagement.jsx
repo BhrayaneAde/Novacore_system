@@ -1,32 +1,115 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../store/useAuthStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import PermissionGuard from "../../components/auth/PermissionGuard";
-import { UserPlus, Mail, Shield, MoreVertical, Edit, Trash2 } from "lucide-react";
-import { users, roles } from "../../data/mockData";
+import { UserPlus, Mail, Shield, MoreVertical, Edit, Trash2, Send, CheckCircle } from "lucide-react";
+import { usersService, emailService, USER_ROLES } from "../../services";
 
 const UserManagement = () => {
-  const { currentCompany, hasPermission, inviteUser } = useAuthStore();
+  const { currentCompany, hasPermission } = useAuthStore();
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     firstName: "",
     lastName: "",
-    role: "employee"
+    role: "employee",
+    departmentId: null,
+    jobTitle: "",
+    salary: null,
+    managerId: null
   });
+  
+  const [departments, setDepartments] = useState([]);
+  const [managers, setManagers] = useState([]);
 
-  const companyUsers = users.filter(user => user.companyId === currentCompany?.id);
+  useEffect(() => {
+    loadUsers();
+    loadPendingInvitations();
+    loadDepartments();
+  }, []);
 
-  const handleInvite = (e) => {
+  const loadUsers = async () => {
+    try {
+      const response = await usersService.getAll();
+      setUsers(response.data);
+      
+      // Charger les managers (users avec rôle manager ou hr_admin)
+      const managerUsers = response.data.filter(u => 
+        ['manager', 'hr_admin', 'employer'].includes(u.role)
+      );
+      setManagers(managerUsers);
+    } catch (error) {
+      console.error('Erreur chargement utilisateurs:', error);
+    }
+  };
+  
+  const loadDepartments = async () => {
+    try {
+      const response = await usersService.companies.getDepartments();
+      setDepartments(response.data);
+    } catch (error) {
+      console.error('Erreur chargement départements:', error);
+    }
+  };
+
+  const loadPendingInvitations = async () => {
+    try {
+      const response = await usersService.getPendingInvitations();
+      setPendingInvitations(response.data);
+    } catch (error) {
+      console.error('Erreur chargement invitations:', error);
+    }
+  };
+
+  const handleInvite = async (e) => {
     e.preventDefault();
-    const result = inviteUser(inviteForm);
+    setLoading(true);
     
-    if (result.success) {
+    try {
+      await usersService.inviteUser({
+        email: inviteForm.email,
+        first_name: inviteForm.firstName,
+        last_name: inviteForm.lastName,
+        role: inviteForm.role,
+        department_id: inviteForm.departmentId,
+        job_title: inviteForm.jobTitle,
+        salary: inviteForm.salary,
+        manager_id: inviteForm.managerId
+      });
+      
+      await loadPendingInvitations();
       setShowInviteModal(false);
-      setInviteForm({ email: "", firstName: "", lastName: "", role: "employee" });
+      setInviteForm({ 
+        email: "", firstName: "", lastName: "", role: "employee",
+        departmentId: null, jobTitle: "", salary: null, managerId: null 
+      });
+    } catch (error) {
+      console.error('Erreur invitation:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendInvitation = async (invitationId) => {
+    try {
+      await usersService.resendInvitation(invitationId);
+    } catch (error) {
+      console.error('Erreur renvoi invitation:', error);
+    }
+  };
+
+  const cancelInvitation = async (invitationId) => {
+    try {
+      await usersService.cancelInvitation(invitationId);
+      await loadPendingInvitations();
+    } catch (error) {
+      console.error('Erreur annulation invitation:', error);
     }
   };
 
@@ -53,7 +136,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Gestion des utilisateurs</h1>
-            <p className="text-gray-600">{companyUsers.length} utilisateurs dans {currentCompany?.name}</p>
+            <p className="text-gray-600">{users.length} utilisateurs dans {currentCompany?.name}</p>
           </div>
           
           <PermissionGuard permission="users.manage">
@@ -83,10 +166,63 @@ const UserManagement = () => {
           })}
         </div>
 
+        {/* Invitations en attente */}
+        {pendingInvitations.length > 0 && (
+          <Card title="Invitations en attente">
+            <div className="space-y-4">
+              {pendingInvitations.map((invitation) => (
+                <div key={invitation.id} className="flex items-center justify-between p-4 border border-orange-200 bg-orange-50 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <Mail className="w-8 h-8 text-orange-600" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">
+                        {invitation.firstName} {invitation.lastName}
+                      </h4>
+                      <p className="text-sm text-gray-600">{invitation.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Badge variant={
+                      invitation.email_status === 'sent' ? 'info' :
+                      invitation.email_status === 'opened' ? 'warning' :
+                      invitation.email_status === 'accepted' ? 'success' :
+                      invitation.email_status === 'failed' ? 'error' : 'gray'
+                    }>
+                      {invitation.email_status === 'sent' && 'Email envoyé'}
+                      {invitation.email_status === 'opened' && 'Email ouvert'}
+                      {invitation.email_status === 'accepted' && 'Employé actif'}
+                      {invitation.email_status === 'failed' && 'Échec envoi'}
+                      {invitation.email_status === 'pending' && 'En attente'}
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      icon={Send}
+                      onClick={() => resendInvitation(invitation.id)}
+                    >
+                      Renvoyer
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      icon={Trash2}
+                      className="text-red-600"
+                      onClick={() => cancelInvitation(invitation.id)}
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* Liste des utilisateurs */}
         <Card title="Utilisateurs">
           <div className="space-y-4">
-            {companyUsers.map((user) => (
+            {users.map((user) => (
               <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <img
@@ -190,10 +326,20 @@ const UserManagement = () => {
                     onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {Object.entries(roles).map(([key, role]) => (
-                      <option key={key} value={key}>{role.name}</option>
-                    ))}
+                    <option value="employee">Employé</option>
+                    <option value="manager">Manager</option>
+                    <option value="hr_admin">RH Admin</option>
                   </select>
+                </div>
+                
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <Mail className="w-4 h-4" />
+                    <span className="text-sm font-medium">Email automatique</span>
+                  </div>
+                  <p className="text-xs text-blue-700 mt-1">
+                    L'utilisateur recevra un email avec un lien pour créer son mot de passe et accéder à NovaCore.
+                  </p>
                 </div>
                 
                 <div className="flex gap-3 pt-4">
@@ -205,8 +351,8 @@ const UserManagement = () => {
                   >
                     Annuler
                   </Button>
-                  <Button type="submit" icon={Mail} className="flex-1">
-                    Envoyer l'invitation
+                  <Button type="submit" icon={Mail} className="flex-1" disabled={loading}>
+                    {loading ? 'Envoi...' : 'Envoyer l\'invitation'}
                   </Button>
                 </div>
               </form>

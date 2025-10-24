@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     login, users, employees, tasks, leaves, performance, 
     contracts, manager, companies, recruitment, payroll,
-    attendance, goals, assets, settings, notifications, websocket, websocket_admin
+    attendance, goals, assets, settings, notifications, websocket, websocket_admin, email
 )
 
 api_router = APIRouter()
@@ -25,5 +25,6 @@ api_router.include_router(goals.router, prefix="/goals", tags=["Goals"])
 api_router.include_router(assets.router, prefix="/assets", tags=["Assets"])
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+api_router.include_router(email.router, prefix="/email", tags=["Email"])
 api_router.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 api_router.include_router(websocket_admin.router, prefix="/ws-admin", tags=["WebSocket Admin"])
