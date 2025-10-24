@@ -1,0 +1,38 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.db.database import Base, engine
+from app.api.v1.api import api_router
+from app.db import models # Assure que les modèles sont connus de Base
+
+# Crée les tables dans la BDD (pour un usage simple)
+# Pour la production, utilisez des migrations (ex: Alembic)
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="NovaCore API",
+    description="Backend pour le système de gestion RH NovaCore.",
+    version="1.0.0"
+)
+
+# Configuration CORS
+# Autorise le frontend React (ex: http://localhost:5173)
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Inclut le routeur principal de l'API v1
+app.include_router(api_router, prefix="/api/v1")
+
+@app.get("/", tags=["Root"])
+async def read_root():
+    return {"message": "Bienvenue sur l'API NovaCore"}
