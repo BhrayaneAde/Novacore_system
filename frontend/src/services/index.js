@@ -8,3 +8,4 @@ export { hrService } from './hr';
 export { systemService } from './system';
 export { setupService } from './setup';
 export { emailService } from './email';
+export { notificationsService } from './notifications';
