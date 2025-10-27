@@ -3,7 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import { leavesService, employeesService } from "../../services";
+import { leavesService, employeesService, systemService } from "../../services";
 import { ChevronLeft, ChevronRight, Calendar, Filter, Plus, Eye } from "lucide-react";
 
 const AttendanceCalendar = () => {
@@ -11,6 +11,8 @@ const AttendanceCalendar = () => {
   const [view, setView] = useState('month'); // month, week, day
   const [events, setEvents] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [attendanceData, setAttendanceData] = useState(null);
+  const [statistics, setStatistics] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState({
     departments: [],
     eventTypes: ['presence', 'absence', 'leave', 'holiday']
@@ -31,10 +33,76 @@ const AttendanceCalendar = () => {
       
       setEmployees(employeesData || []);
       
-      // Transformer les congés en événements calendrier
-      const leaveEvents = (leavesData || []).map(leave => ({
-        id: `leave-${leave.id}`,
-        title: `${leave.employee_name} - ${getLeaveTypeLabel(leave.leave_type)}`,
+      // Charger les données de présence réelles pour chaque employé
+      const attendancePromises = (employeesData || []).map(async (employee) => {
+        try {
+          const calendarData = await systemService.attendance.getCalendar(
+            employee.id, 
+            currentDate.getMonth() + 1, 
+            currentDate.getFullYear()
+          );
+          const stats = await systemService.attendance.getStatistics(employee.id);
+          return { employee, calendarData, stats };
+        } catch (error) {
+          console.error(`Erreur pour l'employé ${employee.id}:`, error);
+          return { employee, calendarData: null, stats: null };
+        }
+      });
+      
+      const attendanceResults = await Promise.all(attendancePromises);
+      
+      // Transformer les données en événements calendrier
+      const attendanceEvents = [];
+      const allStats = [];
+      
+      attendanceResults.forEach(({ employee, calendarData, stats }) => {
+        if (calendarData) {
+          // Ajouter les présences réelles
+          calendarData.attendance?.forEach(record => {
+            attendanceEvents.push({
+              id: `attendance-${record.id}`,
+              title: `${employee.first_name} ${employee.last_name}`,
+              start: record.date,
+              end: record.date,
+              type: 'presence',
+              employee: `${employee.first_name} ${employee.last_name}`,
+              department: employee.department,
+              details: record,
+              hours: record.clock_out ? 
+                ((new Date(record.clock_out) - new Date(record.clock_in)) / (1000 * 60 * 60)).toFixed(1) : 
+                null
+            });
+          });
+          
+          // Ajouter les congés approuvés
+          calendarData.leaves?.forEach(leave => {
+            const startDate = new Date(leave.start_date);
+            const endDate = new Date(leave.end_date);
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+              attendanceEvents.push({
+                id: `leave-${leave.id}-${d.toISOString().split('T')[0]}`,
+                title: `${employee.first_name} ${employee.last_name} - ${getLeaveTypeLabel(leave.leave_type)}`,
+                start: d.toISOString().split('T')[0],
+                end: d.toISOString().split('T')[0],
+                type: 'leave',
+                employee: `${employee.first_name} ${employee.last_name}`,
+                department: employee.department,
+                details: leave
+              });
+            }
+          });
+        }
+        
+        if (stats) {
+          allStats.push({ employee, ...stats });
+        }
+      });
+      
+      // Transformer les congés en événements calendrier (demandes en cours)
+      const leaveEvents = (leavesData || []).filter(leave => leave.status === 'pending').map(leave => ({
+        id: `leave-request-${leave.id}`,
+        title: `${leave.employee_name} - ${getLeaveTypeLabel(leave.leave_type)} (En attente)`,
         start: leave.start_date,
         end: leave.end_date,
         type: 'leave',
@@ -47,12 +115,34 @@ const AttendanceCalendar = () => {
       // Ajouter les jours fériés français
       const holidays = getHolidays(currentDate.getFullYear());
       
-      // Générer les présences par défaut pour les employés actifs
+      setEvents([...attendanceEvents, ...leaveEvents, ...holidays]);
+      setStatistics(allStats);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+      // Fallback vers les données mockées en cas d'erreur
+      const [leavesData, employeesData] = await Promise.all([
+        leavesService.getAll(),
+        employeesService.getAll()
+      ]);
+      
+      setEmployees(employeesData || []);
+      
+      const leaveEvents = (leavesData || []).map(leave => ({
+        id: `leave-${leave.id}`,
+        title: `${leave.employee_name} - ${getLeaveTypeLabel(leave.leave_type)}`,
+        start: leave.start_date,
+        end: leave.end_date,
+        type: 'leave',
+        status: leave.status,
+        employee: leave.employee_name,
+        department: leave.department,
+        details: leave
+      }));
+      
+      const holidays = getHolidays(currentDate.getFullYear());
       const workDays = generateWorkDays(currentDate, employeesData);
       
       setEvents([...leaveEvents, ...holidays, ...workDays]);
-    } catch (error) {
-      console.error('Erreur lors du chargement:', error);
     } finally {
       setLoading(false);
     }
@@ -393,8 +483,13 @@ const AttendanceCalendar = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Taux présence</p>
-                <p className="text-2xl font-bold text-gray-900">94.2%</p>
+                <p className="text-sm font-medium text-gray-600">Heures moyennes/mois</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {statistics ? 
+                    Math.round(statistics.reduce((acc, s) => acc + (s.monthly_hours || 0), 0) / statistics.length) : 
+                    '151'
+                  }h
+                </p>
               </div>
               <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-gray-600" />

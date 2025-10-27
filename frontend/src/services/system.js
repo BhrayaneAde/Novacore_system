@@ -7,8 +7,21 @@ export const systemService = {
     getById: (id) => apiClient.get(`/notifications/${id}`),
     create: (data) => apiClient.post('/notifications', data),
     markAsRead: (id) => apiClient.put(`/notifications/${id}/read`),
-    markAllAsRead: () => apiClient.put('/notifications/read-all'),
+    markAllAsRead: () => apiClient.put('/notifications/mark-all-read'),
+    getUnreadCount: () => apiClient.get('/notifications/unread-count'),
     delete: (id) => apiClient.delete(`/notifications/${id}`),
+  },
+
+  // Attendance Calendar
+  attendance: {
+    getCalendar: (employeeId, month, year) => 
+      apiClient.get(`/attendance/calendar/${employeeId}?month=${month}&year=${year}`),
+    getStatistics: (employeeId) => 
+      apiClient.get(`/attendance/statistics/${employeeId}`),
+    getRecords: () => apiClient.get('/attendance/records'),
+    createRecord: (data) => apiClient.post('/attendance/records', data),
+    getTimeEntries: () => apiClient.get('/attendance/time-entries'),
+    createTimeEntry: (data) => apiClient.post('/attendance/time-entries', data),
   },
   
   // Settings
@@ -92,15 +105,70 @@ export const systemService = {
     getPayslip: async (employeeId, period) => {
       const response = await apiClient.get(`/payroll/payslips/${employeeId}/${period}`);
       return response.data;
+    }
+  },
+
+  // Système de rapports
+  reports: {
+    generate: async (reportId, params) => {
+      const response = await apiClient.post('/reports/generate', {
+        report_id: reportId,
+        ...params
+      });
+      return response.data;
     },
 
-    downloadPayslip: async (payslipId) => {
-      const response = await apiClient.get(`/payroll/payslips/${payslipId}/download`, {
+    export: async (reportId, format, params) => {
+      const response = await apiClient.post('/reports/export', {
+        report_id: reportId,
+        format,
+        ...params
+      }, {
         responseType: 'blob'
       });
       return response.data;
+    },
+
+    getHistory: async () => {
+      const response = await apiClient.get('/reports/history');
+      return response.data;
     }
   },
+
+  // Analytics
+  analytics: {
+    getHeadcount: async (period) => {
+      const response = await apiClient.get(`/analytics/headcount?period=${period}`);
+      return response.data;
+    },
+
+    getTurnover: async (period) => {
+      const response = await apiClient.get(`/analytics/turnover?period=${period}`);
+      return response.data;
+    },
+
+    getAttendance: async (period) => {
+      const response = await apiClient.get(`/analytics/attendance?period=${period}`);
+      return response.data;
+    },
+
+    getCosts: async (period) => {
+      const response = await apiClient.get(`/analytics/costs?period=${period}`);
+      return response.data;
+    },
+
+    getPerformance: async (period) => {
+      const response = await apiClient.get(`/analytics/performance?period=${period}`);
+      return response.data;
+    },
+
+    getRecruitment: async (period) => {
+      const response = await apiClient.get(`/analytics/recruitment?period=${period}`);
+      return response.data;
+    }
+  },
+  
+
   
   // WebSocket connection
   websocket: {

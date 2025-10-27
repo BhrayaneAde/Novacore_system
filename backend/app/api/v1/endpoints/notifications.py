@@ -39,3 +39,33 @@ async def mark_notification_read(
     if not notification:
         raise HTTPException(status_code=404, detail="Notification non trouvée")
     return {"message": "Notification marquée comme lue"}
+
+@router.get("/unread-count")
+async def get_unread_count(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Récupérer le nombre de notifications non lues"""
+    count = crud_notification.get_unread_count(db, current_user.id)
+    return {"count": count}
+
+@router.put("/mark-all-read")
+async def mark_all_read(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Marquer toutes les notifications comme lues"""
+    count = crud_notification.mark_all_as_read(db, current_user.id)
+    return {"message": f"{count} notifications marquées comme lues"}
+
+@router.delete("/{notification_id}")
+async def delete_notification(
+    notification_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Supprimer une notification"""
+    success = crud_notification.delete_notification(db, notification_id, current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Notification non trouvée")
+    return {"message": "Notification supprimée"}

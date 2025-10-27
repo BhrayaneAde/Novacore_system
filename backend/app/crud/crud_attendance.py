@@ -41,3 +41,52 @@ def update_time_entry(db: Session, db_entry: models.TimeEntry, entry_in: attenda
     db.commit()
     db.refresh(db_entry)
     return db_entry
+
+# Nouvelles méthodes pour le time tracking
+def get_active_session(db: Session, employee_id: int) -> Optional[models.AttendanceRecord]:
+    """Récupérer la session active d'un employé"""
+    return db.query(models.AttendanceRecord).filter(
+        models.AttendanceRecord.employee_id == employee_id,
+        models.AttendanceRecord.clock_out.is_(None)
+    ).first()
+
+def update_attendance_record(db: Session, db_attendance: models.AttendanceRecord, attendance_in: attendance_schema.AttendanceUpdate) -> models.AttendanceRecord:
+    """Mettre à jour un enregistrement de présence"""
+    update_data = attendance_in.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_attendance, key, value)
+    db.add(db_attendance)
+    db.commit()
+    db.refresh(db_attendance)
+    return db_attendance
+
+def get_attendance_by_date(db: Session, employee_id: int, date):
+    """Récupérer les présences d'un employé pour une date"""
+    from datetime import datetime
+    if isinstance(date, str):
+        date = datetime.strptime(date, "%Y-%m-%d").date()
+    
+    return db.query(models.AttendanceRecord).filter(
+        models.AttendanceRecord.employee_id == employee_id,
+        models.AttendanceRecord.date == date
+    ).all()
+
+def get_attendance_by_week(db: Session, employee_id: int, start_date):
+    """Récupérer les présences d'un employé pour une semaine"""
+    from datetime import datetime, timedelta
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    
+    end_date = start_date + timedelta(days=7)
+    
+    return db.query(models.AttendanceRecord).filter(
+        models.AttendanceRecord.employee_id == employee_id,
+        models.AttendanceRecord.date >= start_date,
+        models.AttendanceRecord.date < end_date
+    ).all()
+
+def get_attendance_by_employee(db: Session, employee_id: int):
+    """Récupérer toutes les présences d'un employé"""
+    return db.query(models.AttendanceRecord).filter(
+        models.AttendanceRecord.employee_id == employee_id
+    ).all()

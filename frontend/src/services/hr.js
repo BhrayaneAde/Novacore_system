@@ -25,6 +25,22 @@ export const hrService = {
     create: (data) => apiClient.post('/recruitment', data),
     update: (id, data) => apiClient.put(`/recruitment/${id}`, data),
     delete: (id) => apiClient.delete(`/recruitment/${id}`),
+
+    // Gestion des offres d'emploi (utilise les services existants)
+    createJobOpening: async (data) => {
+      const response = await apiClient.post('/recruitment/job-openings', data);
+      return response.data;
+    },
+
+    updateJobOpening: async (id, data) => {
+      const response = await apiClient.put(`/recruitment/job-openings/${id}`, data);
+      return response.data;
+    },
+
+    getJobOpening: async (id) => {
+      const response = await apiClient.get(`/recruitment/job-openings/${id}`);
+      return response.data;
+    }
   },
   
   // Payroll
@@ -43,5 +59,13 @@ export const hrService = {
     create: (data) => apiClient.post('/attendance', data),
     update: (id, data) => apiClient.put(`/attendance/${id}`, data),
     delete: (id) => apiClient.delete(`/attendance/${id}`),
+  },
+
+  // Gestion des avantages (utilise les services existants)
+  benefits: {
+    getAll: () => apiClient.get('/hr/benefits'),
+    create: (data) => apiClient.post('/hr/benefits', data),
+    update: (id, data) => apiClient.put(`/hr/benefits/${id}`, data),
+    delete: (id) => apiClient.delete(`/hr/benefits/${id}`)
   }
 };

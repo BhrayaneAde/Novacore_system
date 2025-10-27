@@ -1,17 +1,24 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 
 class AttendanceRecordBase(BaseModel):
     date: date
     status: str
-    check_in: Optional[str] = None
-    check_out: Optional[str] = None
+    clock_in: Optional[datetime] = None
+    clock_out: Optional[datetime] = None
     break_duration: Optional[int] = 0
     total_hours: Optional[float] = None
+    overtime_hours: Optional[float] = None
 
 class AttendanceRecordCreate(AttendanceRecordBase):
     employee_id: int
+
+class AttendanceUpdate(BaseModel):
+    clock_out: Optional[datetime] = None
+    break_duration: Optional[int] = None
+    total_hours: Optional[float] = None
+    overtime_hours: Optional[float] = None
 
 class AttendanceRecord(AttendanceRecordBase):
     id: int

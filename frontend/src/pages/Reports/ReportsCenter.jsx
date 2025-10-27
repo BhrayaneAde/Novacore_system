@@ -154,15 +154,132 @@ const ReportsCenter = () => {
     }
   ];
 
-  const generateReport = (reportId) => {
-    // Simulation de génération de rapport
-    console.log(`Génération du rapport: ${reportId}`);
-    // En production: appel API pour générer le rapport
+  const generateReport = async (reportId) => {
+    try {
+      setLoading(true);
+      
+      // Utiliser le vrai endpoint de génération de rapports
+      const reportData = await systemService.reports.generate(reportId, {
+        period: selectedPeriod,
+        company_id: currentCompany?.id,
+        filters: getReportFilters(reportId)
+      });
+      
+      // Afficher les données dans une nouvelle fenêtre
+      const reportWindow = window.open('', '_blank');
+      reportWindow.document.write(`
+        <html>
+          <head>
+            <title>Rapport ${reportId}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              table { border-collapse: collapse; width: 100%; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f2f2f2; }
+            </style>
+          </head>
+          <body>
+            <h1>Rapport généré - ${reportId}</h1>
+            <p>Période: ${selectedPeriod}</p>
+            <div id="content">
+              ${formatReportData(reportData.data)}
+            </div>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Erreur lors de la génération:', error);
+      alert('Erreur lors de la génération du rapport');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const exportReport = (reportId, format) => {
-    // Simulation d'export
-    console.log(`Export du rapport ${reportId} en format ${format}`);
+  const formatReportData = (data) => {
+    if (!data || data.length === 0) return '<p>Aucune donnée disponible</p>';
+    
+    const headers = Object.keys(data[0]);
+    const headerRow = headers.map(h => `<th>${h}</th>`).join('');
+    const dataRows = data.map(row => 
+      `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
+    ).join('');
+    
+    return `
+      <table>
+        <thead><tr>${headerRow}</tr></thead>
+        <tbody>${dataRows}</tbody>
+      </table>
+    `;
+  };
+
+  const exportReport = async (reportId, format) => {
+    try {
+      setLoading(true);
+      
+      // Utiliser le vrai endpoint d'export
+      const blob = await systemService.reports.export(reportId, format, {
+        period: selectedPeriod,
+        company_id: currentCompany?.id
+      });
+      
+      // Télécharger le fichier
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${reportId}_${selectedPeriod}.${format.toLowerCase()}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Erreur lors de l\'export:', error);
+      alert('Erreur lors de l\'export du rapport');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getReportFilters = (reportId) => {
+    const baseFilters = {
+      departments: [],
+      employees: [],
+      date_range: {
+        start: getStartDate(selectedPeriod),
+        end: getEndDate(selectedPeriod)
+      }
+    };
+    
+    // Filtres spécifiques par type de rapport
+    switch (reportId) {
+      case 'attendance-summary':
+        return { ...baseFilters, include_overtime: true, include_breaks: true };
+      case 'payroll-summary':
+        return { ...baseFilters, include_taxes: true, include_benefits: true };
+      case 'turnover-analysis':
+        return { ...baseFilters, include_reasons: true, include_demographics: true };
+      default:
+        return baseFilters;
+    }
+  };
+
+  const getStartDate = (period) => {
+    switch (period) {
+      case 'week': return new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      case 'month': return new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+      case 'quarter': return new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3, 1).toISOString().split('T')[0];
+      case 'year': return new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+      default: return new Date().toISOString().split('T')[0];
+    }
+  };
+
+  const getEndDate = (period) => {
+    switch (period) {
+      case 'week': return new Date().toISOString().split('T')[0];
+      case 'month': return new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
+      case 'quarter': return new Date(new Date().getFullYear(), Math.floor(new Date().getMonth() / 3) * 3 + 3, 0).toISOString().split('T')[0];
+      case 'year': return new Date(new Date().getFullYear(), 11, 31).toISOString().split('T')[0];
+      default: return new Date().toISOString().split('T')[0];
+    }
   };
 
   return (
@@ -253,19 +370,47 @@ const ReportsCenter = () => {
                               size="sm" 
                               variant="outline"
                               onClick={() => generateReport(report.id)}
+                              disabled={loading}
                             >
-                              Générer
+                              {loading ? 'Génération...' : 'Générer'}
                             </Button>
                             
-                            <div className="relative">
+                            <div className="relative group">
                               <Button 
                                 size="sm" 
                                 variant="outline"
                                 icon={Download}
-                                onClick={() => exportReport(report.id, 'pdf')}
+                                disabled={loading}
                               >
                                 Export
                               </Button>
+                              
+                              {/* Menu déroulant formats */}
+                              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                                <div className="py-1">
+                                  <button
+                                    onClick={() => exportReport(report.id, 'PDF')}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    disabled={loading}
+                                  >
+                                    PDF
+                                  </button>
+                                  <button
+                                    onClick={() => exportReport(report.id, 'EXCEL')}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    disabled={loading}
+                                  >
+                                    Excel
+                                  </button>
+                                  <button
+                                    onClick={() => exportReport(report.id, 'CSV')}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    disabled={loading}
+                                  >
+                                    CSV
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -320,9 +465,14 @@ const ReportsCenter = () => {
                   </div>
                 </div>
                 
-                <Button variant="outline" size="sm" icon={Download}>
-                  Télécharger
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" icon={Eye}>
+                    Voir
+                  </Button>
+                  <Button variant="outline" size="sm" icon={Download}>
+                    Télécharger
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
