@@ -20,12 +20,17 @@ const LoginPage = () => {
       return;
     }
 
-    const result = await login(email, password);
-    
-    if (result.success) {
-      navigate('/app/dashboard');
-    } else {
-      setError(result.error);
+    try {
+      const result = await login(email, password);
+      
+      if (result.success) {
+        navigate('/app/dashboard');
+      } else {
+        setError(result.error || 'Email ou mot de passe incorrect');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Email ou mot de passe incorrect');
     }
   };
 

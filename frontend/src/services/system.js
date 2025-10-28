@@ -41,7 +41,19 @@ export const systemService = {
 
   // Manager nominations
   manager: {
-    getAll: () => apiClient.get('/manager/test'),
+    getAll: async () => {
+      try {
+        const response = await apiClient.get('/employees/test');
+        const employees = response.data?.employees || response.employees || [];
+        // Filter employees with "Manager" in their role
+        const managers = employees.filter(emp => emp.role && emp.role.toLowerCase().includes('manager'));
+        console.log('Final managers to return:', managers);
+        return { data: managers };
+      } catch (error) {
+        console.error('Error fetching managers:', error);
+        return { data: [] };
+      }
+    },
     getPendingNominations: () => apiClient.get('/manager/nominations/pending'),
     getNominations: () => apiClient.get('/manager/nominations'),
     createNomination: (data) => apiClient.post('/manager/nominations', data),
@@ -79,7 +91,19 @@ export const employeesService = {
   getById: (id) => systemService.employees.getById(id),
   create: (data) => systemService.employees.create(data),
   update: (id, data) => systemService.employees.update(id, data),
-  delete: (id) => systemService.employees.delete(id)
+  delete: (id) => systemService.employees.delete(id),
+  getTeamMembers: (managerId) => {
+    // Return employees from the same department as the manager
+    return systemService.employees.getAll().then(response => {
+      const employees = response.employees || response.data?.employees || [];
+      const manager = employees.find(emp => emp.id === managerId);
+      if (!manager) return { data: [] };
+      const teamMembers = employees.filter(emp => 
+        emp.department_id === manager.department_id && emp.id !== managerId
+      );
+      return { data: teamMembers };
+    });
+  }
 };
 
 export const hrService = {

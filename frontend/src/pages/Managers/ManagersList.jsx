@@ -67,16 +67,16 @@ const ManagersList = () => {
             <div key={manager.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <img
-                  src={manager.avatar}
-                  alt={`${manager.firstName} ${manager.lastName}`}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
+                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-lg font-medium text-blue-600">
+                    {manager.name?.charAt(0) || 'M'}
+                  </span>
+                </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">
-                    {manager.first_name} {manager.last_name}
+                    {manager.name}
                   </h3>
-                  <p className="text-sm text-gray-600">{manager.position}</p>
+                  <p className="text-sm text-gray-600">{manager.role}</p>
                 </div>
               </div>
               
@@ -104,7 +104,7 @@ const ManagersList = () => {
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4" />
-                <span>Depuis {new Date(manager.created_at || manager.createdDate).toLocaleDateString('fr-FR')}</span>
+                <span>Depuis {manager.hire_date ? new Date(manager.hire_date).toLocaleDateString('fr-FR') : 'N/A'}</span>
               </div>
             </div>
 

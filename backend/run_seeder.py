@@ -98,10 +98,42 @@ def run_complete_seeder():
         else:
             print("Users already exist")
         
-        # 4. Create employees
+        # 4. Create employees (including managers)
         departments = db.query(Department).all()
         if not db.query(Employee).first() and departments:
             employees_data = [
+                # Managers
+                {
+                    "name": "Pierre Martin",
+                    "email": "pierre.martin@novacore.com",
+                    "role": "Manager IT",
+                    "company_id": company.id,
+                    "department_id": departments[1].id,  # IT
+                    "hire_date": date(2022, 1, 1),
+                    "salary": 55000.0,
+                    "status": "active"
+                },
+                {
+                    "name": "Marie Dubois",
+                    "email": "marie.dubois@novacore.com",
+                    "role": "Manager Marketing",
+                    "company_id": company.id,
+                    "department_id": departments[2].id,  # Marketing
+                    "hire_date": date(2022, 2, 1),
+                    "salary": 52000.0,
+                    "status": "active"
+                },
+                {
+                    "name": "Paul Leroy",
+                    "email": "paul.leroy@novacore.com",
+                    "role": "Manager Finance",
+                    "company_id": company.id,
+                    "department_id": departments[3].id,  # Finance
+                    "hire_date": date(2022, 3, 1),
+                    "salary": 53000.0,
+                    "status": "active"
+                },
+                # Employés réguliers
                 {
                     "name": "Jean Martin",
                     "email": "jean.martin@novacore.com",
