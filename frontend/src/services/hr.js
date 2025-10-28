@@ -63,9 +63,18 @@ export const hrService = {
 
   // Gestion des avantages (utilise les services existants)
   benefits: {
-    getAll: () => apiClient.get('/hr/benefits'),
-    create: (data) => apiClient.post('/hr/benefits', data),
-    update: (id, data) => apiClient.put(`/hr/benefits/${id}`, data),
-    delete: (id) => apiClient.delete(`/hr/benefits/${id}`)
+    getAll: () => apiClient.get('/payroll/benefits'),
+    create: (data) => apiClient.post('/payroll/benefits', data),
+    update: (id, data) => apiClient.put(`/payroll/benefits/${id}`, data),
+    delete: (id) => apiClient.delete(`/payroll/benefits/${id}`)
+  },
+  
+  // Departments
+  departments: {
+    getAll: () => apiClient.get('/settings/departments'),
+    getById: (id) => apiClient.get(`/settings/departments/${id}`),
+    create: (data) => apiClient.post('/settings/departments', data),
+    update: (id, data) => apiClient.put(`/settings/departments/${id}`, data),
+    delete: (id) => apiClient.delete(`/settings/departments/${id}`)
   }
 };

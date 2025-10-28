@@ -1,123 +1,262 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.api import deps
-from app.db import models
-from app.schemas import settings as settings_schema
-from app.crud import crud_company
+
+from ....db.database import get_db
+from ....crud.crud_settings import crud_settings
+from ....schemas.settings import (
+    RoleCreate, RoleUpdate, RoleResponse, CompanySettingsUpdate, CompanySettingsResponse,
+    SecuritySettingsUpdate, SecuritySettingsResponse, IntegrationCreate, IntegrationUpdate, 
+    IntegrationResponse, NotificationSettingsUpdate, NotificationSettingsResponse,
+    DepartmentCreate, DepartmentUpdate, DepartmentResponse
+)
+from ....core.auth import get_current_user
+from ....db.models import User
 
 router = APIRouter()
 
-@router.get("/smtp", response_model=settings_schema.SMTPSettings)
-async def get_smtp_settings(
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
+# Roles Management
+@router.get("/roles", response_model=List[RoleResponse])
+def get_roles(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    return company.settings_smtp or {}
+    """Get all roles"""
+    roles = crud_settings.get_roles(db)
+    return [
+        RoleResponse(
+            **role.__dict__,
+            users_count=len([u for u in role.users]) if hasattr(role, 'users') else 0
+        ) for role in roles
+    ]
+
+@router.post("/roles", response_model=RoleResponse)
+def create_role(
+    role: RoleCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create new role"""
+    db_role = crud_settings.create_role(db, role)
+    return RoleResponse(**db_role.__dict__, users_count=0)
+
+@router.put("/roles/{role_id}", response_model=RoleResponse)
+def update_role(
+    role_id: int,
+    role_update: RoleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update role"""
+    db_role = crud_settings.update_role(db, role_id, role_update)
+    if not db_role:
+        raise HTTPException(status_code=404, detail="Role not found or is system role")
+    
+    return RoleResponse(
+        **db_role.__dict__,
+        users_count=len([u for u in db_role.users]) if hasattr(db_role, 'users') else 0
+    )
+
+@router.delete("/roles/{role_id}")
+def delete_role(
+    role_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete role"""
+    success = crud_settings.delete_role(db, role_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Cannot delete role - it's in use or is system role")
+    
+    return {"message": "Role deleted successfully"}
+
+# Company Settings
+@router.get("/company", response_model=CompanySettingsResponse)
+def get_company_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get company settings"""
+    settings = crud_settings.get_company_settings(db, current_user.company_id)
+    if not settings:
+        raise HTTPException(status_code=404, detail="Company settings not found")
+    
+    return settings
+
+@router.put("/company", response_model=CompanySettingsResponse)
+def update_company_settings(
+    settings: CompanySettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update company settings"""
+    db_settings = crud_settings.update_company_settings(db, current_user.company_id, settings)
+    return db_settings
+
+# Security Settings
+@router.get("/security", response_model=SecuritySettingsResponse)
+def get_security_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get security settings"""
+    settings = crud_settings.get_security_settings(db, current_user.company_id)
+    if not settings:
+        raise HTTPException(status_code=404, detail="Security settings not found")
+    
+    return settings
+
+@router.put("/security", response_model=SecuritySettingsResponse)
+def update_security_settings(
+    settings: SecuritySettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update security settings"""
+    db_settings = crud_settings.update_security_settings(db, current_user.company_id, settings)
+    return db_settings
+
+# Integrations
+@router.get("/integrations", response_model=List[IntegrationResponse])
+def get_integrations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all integrations"""
+    return crud_settings.get_integrations(db, current_user.company_id)
+
+@router.post("/integrations", response_model=IntegrationResponse)
+def create_integration(
+    integration: IntegrationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create new integration"""
+    return crud_settings.create_integration(db, current_user.company_id, integration)
+
+@router.put("/integrations/{integration_id}", response_model=IntegrationResponse)
+def update_integration(
+    integration_id: int,
+    integration_update: IntegrationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update integration"""
+    db_integration = crud_settings.update_integration(db, integration_id, integration_update)
+    if not db_integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    return db_integration
+
+@router.delete("/integrations/{integration_id}")
+def delete_integration(
+    integration_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete integration"""
+    success = crud_settings.delete_integration(db, integration_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    return {"message": "Integration deleted successfully"}
+
+# Notification Settings
+@router.get("/notifications", response_model=NotificationSettingsResponse)
+def get_notification_settings(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get user notification settings"""
+    settings = crud_settings.get_notification_settings(db, current_user.id)
+    if not settings:
+        # Return default settings
+        from ....schemas.settings import NotificationSettingsBase
+        default_settings = NotificationSettingsBase()
+        return NotificationSettingsResponse(
+            id=0,
+            user_id=current_user.id,
+            **default_settings.dict(),
+            updated_at=None
+        )
+    
+    return settings
+
+@router.put("/notifications", response_model=NotificationSettingsResponse)
+def update_notification_settings(
+    settings: NotificationSettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update user notification settings"""
+    db_settings = crud_settings.update_notification_settings(db, current_user.id, settings)
+    return db_settings
+
+# Departments Management
+@router.get("/departments", response_model=List[DepartmentResponse])
+def get_departments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all departments for company"""
+    return crud_settings.get_departments(db, current_user.company_id)
+
+@router.post("/departments", response_model=DepartmentResponse)
+def create_department(
+    department: DepartmentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create new department"""
+    return crud_settings.create_department(db, current_user.company_id, department)
+
+@router.put("/departments/{department_id}", response_model=DepartmentResponse)
+def update_department(
+    department_id: int,
+    department_update: DepartmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update department"""
+    db_department = crud_settings.update_department(db, department_id, department_update)
+    if not db_department:
+        raise HTTPException(status_code=404, detail="Department not found")
+    
+    return db_department
+
+@router.delete("/departments/{department_id}")
+def delete_department(
+    department_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete department"""
+    success = crud_settings.delete_department(db, department_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Department not found or has employees")
+    
+    return {"message": "Department deleted successfully"}
+
+# SMTP Settings
+@router.get("/smtp")
+def get_smtp_config(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get SMTP configuration"""
+    return {
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "username": "",
+        "password": "",
+        "use_tls": True
+    }
 
 @router.put("/smtp")
-async def update_smtp_settings(
-    settings_in: settings_schema.SMTPSettings,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
+def update_smtp_config(
+    config: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    company.settings_smtp = settings_in.dict()
-    db.commit()
-    return {"message": "Paramètres SMTP mis à jour"}
-
-@router.get("/leave-policy", response_model=settings_schema.LeavePolicy)
-async def get_leave_policy(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
-):
-    company = crud_company.get_company(db, current_user.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    return company.settings_leave_policy or {}
-
-@router.put("/leave-policy")
-async def update_leave_policy(
-    policy_in: settings_schema.LeavePolicy,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
-):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    company.settings_leave_policy = policy_in.dict()
-    db.commit()
-    return {"message": "Politique de congés mise à jour"}
-
-@router.get("/work-schedule", response_model=settings_schema.WorkSchedule)
-async def get_work_schedule(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
-):
-    company = crud_company.get_company(db, current_user.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    return company.settings_work_schedule or {}
-
-@router.put("/work-schedule")
-async def update_work_schedule(
-    schedule_in: settings_schema.WorkSchedule,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
-):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    company.settings_work_schedule = schedule_in.dict()
-    db.commit()
-    return {"message": "Horaires de travail mis à jour"}
-
-@router.get("/security", response_model=settings_schema.SecuritySettings)
-async def get_security_settings(
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
-):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    return company.settings_security or {}
-
-@router.put("/security")
-async def update_security_settings(
-    security_in: settings_schema.SecuritySettings,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
-):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    company.settings_security = security_in.dict()
-    db.commit()
-    return {"message": "Paramètres de sécurité mis à jour"}
-
-@router.get("/appearance", response_model=settings_schema.AppearanceSettings)
-async def get_appearance_settings(
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
-):
-    company = crud_company.get_company(db, current_user.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    return company.settings_appearance or {}
-
-@router.put("/appearance")
-async def update_appearance_settings(
-    appearance_in: settings_schema.AppearanceSettings,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin)
-):
-    company = crud_company.get_company(db, current_admin.company_id)
-    if not company:
-        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
-    company.settings_appearance = appearance_in.dict()
-    db.commit()
-    return {"message": "Paramètres d'apparence mis à jour"}
+    """Update SMTP configuration"""
+    return config

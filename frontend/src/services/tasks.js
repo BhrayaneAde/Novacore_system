@@ -16,4 +16,7 @@ export const tasksService = {
   getByEmployee: (employeeId) => apiClient.get(`/tasks?employee_id=${employeeId}`),
   getByStatus: (status) => apiClient.get(`/tasks?status=${status}`),
   getByPriority: (priority) => apiClient.get(`/tasks?priority=${priority}`),
+  
+  // Analytics
+  getAnalytics: () => apiClient.get('/tasks/analytics/overview'),
 };

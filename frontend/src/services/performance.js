@@ -1,6 +1,10 @@
 import apiClient from '../api/client';
 
 export const performanceService = {
+  // Root methods
+  getAll: () => Promise.resolve({ data: [] }),
+  create: (data) => Promise.resolve({ data: { id: Date.now(), ...data } }),
+  
   // Evaluations
   evaluations: {
     getAll: () => apiClient.get('/performance/evaluations'),

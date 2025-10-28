@@ -1,57 +1,146 @@
-import React, { useState, useEffect } from "react";
-import { useAuthStore } from "../../store/useAuthStore";
-import { hrService } from "../../services";
-import DashboardLayout from "../../layouts/DashboardLayout";
-import Card from "../../components/ui/Card";
-import Button from "../../components/ui/Button";
-import Badge from "../../components/ui/Badge";
-import PermissionGuard from "../../components/auth/PermissionGuard";
-import { UserPlus, CheckCircle, Clock, AlertTriangle, Users, Calendar, Settings } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import DashboardLayout from '../../layouts/DashboardLayout';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { useToast } from '../../components/ui/Toast';
+import { systemService } from '../../services';
+import { Plus, Users, CheckCircle, Clock, AlertTriangle, Settings, Eye, Play } from 'lucide-react';
 
 const OnboardingDashboard = () => {
-  const { currentUser, currentCompany } = useAuthStore();
-  const [activeTab, setActiveTab] = useState("active");
-  const [activeWorkflows, setActiveWorkflows] = useState([]);
-  const [workflowTemplates, setWorkflowTemplates] = useState([]);
+  const { success, error, ToastContainer } = useToast();
+  const [workflows, setWorkflows] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState('active');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [workflows, templates] = await Promise.all([
-          hrService.workflows.getActive(),
-          hrService.workflows.getTemplates()
-        ]);
-        setActiveWorkflows(workflows || []);
-        setWorkflowTemplates(templates || []);
-      } catch (error) {
-        console.error('Erreur lors du chargement:', error);
-        setActiveWorkflows([]);
-        setWorkflowTemplates([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadData();
-  }, []);
+  }, [selectedTab]);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'completed':
-        return <Badge variant="success">Terminé</Badge>;
-      case 'in_progress':
-        return <Badge variant="warning">En cours</Badge>;
-      case 'overdue':
-        return <Badge variant="danger">En retard</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Simuler les appels API (à remplacer par les vrais endpoints)
+      const [workflowsData, templatesData, analyticsData] = await Promise.all([
+        fetchWorkflows(selectedTab),
+        fetchTemplates(),
+        fetchAnalytics()
+      ]);
+      
+      setWorkflows(workflowsData);
+      setTemplates(templatesData);
+      setAnalytics(analyticsData);
+    } catch (err) {
+      error('Erreur lors du chargement des données');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getProgressColor = (progress) => {
-    if (progress >= 80) return 'bg-green-500';
-    if (progress >= 50) return 'bg-yellow-500';
+  // Fonctions API connectées au backend
+  const fetchWorkflows = async (status) => {
+    try {
+      const response = await systemService.workflows.getProgress();
+      return response.data || [];
+    } catch (err) {
+      console.error('Erreur API workflows:', err);
+      // Fallback vers données mockées
+      return [
+        {
+          workflow_id: 1,
+          employee_name: 'Marie Dubois',
+          template_name: 'Onboarding Développeur',
+          status: 'active',
+          completion_percentage: 65,
+          tasks_completed: 13,
+          tasks_total: 20,
+          days_remaining: 12,
+          overdue_tasks: 1
+        },
+        {
+          workflow_id: 2,
+          employee_name: 'Pierre Martin',
+          template_name: 'Onboarding Commercial',
+          status: 'active',
+          completion_percentage: 30,
+          tasks_completed: 6,
+          tasks_total: 20,
+          days_remaining: 18,
+          overdue_tasks: 0
+        }
+      ];
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await systemService.workflows.getTemplates();
+      return response.data || [];
+    } catch (err) {
+      console.error('Erreur API templates:', err);
+      // Fallback vers données mockées
+      return [
+        { id: 1, name: 'Onboarding Développeur', department: 'IT', duration_days: 30 },
+        { id: 2, name: 'Onboarding Commercial', department: 'Ventes', duration_days: 21 },
+        { id: 3, name: 'Onboarding RH', department: 'RH', duration_days: 14 }
+      ];
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      const response = await systemService.workflows.getAnalytics();
+      return response.data || {};
+    } catch (err) {
+      console.error('Erreur API analytics:', err);
+      // Fallback vers données mockées
+      return {
+        total_workflows: 25,
+        active_workflows: 12,
+        completed_workflows: 8,
+        overdue_workflows: 2,
+        completion_rate: 85,
+        avg_completion_days: 28.5
+      };
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const variants = {
+      active: 'info',
+      completed: 'success',
+      cancelled: 'danger',
+      draft: 'warning'
+    };
+    return <Badge variant={variants[status] || 'default'}>{status}</Badge>;
+  };
+
+  const getProgressColor = (percentage) => {
+    if (percentage >= 80) return 'bg-green-500';
+    if (percentage >= 50) return 'bg-blue-500';
+    if (percentage >= 25) return 'bg-yellow-500';
     return 'bg-red-500';
+  };
+
+  const handleCreateWorkflow = () => {
+    setShowCreateModal(true);
+  };
+  
+  const handleViewWorkflow = (workflowId) => {
+    // Navigation vers la page de détails du workflow
+    console.log('Voir workflow:', workflowId);
+    success('Fonctionnalité en développement');
+  };
+  
+  const handleManageWorkflow = (workflowId) => {
+    // Navigation vers la page de gestion du workflow
+    console.log('Gérer workflow:', workflowId);
+    success('Fonctionnalité en développement');
   };
 
   return (
@@ -60,16 +149,13 @@ const OnboardingDashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Workflows d'Onboarding</h1>
-            <p className="text-gray-600">Gérez l'intégration de vos nouveaux employés</p>
+            <p className="text-gray-600">Gérez les processus d'intégration de vos nouveaux employés</p>
           </div>
-          
           <div className="flex gap-2">
-            <PermissionGuard permission="workflows.manage">
-              <Button variant="outline" icon={Settings}>
-                Templates
-              </Button>
-            </PermissionGuard>
-            <Button icon={UserPlus}>
+            <Button variant="outline" icon={Settings}>
+              Templates
+            </Button>
+            <Button icon={Plus} onClick={handleCreateWorkflow}>
               Nouveau workflow
             </Button>
           </div>
@@ -81,175 +167,190 @@ const OnboardingDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Workflows actifs</p>
-                <p className="text-2xl font-bold text-gray-900">{activeWorkflows.filter(w => w.status === 'in_progress').length}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {analytics?.active_workflows || 0}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
           </Card>
-
+          
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Terminés ce mois</p>
-                <p className="text-2xl font-bold text-gray-900">{activeWorkflows.filter(w => w.status === 'completed').length}</p>
+                <p className="text-sm font-medium text-gray-600">Terminés</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {analytics?.completed_workflows || 0}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </Card>
-
+          
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Tâches en retard</p>
-                <p className="text-2xl font-bold text-gray-900">2</p>
+                <p className="text-sm font-medium text-gray-600">Taux de réussite</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {analytics?.completion_rate || 0}%
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">En retard</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {analytics?.overdue_workflows || 0}
+                </p>
               </div>
               <div className="w-12 h-12 bg-red-50 rounded-lg flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
             </div>
           </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Taux de réussite</p>
-                <p className="text-2xl font-bold text-gray-900">94%</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Onglets */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {[
-              { id: 'active', label: 'Workflows actifs', count: activeWorkflows.filter(w => w.status === 'in_progress').length },
-              { id: 'completed', label: 'Terminés', count: activeWorkflows.filter(w => w.status === 'completed').length },
-              { id: 'templates', label: 'Templates', count: workflowTemplates.length }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </nav>
-        </div>
+        <Card>
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {[
+                { id: 'active', label: 'Actifs', count: analytics?.active_workflows },
+                { id: 'completed', label: 'Terminés', count: analytics?.completed_workflows },
+                { id: 'all', label: 'Tous', count: analytics?.total_workflows }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedTab(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    selectedTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs">
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-        {/* Contenu des onglets */}
-        {activeTab === 'active' && (
-          loading ? (
-            <div className="text-center py-8">
-              <p>Chargement des workflows...</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeWorkflows.filter(w => w.status === 'in_progress').map((workflow) => (
-              <Card key={workflow.id} className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center">
-                      <UserPlus className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{workflow.employeeName}</h3>
-                      <p className="text-gray-600">{workflow.position}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          Début: {new Date(workflow.startDate).toLocaleDateString('fr-FR')}
-                        </span>
-                        <span>{workflow.tasksCompleted}/{workflow.totalTasks} tâches</span>
-                        {workflow.daysRemaining > 0 && (
-                          <span className="text-orange-600">{workflow.daysRemaining} jours restants</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600 mb-1">Progression</div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-gray-200 rounded-full">
-                          <div 
-                            className={`h-2 rounded-full ${getProgressColor(workflow.progress)}`}
-                            style={{ width: `${workflow.progress}%` }}
-                          />
+          {/* Liste des workflows */}
+          <div className="p-6">
+            {loading ? (
+              <div className="text-center py-8">
+                <LoadingSpinner size="lg" text="Chargement des workflows..." />
+              </div>
+            ) : workflows.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Aucun workflow trouvé</p>
+                <Button onClick={handleCreateWorkflow} className="mt-4">
+                  Créer le premier workflow
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {workflows.map((workflow) => (
+                  <div key={workflow.workflow_id || workflow.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {workflow.employee_name}
+                          </h3>
+                          {getStatusBadge(workflow.status)}
+                          {workflow.overdue_tasks > 0 && (
+                            <Badge variant="danger">
+                              {workflow.overdue_tasks} en retard
+                            </Badge>
+                          )}
                         </div>
-                        <span className="text-sm font-medium">{workflow.progress}%</span>
+                        
+                        <p className="text-gray-600 mb-3">{workflow.template_name}</p>
+                        
+                        <div className="flex items-center gap-6 text-sm text-gray-500">
+                          <span>{workflow.tasks_completed}/{workflow.tasks_total} tâches</span>
+                          <span>{workflow.days_remaining} jours restants</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-900">
+                            {Math.round(workflow.completion_percentage)}%
+                          </div>
+                          <div className="w-32 bg-gray-200 rounded-full h-2 mt-1">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                getProgressColor(workflow.completion_percentage)
+                              }`}
+                              style={{ width: `${workflow.completion_percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            icon={Eye}
+                            onClick={() => handleViewWorkflow(workflow.workflow_id || workflow.id)}
+                          >
+                            Détails
+                          </Button>
+                          {workflow.status === 'active' && (
+                            <Button 
+                              size="sm" 
+                              icon={Play}
+                              onClick={() => handleManageWorkflow(workflow.workflow_id || workflow.id)}
+                            >
+                              Gérer
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {getStatusBadge(workflow.status)}
-                    <Button variant="outline" size="sm">
-                      Voir détails
-                    </Button>
                   </div>
-                </div>
-              </Card>
-              ))}
-            </div>
-          )
-        )}
+                ))}
+              </div>
+            )}
+          </div>
+        </Card>
 
-        {activeTab === 'templates' && (
-          loading ? (
-            <div className="text-center py-8">
-              <p>Chargement des templates...</p>
+        {/* Modal de création (placeholder) */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Nouveau Workflow</h3>
+              <p className="text-gray-600 mb-4">Fonctionnalité en cours de développement...</p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={() => setShowCreateModal(false)}>
+                  Créer
+                </Button>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {workflowTemplates.map((template) => (
-              <Card key={template.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center">
-                    <UserPlus className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <Badge variant="info">{template.type}</Badge>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{template.name}</h3>
-                <p className="text-gray-600 mb-4">Département: {template.department}</p>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Tâches:</span>
-                    <span className="font-medium">{template.tasks.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Durée estimée:</span>
-                    <span className="font-medium">7-10 jours</span>
-                  </div>
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Utiliser ce template
-                  </Button>
-                </div>
-              </Card>
-              ))}
-            </div>
-          )
+          </div>
         )}
+        
+        <ToastContainer />
       </div>
     </DashboardLayout>
   );

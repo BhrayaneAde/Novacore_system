@@ -5,17 +5,23 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import { Clock, Play, Pause, Coffee, LogOut, LogIn, MapPin, Calendar, AlertCircle } from "lucide-react";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useToast } from "../../components/ui/Toast";
+import { Clock, Play, Pause, Coffee, LogOut, LogIn, MapPin, Calendar, AlertCircle, Wifi, WifiOff } from "lucide-react";
 
 const TimeTracking = () => {
   const { currentUser } = useAuthStore();
+  const { success, error, warning, ToastContainer } = useToast();
   const [currentSession, setCurrentSession] = useState(null);
   const [isOnBreak, setIsOnBreak] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [todayEntries, setTodayEntries] = useState([]);
   const [weeklyHours, setWeeklyHours] = useState(0);
   const [location, setLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(false);
+  const [lastSync, setLastSync] = useState(null);
 
   useEffect(() => {
     // Mettre à jour l'heure toutes les secondes
@@ -23,13 +29,37 @@ const TimeTracking = () => {
       setCurrentTime(new Date());
     }, 1000);
 
+    // Surveiller la connexion
+    const handleOnline = () => {
+      setIsOnline(true);
+      success('Connexion rétablie');
+      loadTodayData();
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      warning('Connexion perdue - Mode hors ligne');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
     loadTodayData();
     getCurrentLocation();
     
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const loadTodayData = async () => {
+    if (!isOnline) {
+      warning('Mode hors ligne - Données non synchronisées');
+      return;
+    }
+    
     try {
       const today = new Date().toISOString().split('T')[0];
       const entries = await systemService.timeTracking.getEntries(today);
@@ -48,55 +78,113 @@ const TimeTracking = () => {
       const weekEntries = await systemService.timeTracking.getWeeklyEntries(weekStart.toISOString().split('T')[0]);
       const totalHours = weekEntries?.reduce((sum, entry) => sum + (entry.total_hours || 0), 0) || 0;
       setWeeklyHours(totalHours);
-    } catch (error) {
-      console.error('Erreur lors du chargement:', error);
+      
+      setLastSync(new Date());
+    } catch (err) {
+      console.error('Erreur lors du chargement:', err);
+      error('Impossible de charger les données de pointage');
     }
   };
 
   const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy
-          });
-        },
-        (error) => {
-          console.warn('Géolocalisation non disponible:', error);
-        }
-      );
+    if (!navigator.geolocation) {
+      setLocationError('Géolocalisation non supportée');
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+        setLocationError(null);
+      },
+      (err) => {
+        console.warn('Géolocalisation non disponible:', err);
+        const errorMessages = {
+          1: 'Permission de géolocalisation refusée',
+          2: 'Position indisponible',
+          3: 'Délai d\'attente dépassé'
+        };
+        setLocationError(errorMessages[err.code] || 'Erreur de géolocalisation');
+        warning('Géolocalisation indisponible - Pointage sans position');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000
+      }
+    );
   };
 
   const clockIn = async () => {
+    if (!isOnline) {
+      error('Connexion requise pour pointer');
+      return;
+    }
+    
+    if (!currentUser?.employee_id) {
+      error('Utilisateur non identifié');
+      return;
+    }
+    
     try {
       setLoading(true);
+      
+      // Validation des heures de travail
+      const now = new Date();
+      const hour = now.getHours();
+      if (hour < 6 || hour > 22) {
+        const confirm = window.confirm('Pointage en dehors des heures normales. Continuer ?');
+        if (!confirm) return;
+      }
+      
       const session = await systemService.timeTracking.clockIn({
         employee_id: currentUser.employee_id,
-        clock_in: new Date().toISOString(),
+        clock_in: now.toISOString(),
         location: location,
         ip_address: await getClientIP()
       });
       
       setCurrentSession(session);
       await loadTodayData();
-    } catch (error) {
-      console.error('Erreur lors du pointage d\'entrée:', error);
-      alert('Erreur lors du pointage. Veuillez réessayer.');
+      success('Pointage d\'arrivée enregistré');
+    } catch (err) {
+      console.error('Erreur lors du pointage d\'entrée:', err);
+      error(`Erreur lors du pointage: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const clockOut = async () => {
-    if (!currentSession) return;
+    if (!currentSession) {
+      error('Aucune session active');
+      return;
+    }
+    
+    if (!isOnline) {
+      error('Connexion requise pour pointer');
+      return;
+    }
     
     try {
       setLoading(true);
+      
+      // Validation durée minimale
+      const sessionStart = new Date(currentSession.clock_in);
+      const now = new Date();
+      const duration = (now - sessionStart) / (1000 * 60); // minutes
+      
+      if (duration < 30) {
+        const confirm = window.confirm('Session très courte (moins de 30min). Confirmer la sortie ?');
+        if (!confirm) return;
+      }
+      
       await systemService.timeTracking.clockOut(currentSession.id, {
-        clock_out: new Date().toISOString(),
+        clock_out: now.toISOString(),
         location: location,
         ip_address: await getClientIP()
       });
@@ -104,9 +192,10 @@ const TimeTracking = () => {
       setCurrentSession(null);
       setIsOnBreak(false);
       await loadTodayData();
-    } catch (error) {
-      console.error('Erreur lors du pointage de sortie:', error);
-      alert('Erreur lors du pointage. Veuillez réessayer.');
+      success('Pointage de sortie enregistré');
+    } catch (err) {
+      console.error('Erreur lors du pointage de sortie:', err);
+      error(`Erreur lors du pointage: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -261,12 +350,39 @@ const TimeTracking = () => {
                     </div>
                   )}
                   
-                  {location && (
-                    <div className="flex items-center gap-1 text-sm text-gray-500 mt-2">
-                      <MapPin className="w-4 h-4" />
-                      <span>Position confirmée (±{Math.round(location.accuracy)}m)</span>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
+                    {location ? (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        <span>Position confirmée (±{Math.round(location.accuracy)}m)</span>
+                      </div>
+                    ) : locationError ? (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-red-600" />
+                        <span>{locationError}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4 text-yellow-600" />
+                        <span>Localisation en cours...</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-1">
+                      {isOnline ? (
+                        <Wifi className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <WifiOff className="w-4 h-4 text-red-600" />
+                      )}
+                      <span>{isOnline ? 'En ligne' : 'Hors ligne'}</span>
                     </div>
-                  )}
+                    
+                    {lastSync && (
+                      <span className="text-xs">
+                        Sync: {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -394,10 +510,17 @@ const TimeTracking = () => {
 
         {/* Historique du jour */}
         <Card title="Historique d'aujourd'hui">
-          {todayEntries.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <LoadingSpinner size="lg" text="Chargement de l'historique..." />
+            </div>
+          ) : todayEntries.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucun pointage aujourd'hui</p>
+              {!isOnline && (
+                <p className="text-sm text-yellow-600 mt-2">Mode hors ligne - Données non synchronisées</p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -472,6 +595,7 @@ const TimeTracking = () => {
             </div>
           )}
         </Card>
+        <ToastContainer />
       </div>
     </DashboardLayout>
   );

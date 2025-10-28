@@ -3,10 +3,13 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useToast } from "../../components/ui/Toast";
 import { leavesService, employeesService, systemService } from "../../services";
-import { ChevronLeft, ChevronRight, Calendar, Filter, Plus, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Filter, Plus, Eye, RefreshCw, Download } from "lucide-react";
 
 const AttendanceCalendar = () => {
+  const { success, error, warning, ToastContainer } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month'); // month, week, day
   const [events, setEvents] = useState([]);
@@ -18,6 +21,9 @@ const AttendanceCalendar = () => {
     eventTypes: ['presence', 'absence', 'leave', 'holiday']
   });
   const [loading, setLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -117,32 +123,42 @@ const AttendanceCalendar = () => {
       
       setEvents([...attendanceEvents, ...leaveEvents, ...holidays]);
       setStatistics(allStats);
-    } catch (error) {
-      console.error('Erreur lors du chargement:', error);
+      setLastRefresh(new Date());
+      success(`Calendrier mis à jour - ${attendanceEvents.length} événements chargés`);
+    } catch (err) {
+      console.error('Erreur lors du chargement:', err);
+      error('Erreur lors du chargement du calendrier');
+      
       // Fallback vers les données mockées en cas d'erreur
-      const [leavesData, employeesData] = await Promise.all([
-        leavesService.getAll(),
-        employeesService.getAll()
-      ]);
-      
-      setEmployees(employeesData || []);
-      
-      const leaveEvents = (leavesData || []).map(leave => ({
-        id: `leave-${leave.id}`,
-        title: `${leave.employee_name} - ${getLeaveTypeLabel(leave.leave_type)}`,
-        start: leave.start_date,
-        end: leave.end_date,
-        type: 'leave',
-        status: leave.status,
-        employee: leave.employee_name,
-        department: leave.department,
-        details: leave
-      }));
-      
-      const holidays = getHolidays(currentDate.getFullYear());
-      const workDays = generateWorkDays(currentDate, employeesData);
-      
-      setEvents([...leaveEvents, ...holidays, ...workDays]);
+      try {
+        const [leavesData, employeesData] = await Promise.all([
+          leavesService.getAll(),
+          employeesService.getAll()
+        ]);
+        
+        setEmployees(employeesData || []);
+        
+        const leaveEvents = (leavesData || []).map(leave => ({
+          id: `leave-${leave.id}`,
+          title: `${leave.employee_name} - ${getLeaveTypeLabel(leave.leave_type)}`,
+          start: leave.start_date,
+          end: leave.end_date,
+          type: 'leave',
+          status: leave.status,
+          employee: leave.employee_name,
+          department: leave.department,
+          details: leave
+        }));
+        
+        const holidays = getHolidays(currentDate.getFullYear());
+        const workDays = generateWorkDays(currentDate, employeesData);
+        
+        setEvents([...leaveEvents, ...holidays, ...workDays]);
+        warning('Données de secours chargées');
+      } catch (fallbackError) {
+        console.error('Erreur fallback:', fallbackError);
+        error('Impossible de charger les données');
+      }
     } finally {
       setLoading(false);
     }
@@ -220,6 +236,42 @@ const AttendanceCalendar = () => {
     }
     setCurrentDate(newDate);
   };
+  
+  const refreshData = async () => {
+    setLoading(true);
+    await loadData();
+  };
+  
+  const exportCalendar = () => {
+    const data = {
+      period: currentDate.toISOString().split('T')[0],
+      events: events.filter(e => selectedFilters.eventTypes.includes(e.type)),
+      statistics: statistics
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `calendrier-${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    success('Calendrier exporté');
+  };
+  
+  const handleEventClick = (event) => {
+    setSelectedEvent(event);
+  };
+  
+  const toggleFilter = (type) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      eventTypes: prev.eventTypes.includes(type)
+        ? prev.eventTypes.filter(t => t !== type)
+        : [...prev.eventTypes, type]
+    }));
+  };
 
   const getEventColor = (event) => {
     const colors = {
@@ -287,8 +339,27 @@ const AttendanceCalendar = () => {
             <p className="text-gray-600">Visualisez et gérez les présences de votre équipe</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" icon={Filter}>
+            <Button 
+              variant="outline" 
+              icon={RefreshCw} 
+              onClick={refreshData}
+              disabled={loading}
+            >
+              Actualiser
+            </Button>
+            <Button 
+              variant="outline" 
+              icon={Filter}
+              onClick={() => setShowFilters(!showFilters)}
+            >
               Filtres
+            </Button>
+            <Button 
+              variant="outline" 
+              icon={Download}
+              onClick={exportCalendar}
+            >
+              Exporter
             </Button>
             <Button icon={Plus}>
               Nouvelle demande
@@ -339,28 +410,66 @@ const AttendanceCalendar = () => {
           </div>
         </Card>
 
-        {/* Légende */}
+        {/* Légende et Filtres */}
         <Card>
           <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Légende</h3>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                <span className="text-sm text-gray-600">Présence</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded"></div>
-                <span className="text-sm text-gray-600">Congés</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
-                <span className="text-sm text-gray-600">Absence</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-purple-100 border border-purple-200 rounded"></div>
-                <span className="text-sm text-gray-600">Jour férié</span>
-              </div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-700">Légende et Filtres</h3>
+              {lastRefresh && (
+                <span className="text-xs text-gray-500">
+                  Dernière mise à jour: {lastRefresh.toLocaleTimeString('fr-FR')}
+                </span>
+              )}
             </div>
+            
+            <div className="flex flex-wrap gap-4">
+              {[
+                { type: 'presence', color: 'bg-green-100 border-green-200', label: 'Présence' },
+                { type: 'leave', color: 'bg-blue-100 border-blue-200', label: 'Congés' },
+                { type: 'absence', color: 'bg-red-100 border-red-200', label: 'Absence' },
+                { type: 'holiday', color: 'bg-purple-100 border-purple-200', label: 'Jour férié' }
+              ].map(({ type, color, label }) => (
+                <div 
+                  key={type}
+                  className={`flex items-center gap-2 cursor-pointer p-2 rounded ${
+                    selectedFilters.eventTypes.includes(type) ? 'bg-gray-50' : 'opacity-50'
+                  }`}
+                  onClick={() => toggleFilter(type)}
+                >
+                  <div className={`w-4 h-4 ${color} rounded`}></div>
+                  <span className="text-sm text-gray-600">{label}</span>
+                  <span className="text-xs text-gray-400">
+                    ({events.filter(e => e.type === type).length})
+                  </span>
+                </div>
+              ))}
+            </div>
+            
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Filtres avancés</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Départements</label>
+                    <select className="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                      <option>Tous les départements</option>
+                      <option>RH</option>
+                      <option>IT</option>
+                      <option>Commercial</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Statut</label>
+                    <select className="w-full text-sm border border-gray-300 rounded px-2 py-1">
+                      <option>Tous les statuts</option>
+                      <option>Approuvé</option>
+                      <option>En attente</option>
+                      <option>Rejeté</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -368,7 +477,15 @@ const AttendanceCalendar = () => {
         <Card>
           {loading ? (
             <div className="text-center py-12">
-              <p>Chargement du calendrier...</p>
+              <LoadingSpinner size="lg" text="Chargement du calendrier..." />
+            </div>
+          ) : events.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Aucun événement pour cette période</p>
+              <Button onClick={refreshData} variant="outline" className="mt-4">
+                Actualiser
+              </Button>
             </div>
           ) : (
             <div className="p-4">
@@ -406,12 +523,16 @@ const AttendanceCalendar = () => {
                           {day.events.slice(0, 3).map((event) => (
                             <div
                               key={event.id}
-                              className={`text-xs p-1 rounded border truncate cursor-pointer hover:shadow-sm ${
+                              className={`text-xs p-1 rounded border truncate cursor-pointer hover:shadow-sm transition-all ${
                                 getEventColor(event)
                               }`}
-                              title={event.title}
+                              title={`${event.title}${event.hours ? ` (${event.hours}h)` : ''}`}
+                              onClick={() => handleEventClick(event)}
                             >
                               {event.title}
+                              {event.hours && (
+                                <span className="ml-1 font-medium">({event.hours}h)</span>
+                              )}
                             </div>
                           ))}
                           {day.events.length > 3 && (
@@ -497,6 +618,66 @@ const AttendanceCalendar = () => {
             </div>
           </Card>
         </div>
+        
+        {/* Modal détail événement */}
+        {selectedEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">{selectedEvent.title}</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setSelectedEvent(null)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Type:</span>
+                  <span className="ml-2 text-sm">{selectedEvent.type}</span>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Date:</span>
+                  <span className="ml-2 text-sm">{selectedEvent.start}</span>
+                </div>
+                
+                {selectedEvent.employee && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Employé:</span>
+                    <span className="ml-2 text-sm">{selectedEvent.employee}</span>
+                  </div>
+                )}
+                
+                {selectedEvent.department && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Département:</span>
+                    <span className="ml-2 text-sm">{selectedEvent.department}</span>
+                  </div>
+                )}
+                
+                {selectedEvent.hours && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Durée:</span>
+                    <span className="ml-2 text-sm">{selectedEvent.hours}h</span>
+                  </div>
+                )}
+                
+                {selectedEvent.details?.status && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600">Statut:</span>
+                    <span className="ml-2">{getStatusBadge(selectedEvent.details.status)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <ToastContainer />
       </div>
     </DashboardLayout>
   );

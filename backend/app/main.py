@@ -14,7 +14,7 @@ from app.core.config import settings
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+ 
 # 1. Créer la base de données si elle n'existe pas
 logger.info("🗄️ Vérification et création de la base de données...")
 try:

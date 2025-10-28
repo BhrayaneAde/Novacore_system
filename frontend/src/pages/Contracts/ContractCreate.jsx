@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { employeesService, hrService } from "../../services";
+import { systemService } from "../../services/system";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -17,9 +18,12 @@ const ContractCreate = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [employees, setEmployees] = useState([]);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    // Étape 1: Type de contrat
+    // Étape 1: Template de contrat
+    templateId: "",
     contractType: "",
     
     // Étape 2: Employé
@@ -41,66 +45,26 @@ const ContractCreate = () => {
     specificClauses: "",
   });
 
-  const contractTemplates = [
-    {
-      type: "CDI",
-      name: "Contrat à Durée Indéterminée",
-      description: "Contrat permanent sans date de fin",
-      icon: "📄",
-      color: "bg-green-50 border-green-200 hover:border-green-400",
-      popular: true
-    },
-    {
-      type: "CDD",
-      name: "Contrat à Durée Déterminée",
-      description: "Contrat temporaire avec date de fin",
-      icon: "📅",
-      color: "bg-blue-50 border-blue-200 hover:border-blue-400",
-      popular: true
-    },
-    {
-      type: "STAGE",
-      name: "Convention de Stage",
-      description: "Stage étudiant avec convention tripartite",
-      icon: "🎓",
-      color: "bg-purple-50 border-purple-200 hover:border-purple-400",
-    },
-    {
-      type: "ALTERNANCE",
-      name: "Contrat d'Alternance",
-      description: "Apprentissage ou professionnalisation",
-      icon: "🎯",
-      color: "bg-orange-50 border-orange-200 hover:border-orange-400",
-    },
-    {
-      type: "INTERIM",
-      name: "Contrat d'Intérim",
-      description: "Mission temporaire via agence",
-      icon: "⚡",
-      color: "bg-yellow-50 border-yellow-200 hover:border-yellow-400",
-    },
-    {
-      type: "FREELANCE",
-      name: "Contrat Freelance",
-      description: "Prestation de service indépendant",
-      icon: "💼",
-      color: "bg-indigo-50 border-indigo-200 hover:border-indigo-400",
-    },
-  ];
+
 
   useEffect(() => {
-    const loadEmployees = async () => {
+    const loadData = async () => {
       try {
-        const employeesData = await employeesService.getAll();
+        const [employeesData, templatesData] = await Promise.all([
+          employeesService.getAll(),
+          systemService.contracts.getPredefinedTemplates()
+        ]);
         setEmployees(employeesData.data || []);
+        setTemplates(templatesData.data || []);
       } catch (error) {
-        console.error('Erreur lors du chargement des employés:', error);
+        console.error('Erreur lors du chargement des données:', error);
         setEmployees([]);
+        setTemplates([]);
       } finally {
         setLoading(false);
       }
     };
-    loadEmployees();
+    loadData();
   }, []);
 
   const handleChange = (field, value) => {
@@ -144,25 +108,32 @@ const ContractCreate = () => {
           <ProgressSteps steps={steps} currentStep={step} />
         </Card>
 
-        {/* Step 1: Type de contrat */}
+        {/* Step 1: Template de contrat */}
         {step === 1 && (
           <Card>
-            <h2 className="text-xl font-semibold mb-4">Choisissez un type de contrat</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {contractTemplates.map((template) => (
-                <ContractTemplate
-                  key={template.type}
-                  type={template.type}
-                  name={template.name}
-                  description={template.description}
-                  icon={template.icon}
-                  selected={formData.contractType === template.type}
-                  onClick={() => handleChange("contractType", template.type)}
-                />
-              ))}
-            </div>
+            <h2 className="text-xl font-semibold mb-4">Choisissez un modèle de contrat</h2>
+            {loading ? (
+              <div className="text-center py-8">
+                <p>Chargement des modèles...</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {templates.map((template) => (
+                  <ContractTemplate
+                    key={template.id}
+                    template={template}
+                    selected={formData.templateId === template.id}
+                    onClick={() => {
+                      setSelectedTemplate(template);
+                      handleChange("templateId", template.id);
+                      handleChange("contractType", template.type);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
             <div className="mt-6 flex justify-end">
-              <Button onClick={handleNext} disabled={!formData.contractType}>
+              <Button onClick={handleNext} disabled={!formData.templateId}>
                 Suivant
               </Button>
             </div>

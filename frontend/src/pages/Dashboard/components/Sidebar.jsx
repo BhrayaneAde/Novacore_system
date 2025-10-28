@@ -20,83 +20,97 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/useAuthStore";
+import { systemService } from "../../../services/system";
+import { useState, useEffect } from "react";
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const { logout, currentUser } = useAuthStore();
+  const [userPermissions, setUserPermissions] = useState(null);
 
-  const employerMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: Users, label: "Employés", tab: "employees" },
-    { icon: CheckSquare, label: "Tâches", tab: "task-management" },
-    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
-    { icon: UserPlus, label: "Managers", tab: "managers-list" },
-    { icon: Target, label: "Nominations", tab: "manager-nominations" },
-    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor" },
-    { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
-    { icon: Target, label: "Performance", tab: "performance" },
-    { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
-    { icon: BarChart3, label: "Rapports", tab: "advanced-reports" },
-    { icon: Shield, label: "Audit Logs", tab: "audit-logs" },
-    { icon: Crown, label: "Succession", tab: "succession-planning" },
-    { icon: Settings, label: "Paramètres", tab: "settings" },
-  ];
+  useEffect(() => {
+    loadUserPermissions();
+  }, [currentUser]);
 
-  const hrAdminMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: Users, label: "Employés", tab: "employees" },
-    { icon: CheckSquare, label: "Tâches", tab: "task-management" },
-    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
-    { icon: UserPlus, label: "Managers", tab: "managers-list" },
-    { icon: Target, label: "Nominations", tab: "manager-nomination" },
-    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor" },
-    { icon: Wallet, label: "Paie & Avantages", tab: "payroll" },
-    { icon: Target, label: "Performance", tab: "performance" },
-    { icon: UserPlus, label: "Recrutement", tab: "recruitment" },
-    { icon: UserPlus, label: "Onboarding", tab: "onboarding-workflow" },
-    { icon: BarChart3, label: "Rapports", tab: "advanced-reports" },
-    { icon: FileText, label: "Gestion RH", tab: "hr-management" },
-  ];
-
-  const hrUserMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: Users, label: "Employés", tab: "employees" },
-  ];
-
-  const managerMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: Users, label: "Mon Équipe", tab: "employees" },
-    { icon: CheckSquare, label: "Management", tab: "task-management" },
-    { icon: Target, label: "Évaluations", tab: "employee-evaluation" },
-    { icon: Calendar, label: "Planning Équipe", tab: "manager-planning" },
-    { icon: Target, label: "Objectifs", tab: "goal-setting" },
-    { icon: MessageSquare, label: "1-on-1", tab: "one-on-one" },
-    { icon: FileText, label: "Documents", tab: "manager-documents" },
-    { icon: BarChart3, label: "Rapports Équipe", tab: "advanced-reports" },
-    { icon: Target, label: "Performance Équipe", tab: "performance" },
-  ];
-
-  const employeeMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard" },
-    { icon: CheckSquare, label: "Mes Tâches", tab: "employee-tasks" },
-    { icon: Target, label: "Ma Performance", tab: "my-performance" },
-    { icon: Target, label: "Mes Objectifs", tab: "goal-setting" },
-    { icon: User, label: "Mon Profil & Espace", tab: "employee-self-service" },
-    { icon: Wallet, label: "Mes Fiches de Paie", tab: "payslips" },
-    { icon: Calendar, label: "Mes Congés", tab: "leaves" },
-    { icon: Clock, label: "Mes Heures", tab: "timesheet" },
-    { icon: FileText, label: "Mes Documents", tab: "documents" },
-  ];
-
-  // Sélectionner le menu selon le rôle
-  const getMenuItems = () => {
-    switch (currentUser?.role) {
-      case 'employer': return employerMenuItems;
-      case 'hr_admin': return hrAdminMenuItems;
-      case 'hr_user': return hrUserMenuItems;
-      case 'manager': return managerMenuItems;
-      case 'employee': return employeeMenuItems;
-      default: return employeeMenuItems;
+  const loadUserPermissions = async () => {
+    if (!currentUser?.role) return;
+    
+    try {
+      const response = await systemService.settings.getRoles();
+      const userRole = response.data?.find(role => role.name.toLowerCase() === currentUser.role);
+      setUserPermissions(userRole?.permissions || []);
+    } catch (error) {
+      console.error('Error loading permissions:', error);
     }
+  };
+
+  const hasPermission = (module, action = 'read') => {
+    if (!userPermissions || !module) return true; // Fallback to current behavior
+    
+    // Handle case where userPermissions is an object with module keys
+    if (typeof userPermissions === 'object' && !Array.isArray(userPermissions)) {
+      return userPermissions[module]?.[action] || false;
+    }
+    
+    // Handle case where userPermissions is an array
+    if (Array.isArray(userPermissions)) {
+      const modulePermissions = userPermissions.find(p => p.module === module);
+      return modulePermissions?.actions?.[action] || false;
+    }
+    
+    return true;
+  };
+
+  const allMenuItems = [
+    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard", module: null },
+    { icon: Users, label: "Employés", tab: "employees", module: "employees" },
+    { icon: CheckSquare, label: "Tâches", tab: "task-management", module: "tasks" },
+    { icon: Target, label: "Évaluations", tab: "employee-evaluation", module: "performance" },
+    { icon: UserPlus, label: "Managers", tab: "managers-list", module: "employees" },
+    { icon: Target, label: "Nominations", tab: "manager-nominations", module: "employees" },
+    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor", module: "contracts" },
+    { icon: Wallet, label: "Paie & Avantages", tab: "payroll", module: "payroll" },
+    { icon: Target, label: "Performance", tab: "performance", module: "performance" },
+    { icon: UserPlus, label: "Recrutement", tab: "recruitment", module: "recruitment" },
+    { icon: BarChart3, label: "Rapports", tab: "advanced-reports", module: "reports" },
+    { icon: Shield, label: "Audit Logs", tab: "audit-logs", module: "settings" },
+    { icon: Crown, label: "Succession", tab: "succession-planning", module: "employees" },
+    { icon: Settings, label: "Paramètres", tab: "settings", module: "settings" },
+    { icon: Calendar, label: "Planning Équipe", tab: "manager-planning", module: "attendance" },
+    { icon: Target, label: "Objectifs", tab: "goal-setting", module: "performance" },
+    { icon: MessageSquare, label: "1-on-1", tab: "one-on-one", module: "performance" },
+    { icon: FileText, label: "Documents", tab: "manager-documents", module: "documents" },
+    { icon: FileText, label: "Gestion RH", tab: "hr-management", module: "employees" },
+    { icon: UserPlus, label: "Onboarding", tab: "onboarding-workflow", module: "employees" },
+    { icon: CheckSquare, label: "Mes Tâches", tab: "employee-tasks", module: "tasks" },
+    { icon: Target, label: "Ma Performance", tab: "my-performance", module: "performance" },
+    { icon: User, label: "Mon Profil & Espace", tab: "employee-self-service", module: null },
+    { icon: Wallet, label: "Mes Fiches de Paie", tab: "payslips", module: "payroll" },
+    { icon: Calendar, label: "Mes Congés", tab: "leaves", module: "attendance" },
+    { icon: Clock, label: "Mes Heures", tab: "timesheet", module: "attendance" },
+    { icon: FileText, label: "Mes Documents", tab: "documents", module: "documents" }
+  ];
+
+  // Filtrer les menus selon les permissions
+  const getMenuItems = () => {
+    const roleBasedItems = {
+      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings'],
+      'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nomination', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
+      'hr_user': ['dashboard', 'employees'],
+      'manager': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'advanced-reports', 'performance'],
+      'employee': ['dashboard', 'employee-tasks', 'my-performance', 'goal-setting', 'employee-self-service', 'payslips', 'leaves', 'timesheet', 'documents']
+    };
+
+    const allowedTabs = roleBasedItems[currentUser?.role] || roleBasedItems['employee'];
+    
+    return allMenuItems.filter(item => {
+      // Always show dashboard and self-service items
+      if (!item.module || item.tab === 'dashboard' || item.tab === 'employee-self-service') {
+        return allowedTabs.includes(item.tab);
+      }
+      
+      // Check permissions for other items
+      return allowedTabs.includes(item.tab) && hasPermission(item.module);
+    });
   };
 
   const menuItems = getMenuItems();

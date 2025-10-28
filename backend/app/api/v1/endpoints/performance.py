@@ -1,42 +1,65 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.api import deps
-from app.db import models
-from app.schemas import performance as performance_schema
-from app.crud import crud_performance, crud_employee
+from ....db.database import get_db
+from ....core.auth import get_current_user
+from ....db.models import User, Evaluation
+from ....schemas.performance import EvaluationCreate, EvaluationUpdate, EvaluationResponse
 
 router = APIRouter()
 
-@router.get("/", response_model=List[performance_schema.Evaluation])
-async def read_evaluations(
+@router.get("/evaluations", response_model=List[EvaluationResponse])
+def get_evaluations(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    return crud_performance.get_evaluations(db, company_id=current_user.company_id, skip=skip, limit=limit)
+    """Get all evaluations"""
+    evaluations = db.query(Evaluation).offset(skip).limit(limit).all()
+    return evaluations
 
-@router.post("/", response_model=performance_schema.Evaluation, status_code=status.HTTP_201_CREATED)
-async def create_evaluation(
-    evaluation_in: performance_schema.EvaluationCreate,
-    db: Session = Depends(deps.get_db),
-    current_manager: models.User = Depends(deps.get_current_active_manager)
+@router.get("/evaluations/test")
+def get_evaluations_test(
+    db: Session = Depends(get_db)
 ):
-    employee = crud_employee.get_employee(db, evaluation_in.employee_id)
-    if not employee or employee.company_id != current_manager.company_id:
-        raise HTTPException(status_code=404, detail="Employé non trouvé")
-    evaluation_in.manager_id = current_manager.id
-    return crud_performance.create_evaluation(db=db, evaluation=evaluation_in)
+    """Test endpoint without auth"""
+    evaluations = db.query(Evaluation).all()
+    return {"count": len(evaluations), "evaluations": [{
+        "id": e.id,
+        "employee_id": e.employee_id,
+        "period": e.period,
+        "global_score": e.global_score
+    } for e in evaluations]}
 
-@router.put("/{evaluation_id}", response_model=performance_schema.Evaluation)
-async def update_evaluation(
+@router.post("/evaluations", response_model=EvaluationResponse, status_code=status.HTTP_201_CREATED)
+def create_evaluation(
+    evaluation_in: EvaluationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Create new evaluation"""
+    db_evaluation = Evaluation(**evaluation_in.dict(), manager_id=current_user.id)
+    db.add(db_evaluation)
+    db.commit()
+    db.refresh(db_evaluation)
+    return db_evaluation
+
+@router.put("/evaluations/{evaluation_id}", response_model=EvaluationResponse)
+def update_evaluation(
     evaluation_id: int,
-    evaluation_in: performance_schema.EvaluationUpdate,
-    db: Session = Depends(deps.get_db),
-    current_manager: models.User = Depends(deps.get_current_active_manager)
+    evaluation_in: EvaluationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    db_evaluation = crud_performance.get_evaluation(db, evaluation_id)
+    """Update evaluation"""
+    db_evaluation = db.query(Evaluation).filter(Evaluation.id == evaluation_id).first()
     if not db_evaluation:
         raise HTTPException(status_code=404, detail="Évaluation non trouvée")
-    return crud_performance.update_evaluation(db=db, db_evaluation=db_evaluation, evaluation_in=evaluation_in)
+    
+    for field, value in evaluation_in.dict(exclude_unset=True).items():
+        setattr(db_evaluation, field, value)
+    
+    db.commit()
+    db.refresh(db_evaluation)
+    return db_evaluation

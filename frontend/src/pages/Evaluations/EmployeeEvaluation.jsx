@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, TrendingUp, TrendingDown, Target, MessageSquare, Calendar, User, Building2 } from 'lucide-react';
-import { performanceService, employeesService, usersService, hrService } from '../../services';
+import { evaluationsService } from '../../services/evaluations';
+import { usersService, hrService, systemService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const EmployeeEvaluation = () => {
@@ -40,13 +41,13 @@ const EmployeeEvaluation = () => {
     setLoading(true);
     try {
       const [evaluationsRes, employeesRes, usersRes, departmentsRes] = await Promise.all([
-        performanceService.getAll().catch(() => ({ data: [] })),
-        employeesService.getAll().catch(() => ({ data: [] })),
+        evaluationsService.getAll().catch(() => []),
+        systemService.employees.getAll().catch(() => ({ data: [] })),
         usersService.getAll().catch(() => ({ data: [] })),
         hrService.departments.getAll().catch(() => ({ data: [] }))
       ]);
       
-      setEvaluations(evaluationsRes.data || []);
+      setEvaluations(evaluationsRes || []);
       setEmployees(employeesRes.data || []);
       setUsers(usersRes.data || []);
       setDepartments(departmentsRes.data || []);
@@ -69,7 +70,8 @@ const EmployeeEvaluation = () => {
   const filteredEvaluations = getFilteredEvaluations();
 
   const getEmployeeName = (employeeId) => {
-    const employee = employees.find(emp => emp.id === employeeId);
+    const employeesArray = Array.isArray(employees) ? employees : [];
+    const employee = employeesArray.find(emp => emp.id === employeeId);
     return employee ? `${employee.first_name} ${employee.last_name}` : 'Inconnu';
   };
 
@@ -100,7 +102,7 @@ const EmployeeEvaluation = () => {
         objectives: evaluationData.objectives.split('\n').filter(Boolean)
       };
       
-      const result = await performanceService.create(newEvaluation);
+      const result = await evaluationsService.create(newEvaluation);
       setEvaluations([...evaluations, result]);
       setShowEvaluationForm(false);
       setSelectedEmployee(null);
@@ -122,10 +124,11 @@ const EmployeeEvaluation = () => {
   const canEvaluate = user?.role === 'manager' || user?.role === 'employer' || user?.role === 'hr_admin';
 
   const getTeamMembers = () => {
+    const employeesArray = Array.isArray(employees) ? employees : [];
     if (user?.role === 'manager') {
-      return employees.filter(emp => emp.department_id === user.department_id);
+      return employeesArray.filter(emp => emp.department_id === user.department_id);
     }
-    return employees;
+    return employeesArray;
   };
 
   if (loading) {
@@ -139,9 +142,10 @@ const EmployeeEvaluation = () => {
 
   const getDepartmentStats = () => {
     const stats = {};
+    const employeesArray = Array.isArray(employees) ? employees : [];
     departments.forEach(dept => {
       const deptEvaluations = filteredEvaluations.filter(evaluation => {
-        const employee = employees.find(emp => emp.id === evaluation.employee_id);
+        const employee = employeesArray.find(emp => emp.id === evaluation.employee_id);
         return employee?.department_id === dept.id;
       });
       
@@ -310,7 +314,8 @@ const EmployeeEvaluation = () => {
         <div className="divide-y divide-gray-200">
           {filteredEvaluations.map((evaluation) => {
             const performanceLevel = getPerformanceLevel(evaluation.global_score || 0);
-            const employee = employees.find(emp => emp.id === evaluation.employee_id);
+            const employeesArray = Array.isArray(employees) ? employees : [];
+            const employee = employeesArray.find(emp => emp.id === evaluation.employee_id);
             
             return (
               <div key={evaluation.id} className="p-6">
@@ -364,19 +369,19 @@ const EmployeeEvaluation = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Tâches terminées</span>
-                        <span className="font-medium">{evaluation.automaticMetrics.taskCompletion}%</span>
+                        <span className="font-medium">{evaluation.automaticMetrics?.taskCompletion || 0}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Respect des délais</span>
-                        <span className="font-medium">{evaluation.automaticMetrics.deadlineRespect}%</span>
+                        <span className="font-medium">{evaluation.automaticMetrics?.deadlineRespect || 0}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Qualité</span>
-                        <span className="font-medium">{evaluation.automaticMetrics.quality}%</span>
+                        <span className="font-medium">{evaluation.automaticMetrics?.quality || 0}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-gray-600">Charge de travail</span>
-                        <span className="font-medium">{evaluation.automaticMetrics.workload}%</span>
+                        <span className="font-medium">{evaluation.automaticMetrics?.workload || 0}%</span>
                       </div>
                     </div>
                   </div>
@@ -392,14 +397,14 @@ const EmployeeEvaluation = () => {
                             <Star
                               key={i}
                               className={`w-3 h-3 ${
-                                i < evaluation.manualEvaluation.communication
+                                i < (evaluation.manualEvaluation?.communication || 0)
                                   ? 'text-yellow-400 fill-current'
                                   : 'text-gray-300'
                               }`}
                             />
                           ))}
                           <span className="ml-1 text-sm font-medium">
-                            {evaluation.manualEvaluation.communication}/10
+                            {evaluation.manualEvaluation?.communication || 0}/10
                           </span>
                         </div>
                       </div>
@@ -410,14 +415,14 @@ const EmployeeEvaluation = () => {
                             <Star
                               key={i}
                               className={`w-3 h-3 ${
-                                i < evaluation.manualEvaluation.teamwork
+                                i < (evaluation.manualEvaluation?.teamwork || 0)
                                   ? 'text-yellow-400 fill-current'
                                   : 'text-gray-300'
                               }`}
                             />
                           ))}
                           <span className="ml-1 text-sm font-medium">
-                            {evaluation.manualEvaluation.teamwork}/10
+                            {evaluation.manualEvaluation?.teamwork || 0}/10
                           </span>
                         </div>
                       </div>
@@ -428,14 +433,14 @@ const EmployeeEvaluation = () => {
                             <Star
                               key={i}
                               className={`w-3 h-3 ${
-                                i < evaluation.manualEvaluation.initiative
+                                i < (evaluation.manualEvaluation?.initiative || 0)
                                   ? 'text-yellow-400 fill-current'
                                   : 'text-gray-300'
                               }`}
                             />
                           ))}
                           <span className="ml-1 text-sm font-medium">
-                            {evaluation.manualEvaluation.initiative}/10
+                            {evaluation.manualEvaluation?.initiative || 0}/10
                           </span>
                         </div>
                       </div>
@@ -446,14 +451,14 @@ const EmployeeEvaluation = () => {
                             <Star
                               key={i}
                               className={`w-3 h-3 ${
-                                i < evaluation.manualEvaluation.problemSolving
+                                i < (evaluation.manualEvaluation?.problemSolving || 0)
                                   ? 'text-yellow-400 fill-current'
                                   : 'text-gray-300'
                               }`}
                             />
                           ))}
                           <span className="ml-1 text-sm font-medium">
-                            {evaluation.manualEvaluation.problemSolving}/10
+                            {evaluation.manualEvaluation?.problemSolving || 0}/10
                           </span>
                         </div>
                       </div>
@@ -476,7 +481,7 @@ const EmployeeEvaluation = () => {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-2">Points Forts</h4>
                       <ul className="text-sm text-gray-600 space-y-1">
-                        {evaluation.strengths.map((strength, index) => (
+                        {(evaluation.strengths || []).map((strength, index) => (
                           <li key={index} className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
                             {strength}
@@ -487,7 +492,7 @@ const EmployeeEvaluation = () => {
                     <div>
                       <h4 className="font-medium text-gray-900 mb-2">Axes d'Amélioration</h4>
                       <ul className="text-sm text-gray-600 space-y-1">
-                        {evaluation.improvements.map((improvement, index) => (
+                        {(evaluation.improvements || []).map((improvement, index) => (
                           <li key={index} className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                             {improvement}
@@ -500,7 +505,7 @@ const EmployeeEvaluation = () => {
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">Objectifs Prochaine Période</h4>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      {evaluation.nextObjectives.map((objective, index) => (
+                      {(evaluation.nextObjectives || []).map((objective, index) => (
                         <li key={index} className="flex items-center gap-2">
                           <Target className="w-4 h-4 text-blue-500" />
                           {objective}

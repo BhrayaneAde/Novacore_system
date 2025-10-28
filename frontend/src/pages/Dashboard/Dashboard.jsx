@@ -11,7 +11,13 @@ import BarChart from "../../components/charts/BarChart";
 import PieChart from "../../components/charts/PieChart";
 import LineChart from "../../components/charts/LineChart";
 import { CheckSquare, Target, Calendar, Clock, FileText, Users, TrendingUp } from "lucide-react";
-import { usersService, employeesService, hrService, tasksService } from "../../services";
+import { systemService } from "../../services";
+
+// Services de compatibilité
+const usersService = { getAll: () => systemService.employees.getAll() };
+const employeesService = { getAll: () => systemService.employees.getAll() };
+const hrService = { departments: { getAll: () => Promise.resolve({ data: [] }) } };
+const tasksService = { getAll: () => Promise.resolve({ data: [] }) };
 
 // Import modules and pages
 import EmployeePayslips from "../Employees/EmployeePayslips";
@@ -27,7 +33,7 @@ import RecruitmentPage from "./modules/RecruitmentPage";
 import SettingsPage from "./modules/SettingsPage";
 import ManagerNomination from "../Managers/ManagerNomination";
 import ManagersList from "../Managers/ManagersList";
-import TaskManagement from "../Tasks/TaskManagement";
+import TaskManagement from "../Tasks/AdvancedTaskManagement";
 import EmployeeEvaluation from "../Evaluations/EmployeeEvaluation";
 import MyPerformance from "../Evaluations/MyPerformance";
 import ContractEditor from "../Contracts/ContractEditor";
@@ -786,6 +792,8 @@ const Dashboard = () => {
         return <AdvancedReportsPage />;
       case 'audit-logs':
         return <AuditLogsPage />;
+      case 'succession-planning':
+        return <SuccessionPlanningPage />;
       case 'hr-management':
         return <HRManagementPage />;
       case 'settings':

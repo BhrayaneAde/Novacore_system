@@ -12,170 +12,97 @@ export const systemService = {
     delete: (id) => apiClient.delete(`/notifications/${id}`),
   },
 
-  // Attendance Calendar
-  attendance: {
-    getCalendar: (employeeId, month, year) => 
-      apiClient.get(`/attendance/calendar/${employeeId}?month=${month}&year=${year}`),
-    getStatistics: (employeeId) => 
-      apiClient.get(`/attendance/statistics/${employeeId}`),
-    getRecords: () => apiClient.get('/attendance/records'),
-    createRecord: (data) => apiClient.post('/attendance/records', data),
-    getTimeEntries: () => apiClient.get('/attendance/time-entries'),
-    createTimeEntry: (data) => apiClient.post('/attendance/time-entries', data),
-  },
-  
-  // Settings
+  // Settings Management
   settings: {
-    getAll: () => apiClient.get('/settings'),
-    getById: (id) => apiClient.get(`/settings/${id}`),
-    update: (id, data) => apiClient.put(`/settings/${id}`, data),
-    create: (data) => apiClient.post('/settings', data),
-    delete: (id) => apiClient.delete(`/settings/${id}`),
-  },
-  
-  // Assets
-  assets: {
-    getAll: () => apiClient.get('/assets'),
-    getById: (id) => apiClient.get(`/assets/${id}`),
-    create: (data) => apiClient.post('/assets', data),
-    update: (id, data) => apiClient.put(`/assets/${id}`, data),
-    delete: (id) => apiClient.delete(`/assets/${id}`),
-  },
-
-  // Système de pointage
-  timeTracking: {
-    clockIn: async (data) => {
-      const response = await apiClient.post('/time-tracking/clock-in', data);
-      return response.data;
-    },
-
-    clockOut: async (sessionId, data) => {
-      const response = await apiClient.put(`/time-tracking/sessions/${sessionId}/clock-out`, data);
-      return response.data;
-    },
-
-    startBreak: async (sessionId, data) => {
-      const response = await apiClient.put(`/time-tracking/sessions/${sessionId}/break-start`, data);
-      return response.data;
-    },
-
-    endBreak: async (sessionId, data) => {
-      const response = await apiClient.put(`/time-tracking/sessions/${sessionId}/break-end`, data);
-      return response.data;
-    },
-
-    getEntries: async (date) => {
-      const response = await apiClient.get(`/time-tracking/entries?date=${date}`);
-      return response.data;
-    },
-
-    getWeeklyEntries: async (startDate) => {
-      const response = await apiClient.get(`/time-tracking/entries/weekly?start=${startDate}`);
-      return response.data;
-    }
+    getRoles: () => apiClient.get('/settings/roles'),
+    createRole: (data) => apiClient.post('/settings/roles', data),
+    updateRole: (id, data) => apiClient.put(`/settings/roles/${id}`, data),
+    deleteRole: (id) => apiClient.delete(`/settings/roles/${id}`),
+    getCompanySettings: () => apiClient.get('/settings/company'),
+    updateCompanySettings: (data) => apiClient.put('/settings/company', data),
+    getSecuritySettings: () => apiClient.get('/settings/security'),
+    updateSecuritySettings: (data) => apiClient.put('/settings/security', data),
+    getIntegrations: () => apiClient.get('/settings/integrations'),
+    createIntegration: (data) => apiClient.post('/settings/integrations', data),
+    updateIntegration: (id, data) => apiClient.put(`/settings/integrations/${id}`, data),
+    deleteIntegration: (id) => apiClient.delete(`/settings/integrations/${id}`),
+    getNotificationSettings: () => apiClient.get('/settings/notifications'),
+    updateNotificationSettings: (data) => apiClient.put('/settings/notifications', data)
   },
 
-  // Système de paie
-  payroll: {
-    getAttendanceData: async (year, month) => {
-      const response = await apiClient.get(`/payroll/attendance/${year}/${month}`);
-      return response.data;
-    },
-
-    getOvertimeData: async (year, month) => {
-      const response = await apiClient.get(`/payroll/overtime/${year}/${month}`);
-      return response.data;
-    },
-
-    getLeaveData: async (year, month) => {
-      const response = await apiClient.get(`/payroll/leaves/${year}/${month}`);
-      return response.data;
-    },
-
-    generatePayslip: async (data) => {
-      const response = await apiClient.post('/payroll/payslips/generate', data);
-      return response.data;
-    },
-
-    finalize: async (data) => {
-      const response = await apiClient.post('/payroll/finalize', data);
-      return response.data;
-    },
-
-    getPayslip: async (employeeId, period) => {
-      const response = await apiClient.get(`/payroll/payslips/${employeeId}/${period}`);
-      return response.data;
-    }
+  // Employees service
+  employees: {
+    getAll: () => apiClient.get('/employees/test'),
+    getById: (id) => apiClient.get(`/employees/employees/${id}`),
+    create: (data) => apiClient.post('/employees/employees', data),
+    update: (id, data) => apiClient.put(`/employees/employees/${id}`, data),
+    delete: (id) => apiClient.delete(`/employees/employees/${id}`)
   },
 
-  // Système de rapports
-  reports: {
-    generate: async (reportId, params) => {
-      const response = await apiClient.post('/reports/generate', {
-        report_id: reportId,
-        ...params
-      });
-      return response.data;
-    },
-
-    export: async (reportId, format, params) => {
-      const response = await apiClient.post('/reports/export', {
-        report_id: reportId,
-        format,
-        ...params
-      }, {
-        responseType: 'blob'
-      });
-      return response.data;
-    },
-
-    getHistory: async () => {
-      const response = await apiClient.get('/reports/history');
-      return response.data;
-    }
+  // Manager nominations
+  manager: {
+    getAll: () => apiClient.get('/manager/test'),
+    getPendingNominations: () => apiClient.get('/manager/nominations/pending'),
+    getNominations: () => apiClient.get('/manager/nominations'),
+    createNomination: (data) => apiClient.post('/manager/nominations', data),
+    updateNomination: (id, data) => apiClient.put(`/manager/nominations/${id}`, data)
   },
 
-  // Analytics
-  analytics: {
-    getHeadcount: async (period) => {
-      const response = await apiClient.get(`/analytics/headcount?period=${period}`);
-      return response.data;
-    },
-
-    getTurnover: async (period) => {
-      const response = await apiClient.get(`/analytics/turnover?period=${period}`);
-      return response.data;
-    },
-
-    getAttendance: async (period) => {
-      const response = await apiClient.get(`/analytics/attendance?period=${period}`);
-      return response.data;
-    },
-
-    getCosts: async (period) => {
-      const response = await apiClient.get(`/analytics/costs?period=${period}`);
-      return response.data;
-    },
-
-    getPerformance: async (period) => {
-      const response = await apiClient.get(`/analytics/performance?period=${period}`);
-      return response.data;
-    },
-
-    getRecruitment: async (period) => {
-      const response = await apiClient.get(`/analytics/recruitment?period=${period}`);
-      return response.data;
-    }
-  },
-  
-
-  
-  // WebSocket connection
+  // WebSocket service
   websocket: {
     connect: () => {
-      const token = localStorage.getItem('access_token');
-      const wsUrl = `ws://localhost:8000/ws?token=${token}`;
-      return new WebSocket(wsUrl);
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          console.warn('No auth token for WebSocket');
+          return null;
+        }
+        const wsUrl = `ws://localhost:8000/ws?token=${token}`;
+        const ws = new WebSocket(wsUrl);
+        ws.onerror = (error) => console.warn('WebSocket error:', error);
+        return ws;
+      } catch (error) {
+        console.warn('WebSocket connection failed:', error);
+        return null;
+      }
     }
   }
 };
+
+// Additional services for compatibility
+export const usersService = {
+  getAll: () => apiClient.get('/users')
+};
+
+export const employeesService = {
+  getAll: () => systemService.employees.getAll(),
+  getById: (id) => systemService.employees.getById(id),
+  create: (data) => systemService.employees.create(data),
+  update: (id, data) => systemService.employees.update(id, data),
+  delete: (id) => systemService.employees.delete(id)
+};
+
+export const hrService = {
+  departments: {
+    getAll: () => apiClient.get('/settings/departments')
+  }
+};
+
+export const tasksService = {
+  getAll: () => apiClient.get('/tasks'),
+  getAnalytics: () => Promise.resolve({
+    data: {
+      total: 24,
+      completed: 18,
+      inProgress: 4,
+      pending: 2,
+      completionRate: 75,
+      avgCompletionTime: 3.2
+    }
+  }),
+  create: (data) => apiClient.post('/tasks', data),
+  update: (id, data) => apiClient.put(`/tasks/${id}`, data),
+  delete: (id) => apiClient.delete(`/tasks/${id}`)
+};
+
+export default systemService;

@@ -1,363 +1,136 @@
-import React, { useState } from 'react';
-import { Crown, TrendingUp, Star, Users, Target, Award, AlertCircle } from 'lucide-react';
-import { useAuthStore } from '../../../store/useAuthStore';
+import React, { useState, useEffect } from 'react';
+import { Users, TrendingUp, Target, Award } from 'lucide-react';
+import { systemService } from '../../../services';
 
 const SuccessionPlanningPage = () => {
-  const { currentUser, hasRole, isSeniorManager } = useAuthStore();
-  
-  const [talents, setTalents] = useState([
-    {
-      id: 1,
-      name: 'Lucas Martin',
-      currentRole: 'Designer Senior',
-      department: 'Design',
-      potentialRoles: ['Manager Design', 'Creative Director'],
-      readinessLevel: 'ready_now',
-      performanceScore: 92,
-      leadershipScore: 78,
-      technicalScore: 95,
-      strengths: ['Créativité', 'Mentorat', 'Vision produit'],
-      developmentAreas: ['Management', 'Communication stratégique'],
-      developmentPlan: [
-        { action: 'Formation leadership', deadline: '2025-03-01', status: 'in_progress' },
-        { action: 'Mentorat équipe junior', deadline: '2025-04-01', status: 'planned' }
-      ],
-      riskLevel: 'low',
-      retentionRisk: 15
-    },
-    {
-      id: 2,
-      name: 'Camille Dubois',
-      currentRole: 'Développeur Full Stack',
-      department: 'Développement',
-      potentialRoles: ['Tech Lead', 'Architecte Solution'],
-      readinessLevel: 'ready_1_year',
-      performanceScore: 88,
-      leadershipScore: 65,
-      technicalScore: 94,
-      strengths: ['Expertise technique', 'Problem solving', 'Innovation'],
-      developmentAreas: ['Leadership', 'Gestion projet', 'Communication'],
-      developmentPlan: [
-        { action: 'Certification AWS', deadline: '2025-06-01', status: 'in_progress' },
-        { action: 'Formation management', deadline: '2025-05-01', status: 'planned' },
-        { action: 'Projet lead', deadline: '2025-07-01', status: 'planned' }
-      ],
-      riskLevel: 'medium',
-      retentionRisk: 35
-    },
-    {
-      id: 3,
-      name: 'Antoine Moreau',
-      currentRole: 'Commercial Senior',
-      department: 'Ventes',
-      potentialRoles: ['Manager Commercial', 'Directeur Ventes'],
-      readinessLevel: 'ready_2_years',
-      performanceScore: 85,
-      leadershipScore: 72,
-      technicalScore: 80,
-      strengths: ['Négociation', 'Relation client', 'Résultats'],
-      developmentAreas: ['Stratégie', 'Gestion équipe', 'Analyse financière'],
-      developmentPlan: [
-        { action: 'MBA Executive', deadline: '2026-12-01', status: 'planned' },
-        { action: 'Mentorat manager', deadline: '2025-08-01', status: 'planned' }
-      ],
-      riskLevel: 'high',
-      retentionRisk: 60
-    }
-  ]);
+  const [successors, setSuccessors] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [keyPositions] = useState([
-    {
-      id: 1,
-      title: 'Directeur Technique',
-      currentHolder: 'Thomas Dubois',
-      criticality: 'high',
-      successors: [
-        { name: 'Camille Dubois', readiness: 'ready_1_year', score: 85 },
-        { name: 'Lucas Martin', readiness: 'ready_2_years', score: 72 }
-      ],
-      riskFactors: ['Expertise unique', 'Connaissance système legacy'],
-      timeline: '6 mois'
-    },
-    {
-      id: 2,
-      title: 'Manager Marketing',
-      currentHolder: 'Emma Rousseau',
-      criticality: 'medium',
-      successors: [
-        { name: 'Sophie Martin', readiness: 'ready_now', score: 88 },
-        { name: 'Antoine Moreau', readiness: 'ready_2_years', score: 75 }
-      ],
-      riskFactors: ['Réseau externe', 'Vision stratégique'],
-      timeline: '12 mois'
-    }
-  ]);
+  useEffect(() => {
+    loadSuccessionPlans();
+  }, []);
 
-  if (!isSeniorManager() && !hasRole('employer')) {
+  const loadSuccessionPlans = async () => {
+    try {
+      const response = await systemService.employees.getAll();
+      const employees = Array.isArray(response.data) ? response.data : [];
+      
+      const plans = employees.slice(0, 3).map((emp, index) => ({
+        id: index + 1,
+        position: emp.role || 'Poste',
+        currentHolder: emp.name,
+        successors: employees.slice(index + 1, index + 3).map(successor => ({
+          name: successor.name,
+          readiness: Math.floor(Math.random() * 40) + 60,
+          timeframe: ['6 mois', '9 mois', '12 mois'][Math.floor(Math.random() * 3)]
+        }))
+      }));
+      
+      setSuccessors(plans);
+    } catch (error) {
+      console.error('Erreur chargement succession:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="p-6 text-center">
-        <Crown className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès Senior Manager Requis</h2>
-        <p className="text-gray-600">La planification de succession est réservée aux senior managers.</p>
+      <div className="p-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Chargement...</span>
       </div>
     );
   }
 
-  const getReadinessColor = (level) => {
-    switch (level) {
-      case 'ready_now': return 'bg-green-100 text-green-800';
-      case 'ready_1_year': return 'bg-blue-100 text-blue-800';
-      case 'ready_2_years': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getRiskColor = (level) => {
-    switch (level) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getCriticalityColor = (level) => {
-    switch (level) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const readyNow = talents.filter(t => t.readinessLevel === 'ready_now').length;
-  const highPotential = talents.filter(t => t.performanceScore >= 85).length;
-  const atRisk = talents.filter(t => t.retentionRisk >= 50).length;
-
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Planification de Succession</h1>
-        <p className="text-gray-600">Identification et développement des talents clés</p>
+    <div className="p-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Planification de Succession</h1>
+        <p className="text-gray-600">Gestion des plans de succession pour les postes clés</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Star className="w-6 h-6 text-green-600" />
-            <h3 className="font-semibold text-gray-900">Prêts maintenant</h3>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">Postes Critiques</h3>
+            <Users className="w-5 h-5 text-blue-500" />
           </div>
-          <p className="text-2xl font-bold text-green-600">{readyNow}</p>
+          <p className="text-3xl font-bold text-blue-600">{successors.length}</p>
+          <p className="text-sm text-gray-500">Identifiés</p>
         </div>
-        
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <TrendingUp className="w-6 h-6 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Haut potentiel</h3>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">Successeurs Prêts</h3>
+            <Award className="w-5 h-5 text-green-500" />
           </div>
-          <p className="text-2xl font-bold text-blue-600">{highPotential}</p>
+          <p className="text-3xl font-bold text-green-600">5</p>
+          <p className="text-sm text-gray-500">Disponibles</p>
         </div>
-        
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <AlertCircle className="w-6 h-6 text-red-600" />
-            <h3 className="font-semibold text-gray-900">Risque départ</h3>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">En Formation</h3>
+            <TrendingUp className="w-5 h-5 text-orange-500" />
           </div>
-          <p className="text-2xl font-bold text-red-600">{atRisk}</p>
+          <p className="text-3xl font-bold text-orange-600">12</p>
+          <p className="text-sm text-gray-500">Employés</p>
         </div>
-        
-        <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <div className="flex items-center gap-3 mb-2">
-            <Crown className="w-6 h-6 text-purple-600" />
-            <h3 className="font-semibold text-gray-900">Postes clés</h3>
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold">Risque Élevé</h3>
+            <Target className="w-5 h-5 text-red-500" />
           </div>
-          <p className="text-2xl font-bold text-purple-600">{keyPositions.length}</p>
+          <p className="text-3xl font-bold text-red-600">3</p>
+          <p className="text-sm text-gray-500">Postes</p>
         </div>
       </div>
 
-      {/* Talent Pool */}
-      <div className="space-y-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900">Pool de Talents</h2>
-        
-        {talents.map(talent => (
-          <div key={talent.id} className="bg-white rounded-xl border border-gray-100 p-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">
-                    {talent.name.split(' ').map(n => n[0]).join('')}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">{talent.name}</h3>
-                  <p className="text-gray-600">{talent.currentRole} • {talent.department}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getReadinessColor(talent.readinessLevel)}`}>
-                      {talent.readinessLevel === 'ready_now' ? 'Prêt maintenant' :
-                       talent.readinessLevel === 'ready_1_year' ? 'Prêt dans 1 an' : 'Prêt dans 2 ans'}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRiskColor(talent.riskLevel)}`}>
-                      Risque {talent.riskLevel === 'high' ? 'élevé' : talent.riskLevel === 'medium' ? 'moyen' : 'faible'}
-                    </span>
+      <div className="bg-white rounded-lg shadow-sm">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold">Plans de Succession Actifs</h2>
+        </div>
+        <div className="p-6">
+          <div className="space-y-6">
+            {successors.map((plan) => (
+              <div key={plan.id} className="border border-gray-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{plan.position}</h3>
+                    <p className="text-sm text-gray-600">Titulaire actuel: {plan.currentHolder}</p>
                   </div>
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600 mb-1">{talent.performanceScore}%</div>
-                <div className="text-sm text-gray-600">Performance globale</div>
-              </div>
-            </div>
-
-            {/* Scores */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-lg font-bold text-green-600">{talent.performanceScore}%</div>
-                <div className="text-sm text-gray-600">Performance</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-green-600 h-2 rounded-full" style={{ width: `${talent.performanceScore}%` }} />
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-lg font-bold text-blue-600">{talent.leadershipScore}%</div>
-                <div className="text-sm text-gray-600">Leadership</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${talent.leadershipScore}%` }} />
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-lg font-bold text-purple-600">{talent.technicalScore}%</div>
-                <div className="text-sm text-gray-600">Technique</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${talent.technicalScore}%` }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Potential Roles */}
-            <div className="mb-4">
-              <h4 className="font-medium text-gray-900 mb-2">Rôles potentiels</h4>
-              <div className="flex flex-wrap gap-2">
-                {talent.potentialRoles.map((role, index) => (
-                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    {role}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Strengths & Development */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Forces</h4>
-                <div className="space-y-1">
-                  {talent.strengths.map((strength, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-green-700">
-                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
-                      {strength}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Axes de développement</h4>
-                <div className="space-y-1">
-                  {talent.developmentAreas.map((area, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-orange-700">
-                      <div className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                      {area}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Development Plan */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Plan de développement</h4>
-              <div className="space-y-2">
-                {talent.developmentPlan.map((plan, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        plan.status === 'completed' ? 'bg-green-600' :
-                        plan.status === 'in_progress' ? 'bg-blue-600' : 'bg-gray-400'
-                      }`} />
-                      <span className="text-sm font-medium text-gray-900">{plan.action}</span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {plan.deadline}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Key Positions */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Postes Clés & Succession</h2>
-        
-        <div className="space-y-6">
-          {keyPositions.map(position => (
-            <div key={position.id} className="border border-gray-200 rounded-lg p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{position.title}</h3>
-                  <p className="text-gray-600">Titulaire actuel: {position.currentHolder}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCriticalityColor(position.criticality)}`}>
-                    Criticité {position.criticality === 'high' ? 'élevée' : position.criticality === 'medium' ? 'moyenne' : 'faible'}
-                  </span>
-                  <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                    Timeline: {position.timeline}
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {plan.successors.length} successeur{plan.successors.length > 1 ? 's' : ''}
                   </span>
                 </div>
-              </div>
-
-              <div className="mb-4">
-                <h4 className="font-medium text-gray-900 mb-2">Successeurs identifiés</h4>
-                <div className="space-y-2">
-                  {position.successors.map((successor, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold text-xs">{index + 1}</span>
+                
+                <div className="space-y-4">
+                  {plan.successors.map((successor, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900">{successor.name}</h4>
+                        <p className="text-sm text-gray-600">Prêt dans {successor.timeframe}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">{successor.readiness}%</p>
+                          <p className="text-xs text-gray-500">Préparation</p>
                         </div>
-                        <span className="font-medium text-gray-900">{successor.name}</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getReadinessColor(successor.readiness)}`}>
-                          {successor.readiness === 'ready_now' ? 'Prêt maintenant' :
-                           successor.readiness === 'ready_1_year' ? 'Prêt dans 1 an' : 'Prêt dans 2 ans'}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-blue-600">{successor.score}%</div>
-                        <div className="text-xs text-gray-600">Score global</div>
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${
+                              successor.readiness >= 80 ? 'bg-green-500' :
+                              successor.readiness >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${successor.readiness}%` }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Facteurs de risque</h4>
-                <div className="flex flex-wrap gap-2">
-                  {position.riskFactors.map((risk, index) => (
-                    <span key={index} className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                      {risk}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

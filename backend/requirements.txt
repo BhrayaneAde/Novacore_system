@@ -12,3 +12,11 @@ mysql-connector-python
 python-multipart
 websockets
 requests
+PyJWT
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client
+msal
+linkedin-api
+packaging

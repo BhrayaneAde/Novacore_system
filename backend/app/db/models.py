@@ -442,3 +442,314 @@ class PasswordReset(Base):
     
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User")
+
+# --- Workflow Models ---
+
+class WorkflowTemplate(Base):
+    __tablename__ = "workflow_templates"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    department = Column(String(100))
+    position = Column(String(100))
+    duration_days = Column(Integer, default=30)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    
+    company = relationship("Company")
+    task_templates = relationship("TaskTemplate", back_populates="workflow_template")
+    workflow_instances = relationship("WorkflowInstance", back_populates="template")
+
+class TaskTemplate(Base):
+    __tablename__ = "task_templates"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text)
+    day_offset = Column(Integer, default=0)
+    estimated_hours = Column(Float)
+    is_mandatory = Column(Boolean, default=True)
+    assigned_role = Column(String(50))  # "manager", "hr", "buddy", "employee"
+    category = Column(String(100))
+    order_index = Column(Integer, default=0)
+    
+    workflow_template_id = Column(Integer, ForeignKey("workflow_templates.id"))
+    
+    workflow_template = relationship("WorkflowTemplate", back_populates="task_templates")
+    task_instances = relationship("TaskInstance", back_populates="task_template")
+
+class WorkflowInstance(Base):
+    __tablename__ = "workflow_instances"
+    id = Column(Integer, primary_key=True, index=True)
+    start_date = Column(Date, nullable=False)
+    expected_end_date = Column(Date, nullable=False)
+    actual_end_date = Column(Date)
+    status = Column(String(50), default="active")  # draft, active, completed, cancelled
+    completion_percentage = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    employee_id = Column(Integer, ForeignKey("employees.id"))
+    template_id = Column(Integer, ForeignKey("workflow_templates.id"))
+    
+    employee = relationship("Employee")
+    template = relationship("WorkflowTemplate", back_populates="workflow_instances")
+    task_instances = relationship("TaskInstance", back_populates="workflow_instance")
+
+class TaskInstance(Base):
+    __tablename__ = "task_instances"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text)
+    due_date = Column(Date, nullable=False)
+    status = Column(String(50), default="pending")  # pending, in_progress, completed, skipped
+    estimated_hours = Column(Float)
+    actual_hours = Column(Float)
+    notes = Column(Text)
+    completed_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    workflow_instance_id = Column(Integer, ForeignKey("workflow_instances.id"))
+    task_template_id = Column(Integer, ForeignKey("task_templates.id"))
+    assigned_to_id = Column(Integer, ForeignKey("users.id"))
+    
+    workflow_instance = relationship("WorkflowInstance", back_populates="task_instances")
+    task_template = relationship("TaskTemplate", back_populates="task_instances")
+    assigned_to = relationship("User")
+
+# Advanced Task Management Models
+class AdvancedTask(Base):
+    __tablename__ = "advanced_tasks"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text)
+    priority = Column(String(20), default="medium")
+    category = Column(String(50), nullable=False)
+    status = Column(String(20), default="pending")
+    progress = Column(Integer, default=0)
+    due_date = Column(DateTime)
+    estimated_hours = Column(Float)
+    actual_hours = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    completed_at = Column(DateTime)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_to = Column(Integer, ForeignKey("employees.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"))
+    
+    # Relationships
+    creator = relationship("User", foreign_keys=[created_by])
+    assignee = relationship("Employee", foreign_keys=[assigned_to])
+    department = relationship("Department")
+    assignments = relationship("TaskAssignment", back_populates="task")
+    comments = relationship("TaskComment", back_populates="task")
+    tags = relationship("TaskTag", back_populates="task")
+
+class TaskAssignment(Base):
+    __tablename__ = "task_assignments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("advanced_tasks.id"), nullable=False)
+    assigned_to = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    assigned_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_at = Column(DateTime, default=datetime.utcnow)
+    notes = Column(Text)
+    
+    # Relationships
+    task = relationship("AdvancedTask", back_populates="assignments")
+    assignee = relationship("Employee", foreign_keys=[assigned_to])
+    assigner = relationship("User", foreign_keys=[assigned_by])
+
+class TaskComment(Base):
+    __tablename__ = "task_comments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("advanced_tasks.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # Relationships
+    task = relationship("AdvancedTask", back_populates="comments")
+    author = relationship("User")
+
+class TaskTag(Base):
+    __tablename__ = "task_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("advanced_tasks.id"), nullable=False)
+    tag_name = Column(String(50), nullable=False)
+    
+    # Relationships
+    task = relationship("AdvancedTask", back_populates="tags")
+
+# Settings Models
+class Role(Base):
+    __tablename__ = "roles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False, unique=True)
+    description = Column(String(200))
+    permissions = Column(JSON)
+    is_system_role = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    # users = relationship("User", back_populates="role_obj")  # Commented out - no corresponding relation in User
+
+class CompanySettings(Base):
+    __tablename__ = "company_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    company_name = Column(String(100))
+    company_email = Column(String(100))
+    company_phone = Column(String(20))
+    company_address = Column(String(200))
+    company_logo = Column(String(255))
+    timezone = Column(String(50), default="Europe/Paris")
+    date_format = Column(String(20), default="DD/MM/YYYY")
+    currency = Column(String(10), default="EUR")
+    language = Column(String(10), default="fr")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = relationship("Company")
+
+class SecuritySettings(Base):
+    __tablename__ = "security_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    password_min_length = Column(Integer, default=8)
+    password_require_uppercase = Column(Boolean, default=True)
+    password_require_lowercase = Column(Boolean, default=True)
+    password_require_numbers = Column(Boolean, default=True)
+    password_require_symbols = Column(Boolean, default=False)
+    password_expiry_days = Column(Integer)
+    max_login_attempts = Column(Integer, default=5)
+    lockout_duration_minutes = Column(Integer, default=30)
+    session_timeout_minutes = Column(Integer, default=480)
+    two_factor_enabled = Column(Boolean, default=False)
+    ip_whitelist = Column(JSON)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = relationship("Company")
+
+class Integration(Base):
+    __tablename__ = "integrations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    name = Column(String(50), nullable=False)
+    type = Column(String(50), nullable=False)
+    config = Column(JSON)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_sync = Column(DateTime)
+    status = Column(String(20), default="active")
+    
+    # Relationships
+    company = relationship("Company")
+
+class UserNotificationSettings(Base):
+    __tablename__ = "user_notification_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    email_notifications = Column(Boolean, default=True)
+    push_notifications = Column(Boolean, default=True)
+    sms_notifications = Column(Boolean, default=False)
+    notification_types = Column(JSON)
+    quiet_hours_start = Column(String(10), default="22:00")
+    quiet_hours_end = Column(String(10), default="08:00")
+    digest_frequency = Column(String(20), default="daily")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User")
+
+# Payroll Configuration Models
+class PayrollConfig(Base):
+    __tablename__ = "payroll_configs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    country_code = Column(String(3), nullable=False)
+    country_name = Column(String(100), nullable=False)
+    currency_code = Column(String(3), nullable=False)
+    currency_symbol = Column(String(5), nullable=False)
+    
+    # Payroll Settings
+    payroll_frequency = Column(String(20), default="monthly")
+    minimum_wage = Column(Float)
+    working_hours_per_week = Column(Float, default=40.0)
+    working_days_per_week = Column(Integer, default=5)
+    
+    # Tax Settings
+    tax_calculation_method = Column(String(20), default="progressive")
+    tax_year_start_month = Column(Integer, default=1)
+    
+    # Compliance Flags
+    requires_social_security = Column(Boolean, default=True)
+    requires_income_tax = Column(Boolean, default=True)
+    requires_pension = Column(Boolean, default=True)
+    
+    # Formatting
+    date_format = Column(String(20), default="DD/MM/YYYY")
+    decimal_places = Column(Integer, default=2)
+    
+    # Configuration Data
+    social_contributions = Column(JSON)
+    income_tax_rules = Column(JSON)
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = relationship("Company")
+
+# External Integrations Models
+class ExternalIntegration(Base):
+    __tablename__ = "external_integrations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    type = Column(String(50), nullable=False)
+    provider = Column(String(50), nullable=False)
+    config = Column(JSON)
+    is_active = Column(Boolean, default=True)
+    status = Column(String(20), default="inactive")
+    sync_frequency = Column(String(20), default="daily")
+    last_sync = Column(DateTime)
+    last_error = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = relationship("Company")
+    sync_logs = relationship("IntegrationSyncLog", back_populates="integration")
+
+class IntegrationSyncLog(Base):
+    __tablename__ = "integration_sync_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    integration_id = Column(Integer, ForeignKey("external_integrations.id"), nullable=False)
+    status = Column(String(20), nullable=False)
+    records_processed = Column(Integer, default=0)
+    records_success = Column(Integer, default=0)
+    records_failed = Column(Integer, default=0)
+    error_message = Column(Text)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime)
+    duration_seconds = Column(Float)
+    
+    # Relationships
+    integration = relationship("ExternalIntegration", back_populates="sync_logs")

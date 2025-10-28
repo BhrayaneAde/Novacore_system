@@ -2,82 +2,128 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api import deps
-from app.db import models
-from app.schemas import employee as employee_schema
-from app.crud import crud_employee
+from ....db.database import get_db
+from ....core.auth import get_current_user
+from ....db.models import User, Employee
 
 router = APIRouter()
 
-@router.get("/", response_model=List[employee_schema.Employee])
-async def read_employees(
+@router.get("/employees")
+def get_employees(
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user) # N'importe quel user connecté
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Récupère la liste des employés de l'entreprise de l'utilisateur."""
-    employees = crud_employee.get_employees(db, company_id=current_user.company_id, skip=skip, limit=limit)
+    employees = db.query(Employee).filter(Employee.company_id == current_user.company_id).offset(skip).limit(limit).all()
     return employees
 
-@router.post("/", response_model=employee_schema.Employee, status_code=status.HTTP_201_CREATED)
-async def create_employee(
-    employee_in: employee_schema.EmployeeCreate,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin) # Sécurisé
+@router.post("/employees", status_code=status.HTTP_201_CREATED)
+def create_employee(
+    employee_data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Crée un nouvel employé (par un admin)."""
-    employee = crud_employee.get_employee_by_email(db, email=employee_in.email)
-    if employee:
+    """Crée un nouvel employé."""
+    existing_employee = db.query(Employee).filter(Employee.email == employee_data.get('email')).first()
+    if existing_employee:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Un employé avec cet email existe déjà.",
         )
     
-    # Assure que le nouvel employé est dans la même entreprise que l'admin
-    employee_in.company_id = current_admin.company_id
-    
-    return crud_employee.create_employee(db=db, employee=employee_in)
+    employee_data['company_id'] = current_user.company_id
+    employee = Employee(**employee_data)
+    db.add(employee)
+    db.commit()
+    db.refresh(employee)
+    return employee
 
-@router.get("/{employee_id}", response_model=employee_schema.Employee)
-async def read_employee(
+@router.get("/employees/{employee_id}")
+def get_employee(
     employee_id: int,
-    db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Récupère un employé spécifique."""
-    db_employee = crud_employee.get_employee(db, employee_id=employee_id)
-    if db_employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé non trouvé")
+    employee = db.query(Employee).filter(
+        Employee.id == employee_id,
+        Employee.company_id == current_user.company_id
+    ).first()
     
-    # Vérifie que l'employé appartient à la même entreprise que l'utilisateur
-    if db_employee.company_id != current_user.company_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé")
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé non trouvé")
         
-    return db_employee
+    return employee
 
-@router.put("/{employee_id}", response_model=employee_schema.Employee)
-async def update_employee(
+@router.put("/employees/{employee_id}")
+def update_employee(
     employee_id: int,
-    employee_in: employee_schema.EmployeeUpdate,
-    db: Session = Depends(deps.get_db),
-    current_admin: models.User = Depends(deps.get_current_active_hr_admin) # Sécurisé
+    employee_data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Met à jour un employé."""
-    db_employee = crud_employee.get_employee(db, employee_id=employee_id)
-    if db_employee is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé non trouvé")
+    employee = db.query(Employee).filter(
+        Employee.id == employee_id,
+        Employee.company_id == current_user.company_id
+    ).first()
     
-    if db_employee.company_id != current_admin.company_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé")
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé non trouvé")
 
     # Vérifie si le nouvel email est déjà pris
-    if employee_in.email:
-        existing_employee = crud_employee.get_employee_by_email(db, email=employee_in.email)
-        if existing_employee and existing_employee.id != employee_id:
+    if 'email' in employee_data:
+        existing_employee = db.query(Employee).filter(
+            Employee.email == employee_data['email'],
+            Employee.id != employee_id
+        ).first()
+        if existing_employee:
              raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Cet email est déjà utilisé.",
             )
-            
-    return crud_employee.update_employee(db=db, db_employee=db_employee, employee_in=employee_in)
+    
+    for field, value in employee_data.items():
+        setattr(employee, field, value)
+    
+    db.commit()
+    db.refresh(employee)
+    return employee
+
+@router.delete("/employees/{employee_id}")
+def delete_employee(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Supprime un employé."""
+    employee = db.query(Employee).filter(
+        Employee.id == employee_id,
+        Employee.company_id == current_user.company_id
+    ).first()
+    
+    if not employee:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employé non trouvé")
+    
+    db.delete(employee)
+    db.commit()
+    return {"message": "Employé supprimé avec succès"}
+
+@router.get("/test")
+def get_employees_test(
+    db: Session = Depends(get_db)
+):
+    """Test endpoint without auth"""
+    employees = db.query(Employee).all()
+    return {
+        "count": len(employees),
+        "employees": [{
+            "id": e.id,
+            "name": e.name,
+            "email": e.email,
+            "role": e.role,
+            "department_id": e.department_id
+        } for e in employees]
+    }

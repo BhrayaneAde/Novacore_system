@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Building2, Mail, Phone, Calendar, MoreVertical, UserMinus, Edit, Eye } from 'lucide-react';
-import { hrService } from '../../services';
+import { systemService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 import ManagerDetails from './ManagerDetails';
 
@@ -14,8 +14,8 @@ const ManagersList = () => {
   useEffect(() => {
     const loadManagers = async () => {
       try {
-        const managersData = await hrService.managers.getAll();
-        setManagers(managersData || []);
+        const response = await systemService.manager.getAll();
+        setManagers(response.data || []);
       } catch (error) {
         console.error('Erreur lors du chargement des managers:', error);
         setManagers([]);
@@ -28,9 +28,9 @@ const ManagersList = () => {
 
   const handleRevoke = async (managerId) => {
     try {
-      await hrService.managers.revoke(managerId);
-      const managersData = await hrService.managers.getAll();
-      setManagers(managersData || []);
+      // await systemService.manager.revoke(managerId);
+      const response = await systemService.manager.getAll();
+      setManagers(response.data || []);
     } catch (error) {
       console.error('Erreur lors de la révocation:', error);
     }
@@ -63,8 +63,8 @@ const ManagersList = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {managers.map((manager) => (
-          <div key={manager.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {Array.isArray(managers) ? managers.map((manager) => (
+            <div key={manager.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <img
@@ -140,8 +140,8 @@ const ManagersList = () => {
                 )}
               </div>
             </div>
-          </div>
-          ))}
+            </div>
+          )) : null}
         </div>
       )}
 

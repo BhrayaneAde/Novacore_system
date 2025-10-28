@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/clock-in", response_model=attendance_schema.AttendanceRecord)
 async def clock_in(
-    attendance_in: attendance_schema.AttendanceCreate,
+    attendance_in: attendance_schema.AttendanceRecordCreate,
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_user)
 ):

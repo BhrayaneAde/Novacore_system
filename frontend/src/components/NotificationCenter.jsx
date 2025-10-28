@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, CheckCircle, Clock, Users, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
-import { hrService, usersService } from '../services';
+import { systemService, usersService } from '../services';
 
 const NotificationCenter = () => {
   const { currentUser } = useAuthStore();
@@ -23,12 +23,17 @@ const NotificationCenter = () => {
       // Charger les nominations de managers en attente (pour employeurs)
       if (currentUser?.role === 'employer') {
         try {
-          const nominations = await hrService.managers.getPendingNominations();
-          const users = await usersService.getAll();
+          const [nominations, users] = await Promise.allSettled([
+            systemService.manager.getPendingNominations(),
+            usersService.getAll()
+          ]);
           
-          nominations.forEach(nomination => {
-            const proposer = users.data?.find(u => u.id === nomination.proposed_by);
-            const employee = users.data?.find(u => u.employee_id === nomination.proposed_manager_id);
+          const nominationsData = nominations.status === 'fulfilled' ? nominations.value?.data || [] : [];
+          const usersData = users.status === 'fulfilled' ? users.value?.data || [] : [];
+          
+          nominationsData.forEach(nomination => {
+            const proposer = usersData.find(u => u.id === nomination.proposed_by);
+            const employee = usersData.find(u => u.employee_id === nomination.proposed_manager_id);
             
             notificationsList.push({
               id: `nomination-${nomination.id}`,

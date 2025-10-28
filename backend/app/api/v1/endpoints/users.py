@@ -68,7 +68,7 @@ async def update_user_role(
         raise HTTPException(status_code=403, detail="Permission insuffisante")
     
     # Trouver l'utilisateur
-    target_user = crud_user.get_user(db, user_id)
+    target_user = crud_user.get_user(db, user_id=user_id)
     if not target_user or target_user.company_id != current_user.company_id:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     
@@ -103,7 +103,7 @@ async def update_user_permissions(
         raise HTTPException(status_code=403, detail="Seul l'employeur peut modifier les permissions")
     
     # Trouver l'utilisateur
-    target_user = crud_user.get_user(db, user_id)
+    target_user = crud_user.get_user(db, user_id=user_id)
     if not target_user or target_user.company_id != current_user.company_id:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     

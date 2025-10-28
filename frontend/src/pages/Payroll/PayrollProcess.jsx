@@ -5,10 +5,13 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { useToast } from "../../components/ui/Toast";
 import { ArrowLeft, Play, CheckCircle, AlertTriangle, Download, Eye, Calculator, FileText, Users, Euro } from "lucide-react";
 
 const PayrollProcess = () => {
   const navigate = useNavigate();
+  const { success, error, warning, ToastContainer } = useToast();
   const [step, setStep] = useState(1);
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [employees, setEmployees] = useState([]);
@@ -17,6 +20,7 @@ const PayrollProcess = () => {
   const [validationErrors, setValidationErrors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('draft');
+  const [retryCount, setRetryCount] = useState(0);
 
   const steps = [
     { id: 1, title: "Sélection de la période", completed: step > 1 },
@@ -39,9 +43,15 @@ const PayrollProcess = () => {
   const loadEmployees = async () => {
     try {
       const data = await employeesService.getAll();
-      setEmployees(data?.filter(emp => emp.status === 'active') || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des employés:', error);
+      const activeEmployees = data?.filter(emp => emp.status === 'active') || [];
+      setEmployees(activeEmployees);
+      
+      if (activeEmployees.length === 0) {
+        warning('Aucun employé actif trouvé pour le traitement de la paie');
+      }
+    } catch (err) {
+      console.error('Erreur lors du chargement des employés:', err);
+      error('Impossible de charger la liste des employés');
     }
   };
 
@@ -50,16 +60,43 @@ const PayrollProcess = () => {
       setLoading(true);
       const [year, month] = selectedPeriod.split('-');
       
-      // Charger les données de présence et heures
-      const attendanceData = await systemService.payroll.getAttendanceData(year, month);
-      const overtimeData = await systemService.payroll.getOvertimeData(year, month);
-      const leaveData = await systemService.payroll.getLeaveData(year, month);
+      if (!year || !month) {
+        throw new Error('Période invalide sélectionnée');
+      }
+      
+      // Charger les données de présence et heures avec retry
+      const loadWithRetry = async (fn, retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            return await fn();
+          } catch (err) {
+            if (i === retries - 1) throw err;
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      };
+      
+      const [attendanceData, overtimeData, leaveData] = await Promise.all([
+        loadWithRetry(() => systemService.payroll.getAttendanceData(year, month)),
+        loadWithRetry(() => systemService.payroll.getOvertimeData(year, month)),
+        loadWithRetry(() => systemService.payroll.getLeaveData(year, month))
+      ]);
+      
+      // Validation des données
+      if (!attendanceData && !overtimeData && !leaveData) {
+        warning('Aucune donnée trouvée pour cette période');
+      }
       
       // Combiner les données par employé
       const payrollEntries = employees.map(employee => {
         const attendance = attendanceData?.find(a => a.employee_id === employee.id) || {};
         const overtime = overtimeData?.find(o => o.employee_id === employee.id) || {};
         const leaves = leaveData?.filter(l => l.employee_id === employee.id) || [];
+        
+        // Validation des données employé
+        if (!employee.salary || employee.salary <= 0) {
+          warning(`Salaire manquant pour ${employee.first_name} ${employee.last_name}`);
+        }
         
         return {
           employee_id: employee.id,
@@ -78,8 +115,11 @@ const PayrollProcess = () => {
       });
       
       setPayrollData(payrollEntries);
-    } catch (error) {
-      console.error('Erreur lors du chargement des données de paie:', error);
+      success(`Données chargées pour ${payrollEntries.length} employés`);
+    } catch (err) {
+      console.error('Erreur lors du chargement des données de paie:', err);
+      error(`Erreur lors du chargement: ${err.message}`);
+      setRetryCount(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -226,18 +266,36 @@ const PayrollProcess = () => {
       setLoading(true);
       setProcessingStatus('generating');
       
-      // Simulation de génération des bulletins
-      for (const employeeId of Object.keys(calculations)) {
-        await systemService.payroll.generatePayslip({
-          employee_id: employeeId,
-          period: selectedPeriod,
-          calculation: calculations[employeeId]
-        });
+      const employeeIds = Object.keys(calculations);
+      let successCount = 0;
+      let errorCount = 0;
+      
+      // Génération avec suivi du progrès
+      for (let i = 0; i < employeeIds.length; i++) {
+        const employeeId = employeeIds[i];
+        try {
+          await systemService.payroll.generatePayslip({
+            employee_id: employeeId,
+            period: selectedPeriod,
+            calculation: calculations[employeeId]
+          });
+          successCount++;
+        } catch (err) {
+          console.error(`Erreur pour l'employé ${employeeId}:`, err);
+          errorCount++;
+        }
       }
       
-      setProcessingStatus('completed');
-    } catch (error) {
-      console.error('Erreur lors de la génération:', error);
+      if (errorCount === 0) {
+        setProcessingStatus('completed');
+        success(`${successCount} bulletins générés avec succès`);
+      } else {
+        setProcessingStatus('partial');
+        warning(`${successCount} bulletins générés, ${errorCount} erreurs`);
+      }
+    } catch (err) {
+      console.error('Erreur lors de la génération:', err);
+      error('Erreur lors de la génération des bulletins');
       setProcessingStatus('error');
     } finally {
       setLoading(false);
@@ -248,18 +306,31 @@ const PayrollProcess = () => {
     try {
       setLoading(true);
       
-      await systemService.payroll.finalize({
+      const summary = {
         period: selectedPeriod,
         calculations,
         total_employees: payrollData.length,
         total_gross: Object.values(calculations).reduce((sum, calc) => sum + calc.gross_salary, 0),
         total_net: Object.values(calculations).reduce((sum, calc) => sum + calc.net_salary, 0),
         total_cost: Object.values(calculations).reduce((sum, calc) => sum + calc.total_cost, 0)
-      });
+      };
       
-      navigate('/payroll');
-    } catch (error) {
-      console.error('Erreur lors de la finalisation:', error);
+      // Validation finale
+      if (summary.total_employees === 0) {
+        throw new Error('Aucun employé à traiter');
+      }
+      
+      if (summary.total_gross <= 0) {
+        throw new Error('Montant total invalide');
+      }
+      
+      await systemService.payroll.finalize(summary);
+      
+      success('Paie finalisée avec succès');
+      setTimeout(() => navigate('/payroll'), 1500);
+    } catch (err) {
+      console.error('Erreur lors de la finalisation:', err);
+      error(`Erreur lors de la finalisation: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -276,10 +347,12 @@ const PayrollProcess = () => {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return selectedPeriod !== '';
-      case 2: return payrollData.length > 0;
-      case 3: return Object.keys(calculations).length > 0 && validationErrors.filter(e => e.type === 'error').length === 0;
-      case 4: return processingStatus === 'completed';
+      case 1: return selectedPeriod !== '' && !loading;
+      case 2: return payrollData.length > 0 && !loading;
+      case 3: return Object.keys(calculations).length > 0 && 
+                     validationErrors.filter(e => e.type === 'error').length === 0 && 
+                     !loading;
+      case 4: return (processingStatus === 'completed' || processingStatus === 'partial') && !loading;
       default: return true;
     }
   };
@@ -372,7 +445,21 @@ const PayrollProcess = () => {
                 
                 {loading ? (
                   <div className="text-center py-8">
-                    <p>Chargement des données...</p>
+                    <LoadingSpinner size="lg" text="Chargement des données..." />
+                  </div>
+                ) : payrollData.length === 0 ? (
+                  <div className="text-center py-8">
+                    <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                    <p className="text-gray-600">Aucune donnée trouvée pour cette période</p>
+                    {retryCount < 3 && (
+                      <Button 
+                        onClick={loadPayrollData} 
+                        variant="outline" 
+                        className="mt-4"
+                      >
+                        Réessayer
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -392,6 +479,13 @@ const PayrollProcess = () => {
                         {employee.overtime_hours > 0 && (
                           <div className="mt-2 text-sm text-orange-600">
                             +{employee.overtime_hours}h supplémentaires
+                          </div>
+                        )}
+                        
+                        {employee.base_salary <= 0 && (
+                          <div className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                            <AlertTriangle className="w-4 h-4" />
+                            Salaire manquant ou invalide
                           </div>
                         )}
                       </div>
@@ -467,15 +561,40 @@ const PayrollProcess = () => {
                   
                   {processingStatus === 'generating' && (
                     <div>
-                      <div className="animate-spin w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                      <p className="text-blue-600">Génération en cours...</p>
+                      <LoadingSpinner size="xl" text="Génération en cours..." />
                     </div>
                   )}
                   
-                  {processingStatus === 'completed' && (
+                  {(processingStatus === 'completed' || processingStatus === 'partial') && (
                     <div>
-                      <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                      <p className="text-green-600 font-medium">Bulletins générés avec succès</p>
+                      <CheckCircle className={`w-16 h-16 mx-auto mb-4 ${
+                        processingStatus === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                      }`} />
+                      <p className={`font-medium ${
+                        processingStatus === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                      }`}>
+                        {processingStatus === 'completed' ? 
+                          'Bulletins générés avec succès' : 
+                          'Génération partiellement réussie'
+                        }
+                      </p>
+                    </div>
+                  )}
+                  
+                  {processingStatus === 'error' && (
+                    <div>
+                      <XCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+                      <p className="text-red-600 font-medium">Erreur lors de la génération</p>
+                      <Button 
+                        onClick={() => {
+                          setProcessingStatus('draft');
+                          generatePayslips();
+                        }}
+                        variant="outline"
+                        className="mt-4"
+                      >
+                        Réessayer
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -561,6 +680,8 @@ const PayrollProcess = () => {
             )}
           </div>
         </Card>
+        
+        <ToastContainer />
       </div>
     </DashboardLayout>
   );

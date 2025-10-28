@@ -72,20 +72,37 @@ const NotificationCenter = () => {
     try {
       const ws = systemService.websocket.connect();
       
+      ws.onopen = () => {
+        console.log('WebSocket connecté');
+      };
+      
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'notification') {
             const notification = data.payload;
-            setNotifications(prev => [notification, ...prev]);
+            setNotifications(prev => [notification, ...prev.slice(0, 19)]); // Limite à 20
             setUnreadCount(prev => prev + 1);
             
+            // Notification native avec son
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification(notification.title, {
+              const nativeNotif = new Notification(notification.title, {
                 body: notification.message,
                 icon: '/favicon.ico',
-                tag: notification.id
+                tag: notification.id,
+                requireInteraction: notification.priority === 'high'
               });
+              
+              // Son de notification
+              if (notification.priority === 'high') {
+                const audio = new Audio('/notification-sound.mp3');
+                audio.play().catch(() => {}); // Ignore les erreurs audio
+              }
+              
+              // Auto-fermeture après 5s sauf si urgent
+              if (notification.priority !== 'high') {
+                setTimeout(() => nativeNotif.close(), 5000);
+              }
             }
           }
         } catch (error) {
@@ -95,6 +112,12 @@ const NotificationCenter = () => {
       
       ws.onerror = (error) => {
         console.error('Erreur WebSocket:', error);
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket déconnecté - Tentative de reconnexion...');
+        // Reconnexion automatique après 5s
+        setTimeout(setupRealtimeConnection, 5000);
       };
       
       setWsConnection(ws);
@@ -263,16 +286,20 @@ const NotificationCenter = () => {
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
               <div className="p-4 text-center text-gray-500">
-                Chargement...
+                <div className="animate-pulse flex items-center justify-center">
+                  <Bell className="w-6 h-6 mr-2" />
+                  Chargement...
+                </div>
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <Bell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                 <p>Aucune notification</p>
+                <p className="text-xs mt-1">Les nouvelles notifications apparaîtront ici</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {notifications.slice(0, 20).map((notification) => (
+                {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     className={`p-4 hover:bg-gray-50 transition-colors ${
@@ -350,13 +377,28 @@ const NotificationCenter = () => {
           {notifications.length > 0 && (
             <div className="p-3 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center justify-between">
-                <Button variant="outline" size="sm">
-                  Voir toutes
-                </Button>
+                <div className="text-xs text-gray-500">
+                  {notifications.length} notification{notifications.length > 1 ? 's' : ''}
+                </div>
                 
-                <Button variant="outline" size="sm" icon={Settings}>
-                  Préférences
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      // Demander permission pour notifications natives
+                      if ('Notification' in window && Notification.permission === 'default') {
+                        Notification.requestPermission();
+                      }
+                    }}
+                  >
+                    Activer notifications
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" icon={Settings}>
+                    Préférences
+                  </Button>
+                </div>
               </div>
             </div>
           )}

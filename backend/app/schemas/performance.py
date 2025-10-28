@@ -14,14 +14,21 @@ class EvaluationBase(BaseModel):
 
 class EvaluationCreate(EvaluationBase):
     employee_id: int
-    manager_id: int
 
-class EvaluationUpdate(EvaluationBase):
-    pass
+class EvaluationUpdate(BaseModel):
+    period: Optional[str] = None
+    global_score: Optional[float] = None
+    manager_comments: Optional[str] = None
+    strengths: Optional[List[str]] = None
+    improvements: Optional[List[str]] = None
+    next_objectives: Optional[List[str]] = None
+    automatic_metrics: Optional[Dict[str, Any]] = None
+    manual_evaluation: Optional[Dict[str, Any]] = None
 
-class Evaluation(EvaluationBase):
+class EvaluationResponse(EvaluationBase):
     id: int
     employee_id: int
     manager_id: int
-
-    model_config = {"from_attributes": True}
+    
+    class Config:
+        from_attributes = True
