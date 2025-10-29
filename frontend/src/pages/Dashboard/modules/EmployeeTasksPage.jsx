@@ -1,43 +1,82 @@
 import React, { useState, useEffect } from "react";
-import { CheckSquare, Clock, Calendar, AlertCircle, CheckCircle, User, MessageSquare } from "lucide-react";
+import { CheckSquare, Clock, Calendar, AlertCircle, CheckCircle, User, MessageSquare, Plus, Edit, Trash2 } from "lucide-react";
 import Loader from '../../../components/ui/Loader';
-import { systemService } from "../../../services";
+import { systemService, employeesService } from "../../../services";
+import TaskForm from '../../../components/forms/TaskForm';
 
 // Service de compatibilité
 const tasksService = {
   getMyTasks: () => systemService.tasks?.getAll() || Promise.resolve({ data: [] }),
-  update: (id, data) => systemService.tasks?.update(id, data) || Promise.resolve()
+  getAll: () => systemService.tasks?.getAll() || Promise.resolve({ data: [] }),
+  create: (data) => systemService.tasks?.create(data) || Promise.resolve(),
+  update: (id, data) => systemService.tasks?.update(id, data) || Promise.resolve(),
+  delete: (id) => systemService.tasks?.delete(id) || Promise.resolve()
 };
 import { useAuthStore } from "../../../store/useAuthStore";
 
 const EmployeeTasksPage = () => {
-  const { currentUser } = useAuthStore();
+  const { currentUser, isManager } = useAuthStore();
   const [selectedTask, setSelectedTask] = useState(null);
   const [taskUpdate, setTaskUpdate] = useState({});
   const [tasks, setTasks] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [selectedTaskForEdit, setSelectedTaskForEdit] = useState(null);
 
   useEffect(() => {
-    loadMyTasks();
+    loadData();
   }, [currentUser]);
 
-  const loadMyTasks = async () => {
+  const loadData = async () => {
     if (!currentUser) return;
     
     setLoading(true);
     try {
-      const response = await tasksService.getMyTasks();
-      setTasks(response.data || []);
+      const [tasksResponse, employeesResponse] = await Promise.all([
+        isManager ? tasksService.getAll() : tasksService.getMyTasks(),
+        employeesService.getAll()
+      ]);
+      setTasks(tasksResponse.data || []);
+      setEmployees(employeesResponse.data || []);
     } catch (error) {
-      console.error('Erreur lors du chargement des tâches:', error);
+      console.error('Erreur lors du chargement:', error);
       setTasks([]);
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrer les tâches de l'employé connecté
-  const myTasks = tasks.filter(task => task.assigned_to === currentUser?.employee_id);
+  const handleTaskSave = async (formData) => {
+    try {
+      if (selectedTaskForEdit) {
+        await tasksService.update(selectedTaskForEdit.id, formData);
+      } else {
+        await tasksService.create(formData);
+      }
+      await loadData();
+      setShowTaskForm(false);
+      setSelectedTaskForEdit(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleTaskDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+      try {
+        await tasksService.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
+  // Filtrer les tâches selon le rôle
+  const displayTasks = isManager ? tasks : tasks.filter(task => task.assigned_to === currentUser?.employee_id);
+  const myTasks = displayTasks;
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -128,16 +167,31 @@ const EmployeeTasksPage = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* En-tête avec guide */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Mes Tâches</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">{isManager ? 'Gestion des Tâches' : 'Mes Tâches'}</h1>
+          {isManager && (
+            <button
+              onClick={() => {
+                setSelectedTaskForEdit(null);
+                setShowTaskForm(true);
+              }}
+              className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nouvelle tâche
+            </button>
+          )}
+        </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Comment ça fonctionne</h3>
               <p className="text-blue-700 text-sm">
-                Ici vous voyez toutes les tâches qui vous sont assignées par votre manager. 
-                Vous pouvez suivre votre progression, mettre à jour le statut et les heures travaillées. 
-                Quand vous marquez une tâche comme terminée, votre manager doit la valider.
+                {isManager 
+                  ? 'Créez et assignez des tâches à vos équipes. Suivez leur progression et validez les tâches terminées.'
+                  : 'Ici vous voyez toutes les tâches qui vous sont assignées par votre manager. Vous pouvez suivre votre progression, mettre à jour le statut et les heures travaillées. Quand vous marquez une tâche comme terminée, votre manager doit la valider.'
+                }
               </p>
             </div>
           </div>
@@ -190,7 +244,7 @@ const EmployeeTasksPage = () => {
       {/* Liste des tâches */}
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Mes tâches assignées</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{isManager ? 'Toutes les tâches' : 'Mes tâches assignées'}</h2>
         </div>
 
         <div className="divide-y divide-gray-200">
@@ -213,6 +267,11 @@ const EmployeeTasksPage = () => {
                         {getStatusText(task.status)}
                       </span>
                     </div>
+                    {isManager && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        Assigné à: {employees.find(emp => emp.id === task.assigned_to)?.first_name} {employees.find(emp => emp.id === task.assigned_to)?.last_name}
+                      </p>
+                    )}
                     <p className="text-gray-600 mb-3">{task.description}</p>
                     
                     <div className="flex items-center gap-6 text-sm text-gray-500">
@@ -240,10 +299,31 @@ const EmployeeTasksPage = () => {
                       </div>
                     )}
                   </div>
+                  {isManager && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedTaskForEdit(task);
+                          setShowTaskForm(true);
+                        }}
+                        className="p-2 text-secondary-600 hover:bg-blue-50 rounded-lg"
+                        title="Modifier"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleTaskDelete(task.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions de mise à jour */}
-                {task.status !== 'completed' && (
+                {!isManager && task.status !== 'completed' && (
                   <div className="bg-gray-50 rounded-lg p-4 mt-4">
                     <h4 className="font-medium text-gray-900 mb-3">Mettre à jour ma progression</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -321,6 +401,17 @@ const EmployeeTasksPage = () => {
           )}
         </div>
       </div>
+
+      <TaskForm
+        isOpen={showTaskForm}
+        onClose={() => {
+          setShowTaskForm(false);
+          setSelectedTaskForEdit(null);
+        }}
+        onSave={handleTaskSave}
+        task={selectedTaskForEdit}
+        employees={employees}
+      />
     </div>
   );
 };

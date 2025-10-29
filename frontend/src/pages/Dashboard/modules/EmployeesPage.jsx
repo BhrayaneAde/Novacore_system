@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { employeesService } from "../../../services";
-import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical } from "lucide-react";
+import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical, Edit, Trash2 } from "lucide-react";
 import Loader from "../../../components/ui/Loader";
+import EmployeeForm from "../../../components/forms/EmployeeForm";
 
 const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -29,6 +32,35 @@ const EmployeesPage = () => {
     return fullName.toLowerCase().includes(searchTerm.toLowerCase()) &&
            (selectedDepartment === 'all' || emp.department === selectedDepartment);
   });
+
+  const handleSave = async (formData) => {
+    try {
+      if (selectedEmployee) {
+        // Modifier
+        const updatedEmployees = employees.map(emp => 
+          emp.id === selectedEmployee.id ? { ...emp, ...formData } : emp
+        );
+        setEmployees(updatedEmployees);
+      } else {
+        // Ajouter
+        const newEmployee = {
+          id: Date.now(),
+          ...formData
+        };
+        setEmployees([...employees, newEmployee]);
+      }
+      setShowForm(false);
+      setSelectedEmployee(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
+      setEmployees(employees.filter(emp => emp.id !== id));
+    }
+  };
 
 
 
@@ -97,7 +129,13 @@ const EmployeesPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">Liste des employés</h2>
-            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <button 
+              onClick={() => {
+                setSelectedEmployee(null);
+                setShowForm(true);
+              }}
+              className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
               <UserPlus className="w-4 h-4" />
               <span>Ajouter</span>
             </button>
@@ -182,9 +220,25 @@ const EmployeesPage = () => {
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedEmployee(employee);
+                          setShowForm(true);
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(employee.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -192,6 +246,16 @@ const EmployeesPage = () => {
           </table>
         </div>
       </div>
+
+      <EmployeeForm
+        isOpen={showForm}
+        onClose={() => {
+          setShowForm(false);
+          setSelectedEmployee(null);
+        }}
+        onSave={handleSave}
+        employee={selectedEmployee}
+      />
     </div>
   );
 };

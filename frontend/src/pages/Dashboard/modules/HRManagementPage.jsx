@@ -1,17 +1,102 @@
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, GraduationCap, Mail, BarChart3, TrendingUp, Calendar, CheckCircle, Clock, AlertCircle, Download, Send, Plus, Edit, Trash2, Check, X, DollarSign, UserPlus, FolderOpen, CalendarClock, Bell } from 'lucide-react';
+import { Users, FileText, GraduationCap, Mail, BarChart3, TrendingUp, Calendar, CheckCircle, Clock, AlertCircle, Download, Send, Plus, Edit, Trash2, Check, X, DollarSign, UserPlus, FolderOpen, CalendarClock, Bell, Building, Package } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { departmentsService, employeesService, assetsService } from '../../../services';
+import DepartmentForm from '../../../components/forms/DepartmentForm';
+import CompanyAssetForm from '../../../components/forms/CompanyAssetForm';
 import Loader from '../../../components/ui/Loader';
 
 const HRManagementPage = () => {
   const [activeTab, setActiveTab] = useState('onboarding');
   const { currentUser, isEmployer } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [assets, setAssets] = useState([]);
+  const [showDepartmentForm, setShowDepartmentForm] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [showAssetForm, setShowAssetForm] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState(null);
+  const [leaveRequests, setLeaveRequests] = useState([
+    { id: 1, employee: 'Sophie Martin', type: 'Congés payés', startDate: '2025-02-15', endDate: '2025-02-22', days: 6, reason: 'Vacances familiales', status: 'pending', requestDate: '2025-01-20' },
+    { id: 2, employee: 'Thomas Dubois', type: 'RTT', startDate: '2025-02-10', endDate: '2025-02-10', days: 1, reason: 'Rendez-vous médical', status: 'pending', requestDate: '2025-01-18' },
+    { id: 3, employee: 'Emma Rousseau', type: 'Congé maladie', startDate: '2025-01-25', endDate: '2025-01-26', days: 2, reason: 'Certificat médical joint', status: 'approved', requestDate: '2025-01-24' },
+    { id: 4, employee: 'Pierre Moreau', type: 'Congés payés', startDate: '2025-03-01', endDate: '2025-03-08', days: 6, reason: 'Voyage', status: 'rejected', requestDate: '2025-01-15', rejectionReason: 'Période de forte activité' }
+  ]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [departmentsResponse, employeesResponse, assetsResponse] = await Promise.all([
+        departmentsService.getAll(),
+        employeesService.getAll(),
+        assetsService.getAll()
+      ]);
+      setDepartments(departmentsResponse.data || []);
+      setEmployees(employeesResponse.data || []);
+      setAssets(assetsResponse.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDepartmentSave = async (formData) => {
+    try {
+      if (selectedDepartment) {
+        await departmentsService.update(selectedDepartment.id, formData);
+      } else {
+        await departmentsService.create(formData);
+      }
+      await loadData();
+      setShowDepartmentForm(false);
+      setSelectedDepartment(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleDepartmentDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce département ?')) {
+      try {
+        await departmentsService.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
+  const handleAssetSave = async (formData) => {
+    try {
+      if (selectedAsset) {
+        await assetsService.update(selectedAsset.id, formData);
+      } else {
+        await assetsService.create(formData);
+      }
+      await loadData();
+      setShowAssetForm(false);
+      setSelectedAsset(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleAssetDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?')) {
+      try {
+        await assetsService.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -20,8 +105,6 @@ const HRManagementPage = () => {
       </div>
     );
   }
-
-
 
   // Données pour les workflows
   const onboardingTasks = [
@@ -61,14 +144,6 @@ const HRManagementPage = () => {
     { id: 3, name: 'Congés approuvés', type: 'leave', subject: 'Vos congés ont été approuvés', usage: 23 },
     { id: 4, name: 'Évaluation annuelle', type: 'evaluation', subject: 'Votre évaluation annuelle', usage: 12 }
   ];
-
-  // Demandes de congés
-  const [leaveRequests, setLeaveRequests] = useState([
-    { id: 1, employee: 'Sophie Martin', type: 'Congés payés', startDate: '2025-02-15', endDate: '2025-02-22', days: 6, reason: 'Vacances familiales', status: 'pending', requestDate: '2025-01-20' },
-    { id: 2, employee: 'Thomas Dubois', type: 'RTT', startDate: '2025-02-10', endDate: '2025-02-10', days: 1, reason: 'Rendez-vous médical', status: 'pending', requestDate: '2025-01-18' },
-    { id: 3, employee: 'Emma Rousseau', type: 'Congé maladie', startDate: '2025-01-25', endDate: '2025-01-26', days: 2, reason: 'Certificat médical joint', status: 'approved', requestDate: '2025-01-24' },
-    { id: 4, employee: 'Pierre Moreau', type: 'Congés payés', startDate: '2025-03-01', endDate: '2025-03-08', days: 6, reason: 'Voyage', status: 'rejected', requestDate: '2025-01-15', rejectionReason: 'Période de forte activité' }
-  ]);
 
   const handleLeaveAction = (id, action, reason = '') => {
     setLeaveRequests(prev => prev.map(request => 
@@ -132,6 +207,8 @@ const HRManagementPage = () => {
             { key: 'reports', label: 'Rapports', icon: BarChart3 },
             { key: 'training', label: 'Formations', icon: GraduationCap },
             { key: 'emails', label: 'Templates', icon: Mail },
+            { key: 'departments', label: 'Départements', icon: Building },
+            { key: 'assets', label: 'Équipements', icon: Package },
             { key: 'alerts', label: 'Alertes', icon: Bell }
           ].map(({ key, label, icon: Icon }) => (
             <button
@@ -696,6 +773,269 @@ const HRManagementPage = () => {
         </div>
       )}
 
+      {/* Départements Tab */}
+      {activeTab === 'departments' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+                <Building className="w-5 h-5 text-secondary-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des Départements</h3>
+                <p className="text-sm text-gray-600">{departments.length} départements</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedDepartment(null);
+                setShowDepartmentForm(true);
+              }}
+              className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nouveau département
+            </button>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Département</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Manager</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Employés</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Budget</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Localisation</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {departments.map((dept) => {
+                  const manager = employees.find(emp => emp.id === dept.managerId);
+                  const employeeCount = employees.filter(emp => emp.department === dept.name).length;
+                  
+                  return (
+                    <tr key={dept.id} className="hover:bg-gray-50">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+                            <Building className="w-5 h-5 text-secondary-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{dept.name}</p>
+                            <p className="text-sm text-gray-500">{dept.description}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        {manager ? (
+                          <div>
+                            <p className="font-medium text-gray-900">{manager.first_name} {manager.last_name}</p>
+                            <p className="text-sm text-gray-500">{manager.email}</p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="font-semibold text-gray-900">{employeeCount}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {dept.budget ? (
+                          <span className="font-semibold text-gray-900">
+                            {parseInt(dept.budget).toLocaleString('fr-FR')} €
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Non défini</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-gray-900">{dept.location || 'Non définie'}</td>
+                      <td className="py-4 px-6">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedDepartment(dept);
+                              setShowDepartmentForm(true);
+                            }}
+                            className="p-2 text-secondary-600 hover:bg-blue-50 rounded-lg"
+                            title="Modifier"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDepartmentDelete(dept.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {departments.length === 0 && (
+            <div className="text-center py-8">
+              <Building className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Aucun département créé</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Équipements Tab */}
+      {activeTab === 'assets' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                <Package className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Gestion des Équipements</h3>
+                <p className="text-sm text-gray-600">{assets.length} équipements</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedAsset(null);
+                setShowAssetForm(true);
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nouvel équipement
+            </button>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Équipement</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Catégorie</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Statut</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">État</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Assigné à</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Prix</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {assets.map((asset) => {
+                  const assignedEmployee = employees.find(emp => emp.id === asset.assigned_to_id);
+                  
+                  return (
+                    <tr key={asset.id} className="hover:bg-gray-50">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <Package className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{asset.name}</p>
+                            <p className="text-sm text-gray-500">{asset.serial_number}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                          {asset.category === 'equipment' ? 'Équipement' :
+                           asset.category === 'furniture' ? 'Mobilier' :
+                           asset.category === 'vehicle' ? 'Véhicule' :
+                           asset.category === 'software' ? 'Logiciel' :
+                           asset.category === 'tools' ? 'Outils' : 'Autre'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          asset.status === 'available' ? 'bg-green-100 text-green-800' :
+                          asset.status === 'assigned' ? 'bg-secondary-100 text-blue-800' :
+                          asset.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                          asset.status === 'retired' ? 'bg-gray-100 text-gray-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {asset.status === 'available' ? 'Disponible' :
+                           asset.status === 'assigned' ? 'Assigné' :
+                           asset.status === 'maintenance' ? 'Maintenance' :
+                           asset.status === 'retired' ? 'Retiré' : 'Perdu'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          asset.condition === 'excellent' ? 'bg-green-100 text-green-800' :
+                          asset.condition === 'good' ? 'bg-secondary-100 text-blue-800' :
+                          asset.condition === 'fair' ? 'bg-yellow-100 text-yellow-800' :
+                          asset.condition === 'poor' ? 'bg-orange-100 text-orange-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {asset.condition === 'excellent' ? 'Excellent' :
+                           asset.condition === 'good' ? 'Bon' :
+                           asset.condition === 'fair' ? 'Correct' :
+                           asset.condition === 'poor' ? 'Mauvais' : 'Endommagé'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {assignedEmployee ? (
+                          <div>
+                            <p className="font-medium text-gray-900">{assignedEmployee.first_name} {assignedEmployee.last_name}</p>
+                            <p className="text-sm text-gray-500">{assignedEmployee.email}</p>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Non assigné</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
+                        {asset.purchase_price ? (
+                          <span className="font-semibold text-gray-900">
+                            {parseFloat(asset.purchase_price).toLocaleString('fr-FR')} €
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">Non défini</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedAsset(asset);
+                              setShowAssetForm(true);
+                            }}
+                            className="p-2 text-secondary-600 hover:bg-blue-50 rounded-lg"
+                            title="Modifier"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleAssetDelete(asset.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {assets.length === 0 && (
+            <div className="text-center py-8">
+              <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">Aucun équipement enregistré</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Alertes Tab */}
       {activeTab === 'alerts' && (
         <div className="space-y-6">
@@ -822,6 +1162,28 @@ const HRManagementPage = () => {
           </div>
         </div>
       )}
+
+      <DepartmentForm
+        isOpen={showDepartmentForm}
+        onClose={() => {
+          setShowDepartmentForm(false);
+          setSelectedDepartment(null);
+        }}
+        onSave={handleDepartmentSave}
+        department={selectedDepartment}
+        employees={employees}
+      />
+
+      <CompanyAssetForm
+        isOpen={showAssetForm}
+        onClose={() => {
+          setShowAssetForm(false);
+          setSelectedAsset(null);
+        }}
+        onSave={handleAssetSave}
+        asset={selectedAsset}
+        employees={employees}
+      />
     </div>
   );
 };

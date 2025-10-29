@@ -1,16 +1,92 @@
 import React, { useState, useEffect } from "react";
-import { UserPlus, Briefcase, Users, Search, Filter, MapPin, Clock } from "lucide-react";
+import { UserPlus, Briefcase, Users, Search, Filter, MapPin, Clock, Plus, Edit, Trash2 } from "lucide-react";
+import { recruitmentService } from '../../../services';
+import JobOpeningForm from '../../../components/forms/JobOpeningForm';
+import CandidateForm from '../../../components/forms/CandidateForm';
 import Loader from "../../../components/ui/Loader";
 
 const RecruitmentPage = () => {
   const [activeTab, setActiveTab] = useState("candidates");
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showJobForm, setShowJobForm] = useState(false);
+  const [showCandidateForm, setShowCandidateForm] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [jobOpenings, setJobOpenings] = useState([]);
+  const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [jobsResponse, candidatesResponse] = await Promise.all([
+        recruitmentService.jobOpenings.getAll(),
+        recruitmentService.candidates.getAll()
+      ]);
+      setJobOpenings(jobsResponse.data || []);
+      setCandidates(candidatesResponse.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJobSave = async (formData) => {
+    try {
+      if (selectedJob) {
+        await recruitmentService.jobOpenings.update(selectedJob.id, formData);
+      } else {
+        await recruitmentService.jobOpenings.create(formData);
+      }
+      await loadData();
+      setShowJobForm(false);
+      setSelectedJob(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleCandidateSave = async (formData) => {
+    try {
+      if (selectedCandidate) {
+        await recruitmentService.candidates.update(selectedCandidate.id, formData);
+      } else {
+        await recruitmentService.candidates.create(formData);
+      }
+      await loadData();
+      setShowCandidateForm(false);
+      setSelectedCandidate(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleJobDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
+      try {
+        await recruitmentService.jobOpenings.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
+  const handleCandidateDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce candidat ?')) {
+      try {
+        await recruitmentService.candidates.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -20,87 +96,7 @@ const RecruitmentPage = () => {
     );
   }
   
-  const candidates = [
-    {
-      id: 1,
-      name: "Alice Dupont",
-      email: "alice.dupont@email.com",
-      position: "Développeur React",
-      experience: "3 ans",
-      status: "interview",
-      appliedDate: "2024-01-15",
-      avatar: "AD"
-    },
-    {
-      id: 2,
-      name: "Bob Martin",
-      email: "bob.martin@email.com",
-      position: "Designer UX/UI",
-      experience: "5 ans",
-      status: "screening",
-      appliedDate: "2024-01-12",
-      avatar: "BM"
-    },
-    {
-      id: 3,
-      name: "Claire Moreau",
-      email: "claire.moreau@email.com",
-      position: "Chef de Projet",
-      experience: "7 ans",
-      status: "offer",
-      appliedDate: "2024-01-10",
-      avatar: "CM"
-    },
-    {
-      id: 4,
-      name: "David Laurent",
-      email: "david.laurent@email.com",
-      position: "Développeur Backend",
-      experience: "4 ans",
-      status: "rejected",
-      appliedDate: "2024-01-08",
-      avatar: "DL"
-    }
-  ];
-  
-  const jobOpenings = [
-    {
-      id: 1,
-      title: "Développeur React Senior",
-      department: "Développement",
-      location: "Paris",
-      type: "CDI",
-      applicants: 12,
-      status: "open"
-    },
-    {
-      id: 2,
-      title: "Designer UX/UI",
-      department: "Design",
-      location: "Lyon",
-      type: "CDI",
-      applicants: 8,
-      status: "open"
-    },
-    {
-      id: 3,
-      title: "Chef de Projet Digital",
-      department: "Management",
-      location: "Remote",
-      type: "CDI",
-      applicants: 15,
-      status: "open"
-    },
-    {
-      id: 4,
-      title: "Développeur Backend",
-      department: "Développement",
-      location: "Marseille",
-      type: "CDD",
-      applicants: 6,
-      status: "closed"
-    }
-  ];
+
   
   const filteredCandidates = candidates.filter(candidate => 
     candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -175,10 +171,28 @@ const RecruitmentPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-              <Briefcase className="w-4 h-4" />
-              <span>Nouvelle offre</span>
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  setSelectedJob(null);
+                  setShowJobForm(true);
+                }}
+                className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Nouvelle offre</span>
+              </button>
+              <button 
+                onClick={() => {
+                  setSelectedCandidate(null);
+                  setShowCandidateForm(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Nouveau candidat</span>
+              </button>
+            </div>
           </div>
           
           <div className="relative">
@@ -268,9 +282,25 @@ const RecruitmentPage = () => {
                       {new Date(candidate.appliedDate).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="py-4 px-6">
-                      <button className="text-secondary-600 hover:text-secondary-700 font-medium text-sm">
-                        Voir profil
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => {
+                            setSelectedCandidate(candidate);
+                            setShowCandidateForm(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          title="Modifier"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleCandidateDelete(candidate.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -318,9 +348,25 @@ const RecruitmentPage = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <button className="text-secondary-600 hover:text-secondary-700 font-medium text-sm">
-                        Gérer
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => {
+                            setSelectedJob(job);
+                            setShowJobForm(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          title="Modifier"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleJobDelete(job.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -329,6 +375,27 @@ const RecruitmentPage = () => {
           )}
         </div>
       </div>
+
+      <JobOpeningForm
+        isOpen={showJobForm}
+        onClose={() => {
+          setShowJobForm(false);
+          setSelectedJob(null);
+        }}
+        onSave={handleJobSave}
+        jobOpening={selectedJob}
+      />
+
+      <CandidateForm
+        isOpen={showCandidateForm}
+        onClose={() => {
+          setShowCandidateForm(false);
+          setSelectedCandidate(null);
+        }}
+        onSave={handleCandidateSave}
+        candidate={selectedCandidate}
+        jobOpenings={jobOpenings}
+      />
     </div>
   );
 };

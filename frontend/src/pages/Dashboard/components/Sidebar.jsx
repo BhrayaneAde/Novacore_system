@@ -23,7 +23,7 @@ import { useAuthStore } from "../../../store/useAuthStore";
 import { systemService } from "../../../services/system";
 import { useState, useEffect } from "react";
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollapsed }) => {
   const { logout, currentUser } = useAuthStore();
   const [userPermissions, setUserPermissions] = useState(null);
 
@@ -44,14 +44,12 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   const hasPermission = (module, action = 'read') => {
-    if (!userPermissions || !module) return true; // Fallback to current behavior
+    if (!userPermissions || !module) return true;
     
-    // Handle case where userPermissions is an object with module keys
     if (typeof userPermissions === 'object' && !Array.isArray(userPermissions)) {
       return userPermissions[module]?.[action] || false;
     }
     
-    // Handle case where userPermissions is an array
     if (Array.isArray(userPermissions)) {
       const modulePermissions = userPermissions.find(p => p.module === module);
       return modulePermissions?.actions?.[action] || false;
@@ -90,7 +88,6 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { icon: FileText, label: "Mes Documents", tab: "documents", module: "documents" }
   ];
 
-  // Filtrer les menus selon les permissions
   const getMenuItems = () => {
     const roleBasedItems = {
       'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management'],
@@ -103,12 +100,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     const allowedTabs = roleBasedItems[currentUser?.role] || roleBasedItems['employee'];
     
     return allMenuItems.filter(item => {
-      // Always show dashboard and self-service items
       if (!item.module || item.tab === 'dashboard' || item.tab === 'employee-self-service') {
         return allowedTabs.includes(item.tab);
       }
       
-      // Check permissions for other items
       return allowedTabs.includes(item.tab) && hasPermission(item.module);
     });
   };
@@ -120,78 +115,123 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64" style={{background: 'linear-gradient(135deg, #023342 0%, #055169 100%)', borderRight: '1px solid #e5e7eb', zIndex: 40, display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
-      <div>
-        <div className="p-6 border-b border-gray-200 flex items-center gap-2">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${
-            currentUser?.role === 'employer' ? 'bg-gradient-to-r from-primary-500 to-primary-600' :
-            currentUser?.role === 'hr_admin' ? 'bg-gradient-to-r from-secondary-500 to-secondary-600' :
-            currentUser?.role === 'hr_user' ? 'bg-gradient-to-r from-teal-500 to-teal-600' :
-            currentUser?.role === 'manager' ? 'bg-gradient-to-r from-primary-400 to-secondary-500' :
-            currentUser?.role === 'employee' ? 'bg-gradient-to-r from-secondary-400 to-secondary-500' : 'bg-gray-600'
-          }`}>
-            {currentUser?.role === 'employer' ? 'CEO' :
-             currentUser?.role === 'hr_admin' ? 'HR+' :
-             currentUser?.role === 'hr_user' ? 'HR' :
-             currentUser?.role === 'manager' ? 'MGR' :
-             currentUser?.role === 'employee' ? 'EMP' : 'USR'}
-          </div>
-          <span className="text-lg font-semibold tracking-tight">
-            {currentUser?.role === 'employer' ? 'Administration' :
-             currentUser?.role === 'hr_admin' ? 'RH Admin' :
-             currentUser?.role === 'hr_user' ? 'RH Utilisateur' :
-             currentUser?.role === 'manager' ? 'Management' :
-             currentUser?.role === 'employee' ? 'Portail Employé' : 'NovaCore'}
-          </span>
+    <aside className={`fixed inset-y-0 left-0 z-40 transition-all duration-300 ${collapsed ? 'w-16' : 'w-72'}`}>
+      <div className="flex h-full flex-col" style={{background: 'linear-gradient(to bottom, #055169, #023342)', color: '#ffffff'}}>
+        <div className="h-16 flex items-center gap-2 px-4" style={{borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
+          <button 
+            onClick={() => setSidebarCollapsed(!collapsed)}
+            className="inline-flex items-center justify-center h-9 w-9 rounded-md transition-colors flex-shrink-0"
+            style={{color: '#ffffff'}}
+            onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            title="Réduire/Agrandir le menu"
+          >
+            <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          {!collapsed && (
+            <>
+              <div 
+                className="h-9 w-9 grid place-items-center rounded font-semibold tracking-tight flex-shrink-0"
+                style={{backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff'}}
+              >
+                {currentUser?.role === 'employer' ? 'CEO' :
+                 currentUser?.role === 'hr_admin' ? 'HR+' :
+                 currentUser?.role === 'hr_user' ? 'HR' :
+                 currentUser?.role === 'manager' ? 'MGR' :
+                 currentUser?.role === 'employee' ? 'EMP' : 'USR'}
+              </div>
+              <div className="leading-tight">
+                <div className="text-[15px] font-medium tracking-tight">
+                  {currentUser?.role === 'employer' ? 'Administration' :
+                   currentUser?.role === 'hr_admin' ? 'RH Admin' :
+                   currentUser?.role === 'hr_user' ? 'RH Utilisateur' :
+                   currentUser?.role === 'manager' ? 'Management' :
+                   currentUser?.role === 'employee' ? 'Portail Employé' : 'NovaCore'}
+                </div>
+                <div className="text-xs" style={{color: 'rgba(255,255,255,0.6)'}}>Tableau de bord</div>
+              </div>
+            </>
+          )}
         </div>
 
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 px-2 py-4 overflow-y-auto">
           {menuItems.map((item, i) => {
             const isActive = activeTab === item.tab;
             return (
               <button
                 key={i}
                 onClick={() => setActiveTab(item.tab)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all w-full text-left ${
-                  isActive
-                    ? "bg-gradient-to-r from-primary-50 to-secondary-50 text-secondary-700 border-l-4 border-secondary-500 shadow-sm"
-                    : "text-gray-600 hover:bg-gradient-to-r hover:from-primary-25 hover:to-secondary-25 hover:text-secondary-600"
-                }`}
+                className="group flex items-center gap-3 rounded-md px-3 py-2 text-sm w-full text-left mb-1"
+                style={{
+                  backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                  border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.target.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
+                <item.icon className="size-4 flex-shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
               </button>
             );
           })}
         </nav>
-      </div>
 
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-3 mb-3">
-          <img
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
-            alt="User"
-            className="w-9 h-9 rounded-full"
-          />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-900">{currentUser?.name || 'Marie Dubois'}</p>
-            <p className="text-xs text-gray-500">
-              {currentUser?.role === 'employer' ? 'Employeur' :
-               currentUser?.role === 'hr_admin' ? 'Admin RH' :
-               currentUser?.role === 'hr_user' ? 'Utilisateur RH' :
-               currentUser?.role === 'manager' ? 'Manager' :
-               currentUser?.role === 'employee' ? 'Employé' : 'Utilisateur'}
-            </p>
+        <div className="mt-auto" style={{borderTop: '1px solid rgba(255,255,255,0.1)'}}>
+          <div className="px-4 py-4 flex items-center gap-3">
+            <img 
+              className="h-9 w-9 rounded-full object-cover flex-shrink-0" 
+              style={{border: '1px solid rgba(255,255,255,0.1)'}} 
+              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=96&q=80&auto=format&fit=crop" 
+              alt="Avatar" 
+            />
+            {!collapsed && (
+              <>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium tracking-tight truncate">{currentUser?.name || 'Marie Dubois'}</div>
+                  <div className="text-xs" style={{color: 'rgba(255,255,255,0.6)'}}>
+                    {currentUser?.role === 'employer' ? 'Employeur' :
+                     currentUser?.role === 'hr_admin' ? 'Admin RH' :
+                     currentUser?.role === 'hr_user' ? 'Utilisateur RH' :
+                     currentUser?.role === 'manager' ? 'Manager' :
+                     currentUser?.role === 'employee' ? 'Employé' : 'Utilisateur'}
+                  </div>
+                </div>
+                <button 
+                  className="ml-auto inline-flex items-center justify-center h-9 w-9 rounded-md transition-colors" 
+                  title="Options"
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+              </>
+            )}
           </div>
-          <MoreVertical className="w-4 h-4 text-gray-400" />
+          <div className="px-4 pb-4">
+            <button 
+              onClick={handleLogout}
+              className="w-full inline-flex items-center justify-center gap-2 h-9 rounded-md transition-colors"
+              style={{backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff'}}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.15)'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+              title={collapsed ? 'Déconnexion' : ''}
+            >
+              <LogOut className="size-4" />
+              {!collapsed && 'Déconnexion'}
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors w-full"
-        >
-          <LogOut className="w-5 h-5" />
-          Déconnexion
-        </button>
       </div>
     </aside>
   );

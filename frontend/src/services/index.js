@@ -10,3 +10,7 @@ export { usersService as systemUsersService, employeesService as systemEmployees
 export { setupService } from './setup';
 export { emailService } from './email';
 export { notificationsService } from './notifications';
+export { recruitmentService } from './recruitment';
+export { goalsService } from './goals';
+export { assetsService } from './assets';
+export { departmentsService } from './departments';

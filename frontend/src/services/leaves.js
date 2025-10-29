@@ -1,20 +1,39 @@
 import apiClient from '../api/client';
 
 export const leavesService = {
-  getAll: () => apiClient.get('/leaves'),
-  getById: (id) => apiClient.get(`/leaves/${id}`),
-  create: (data) => apiClient.post('/leaves', data),
-  update: (id, data) => apiClient.put(`/leaves/${id}`, data),
-  delete: (id) => apiClient.delete(`/leaves/${id}`),
-  
-  // Leave actions
-  approve: (id) => apiClient.post(`/leaves/${id}/approve`),
-  reject: (id, reason) => apiClient.post(`/leaves/${id}/reject`, { reason }),
-  cancel: (id) => apiClient.post(`/leaves/${id}/cancel`),
-  
-  // Filters
-  getByEmployee: (employeeId) => apiClient.get(`/leaves?employee_id=${employeeId}`),
-  getByStatus: (status) => apiClient.get(`/leaves?status=${status}`),
-  getByType: (type) => apiClient.get(`/leaves?type=${type}`),
-  getPending: () => apiClient.get('/leaves?status=pending'),
+  // Obtenir toutes les demandes de congés
+  getAll: async () => {
+    const response = await apiClient.get('/leaves');
+    return response.data;
+  },
+
+  // Créer une nouvelle demande
+  create: async (leaveData) => {
+    const response = await apiClient.post('/leaves', leaveData);
+    return response.data;
+  },
+
+  // Mettre à jour une demande
+  update: async (id, leaveData) => {
+    const response = await apiClient.put(`/leaves/${id}`, leaveData);
+    return response.data;
+  },
+
+  // Supprimer une demande
+  delete: async (id) => {
+    const response = await apiClient.delete(`/leaves/${id}`);
+    return response.data;
+  },
+
+  // Approuver/rejeter une demande
+  updateStatus: async (id, status, reason = '') => {
+    const response = await apiClient.patch(`/leaves/${id}/status`, { status, reason });
+    return response.data;
+  },
+
+  // Obtenir les demandes par employé
+  getByEmployee: async (employeeId) => {
+    const response = await apiClient.get(`/leaves/employee/${employeeId}`);
+    return response.data;
+  }
 };

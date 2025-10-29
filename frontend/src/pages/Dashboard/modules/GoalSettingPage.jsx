@@ -1,12 +1,67 @@
-import React, { useState } from 'react';
-import { Target, Plus, Edit, Check, Clock, TrendingUp, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Target, Plus, Edit, Check, Clock, TrendingUp, Users, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { goalsService, employeesService } from '../../../services';
+import GoalForm from '../../../components/forms/GoalForm';
+import Loader from '../../../components/ui/Loader';
 
 const GoalSettingPage = () => {
   const { currentUser, isManager, isSeniorManager, isEmployee } = useAuthStore();
   const [activeTab, setActiveTab] = useState(isManager() ? 'team-goals' : 'my-goals');
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState(null);
+  const [employees, setEmployees] = useState([]);
 
-  const [goals, setGoals] = useState([
+  const [goals, setGoals] = useState([]);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [goalsResponse, empResponse] = await Promise.all([
+        goalsService.getAll(),
+        employeesService.getAll()
+      ]);
+      setGoals(goalsResponse.data || []);
+      setEmployees(empResponse.data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (formData) => {
+    try {
+      if (selectedGoal) {
+        await goalsService.update(selectedGoal.id, formData);
+      } else {
+        await goalsService.create(formData);
+      }
+      await loadData();
+      setShowForm(false);
+      setSelectedGoal(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet objectif ?')) {
+      try {
+        await goalsService.delete(id);
+        await loadData();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+      }
+    }
+  };
+
+  const mockGoals = [
     {
       id: 1,
       title: 'Augmenter les ventes de 15%',
@@ -58,41 +113,17 @@ const GoalSettingPage = () => {
         { name: 'Satisfaction', current: 4.2, target: 4.5, unit: '/5' }
       ]
     }
-  ]);
+  ];
 
-  const [newGoal, setNewGoal] = useState({
-    title: '',
-    description: '',
-    category: 'Performance',
-    priority: 'medium',
-    deadline: '',
-    assignedTo: '',
-    type: 'individual'
-  });
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  const handleCreateGoal = () => {
-    const goal = {
-      id: Date.now(),
-      ...newGoal,
-      assignedBy: currentUser?.name,
-      progress: 0,
-      status: 'not_started',
-      metrics: []
-    };
-    setGoals([...goals, goal]);
-    setNewGoal({
-      title: '',
-      description: '',
-      category: 'Performance',
-      priority: 'medium',
-      deadline: '',
-      assignedTo: '',
-      type: 'individual'
-    });
-    setShowCreateModal(false);
-  };
+  const displayGoals = goals.length > 0 ? goals : mockGoals;
 
   const updateProgress = (goalId, newProgress) => {
     setGoals(goals.map(goal => 
@@ -121,12 +152,12 @@ const GoalSettingPage = () => {
     }
   };
 
-  const myGoals = goals.filter(goal => 
+  const myGoals = displayGoals.filter(goal => 
     isEmployee() ? goal.assignedTo === currentUser?.name : 
     (isManager() || isSeniorManager()) ? goal.assignedBy === currentUser?.name : true
   );
 
-  const teamGoals = goals.filter(goal => goal.type === 'team');
+  const teamGoals = displayGoals.filter(goal => goal.type === 'team');
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -272,21 +303,45 @@ const GoalSettingPage = () => {
                 </div>
               )}
 
-              {/* Progress Update */}
-              {(isEmployee() && goal.assignedTo === currentUser?.name) || isManager() ? (
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-700">Progression:</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={goal.progress}
-                    onChange={(e) => updateProgress(goal.id, parseInt(e.target.value))}
-                    className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <span className="text-sm font-medium text-gray-900 w-12">{goal.progress}%</span>
-                </div>
-              ) : null}
+              {/* Actions */}
+              <div className="flex items-center justify-between">
+                {(isEmployee() && goal.assignedTo === currentUser?.name) || isManager() ? (
+                  <div className="flex items-center gap-4 flex-1">
+                    <span className="text-sm font-medium text-gray-700">Progression:</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={goal.progress}
+                      onChange={(e) => updateProgress(goal.id, parseInt(e.target.value))}
+                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-sm font-medium text-gray-900 w-12">{goal.progress}%</span>
+                  </div>
+                ) : null}
+                
+                {(isManager() || isSeniorManager()) && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => {
+                        setSelectedGoal(goal);
+                        setShowForm(true);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      title="Modifier"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(goal.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -295,109 +350,33 @@ const GoalSettingPage = () => {
       {/* Create Goal Tab */}
       {activeTab === 'create' && (isManager() || isSeniorManager()) && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Créer un nouvel objectif</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
-              <input
-                type="text"
-                value={newGoal.title}
-                onChange={(e) => setNewGoal({...newGoal, title: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-                placeholder="Ex: Augmenter les ventes de 20%"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Assigné à</label>
-              <input
-                type="text"
-                value={newGoal.assignedTo}
-                onChange={(e) => setNewGoal({...newGoal, assignedTo: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-                placeholder="Nom de l'employé ou équipe"
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-              <textarea
-                value={newGoal.description}
-                onChange={(e) => setNewGoal({...newGoal, description: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-                rows="3"
-                placeholder="Description détaillée de l'objectif..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-              <select
-                value={newGoal.category}
-                onChange={(e) => setNewGoal({...newGoal, category: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-              >
-                <option value="Performance">Performance</option>
-                <option value="Formation">Formation</option>
-                <option value="Qualité">Qualité</option>
-                <option value="Innovation">Innovation</option>
-                <option value="Leadership">Leadership</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
-              <select
-                value={newGoal.priority}
-                onChange={(e) => setNewGoal({...newGoal, priority: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-              >
-                <option value="low">Basse</option>
-                <option value="medium">Moyenne</option>
-                <option value="high">Haute</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select
-                value={newGoal.type}
-                onChange={(e) => setNewGoal({...newGoal, type: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-              >
-                <option value="individual">Individuel</option>
-                <option value="team">Équipe</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Échéance</label>
-              <input
-                type="date"
-                value={newGoal.deadline}
-                onChange={(e) => setNewGoal({...newGoal, deadline: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Créer un nouvel objectif</h2>
             <button
-              onClick={() => setActiveTab('my-goals')}
-              className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
+              onClick={() => {
+                setSelectedGoal(null);
+                setShowForm(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
             >
-              Annuler
-            </button>
-            <button
-              onClick={handleCreateGoal}
-              className="px-6 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700"
-            >
-              Créer l'objectif
+              <Plus className="w-4 h-4" />
+              Nouvel objectif
             </button>
           </div>
+          <p className="text-gray-600">Utilisez le bouton ci-dessus pour créer un nouvel objectif avec le formulaire complet.</p>
         </div>
       )}
+
+      <GoalForm
+        isOpen={showForm}
+        onClose={() => {
+          setShowForm(false);
+          setSelectedGoal(null);
+        }}
+        onSave={handleSave}
+        goal={selectedGoal}
+        employees={employees}
+      />
     </div>
   );
 };

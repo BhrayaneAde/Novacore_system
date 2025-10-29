@@ -13,11 +13,12 @@ import LineChart from "../../components/charts/LineChart";
 import { CheckSquare, Target, Calendar, Clock, FileText, Users, TrendingUp } from "lucide-react";
 import { systemService } from "../../services";
 import Loader from "../../components/ui/Loader";
+import { employees, departments, hierarchicalMetrics } from "../../data/mockData";
 
-// Services de compatibilité
-const usersService = { getAll: () => systemService.employees.getAll() };
-const employeesService = { getAll: () => systemService.employees.getAll() };
-const hrService = { departments: { getAll: () => Promise.resolve({ data: [] }) } };
+// Services de compatibilité avec données réelles
+const usersService = { getAll: () => Promise.resolve({ data: employees }) };
+const employeesService = { getAll: () => Promise.resolve({ data: employees }) };
+const hrService = { departments: { getAll: () => Promise.resolve({ data: departments }) } };
 const tasksService = { getAll: () => Promise.resolve({ data: [] }) };
 
 // Import modules and pages
@@ -55,6 +56,7 @@ import ManagerDocumentsPage from "./modules/ManagerDocumentsPage";
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [dashboardData, setDashboardData] = useState({
     users: [],
     employees: [],
@@ -81,33 +83,13 @@ const Dashboard = () => {
         tasksService.getAll().catch(() => ({ data: [] }))
       ]);
 
-      // Calculer les métriques hiérarchiques
-      const employees = employeesRes.data || [];
-      const departments = departmentsRes.data || [];
-      const tasks = tasksRes.data || [];
-      
-      const hierarchicalMetrics = {
-        employer: {
-          totalManagers: departments.filter(d => d.manager_id).length,
-          totalEmployees: employees.length,
-          avgPerformance: 88.3, // À calculer selon la logique métier
-          totalTasksCompleted: tasks.filter(t => t.status === 'completed').length,
-          pendingApprovals: tasks.filter(t => t.status === 'pending_approval').length,
-          departmentPerformance: departments.map(d => ({
-            name: d.name,
-            performance: Math.floor(Math.random() * 20) + 80, // Simulation
-            manager: d.manager?.first_name + ' ' + d.manager?.last_name
-          }))
-        }
-      };
-
       setDashboardData({
         users: usersRes.data || [],
-        employees: employees,
-        departments: departments,
-        tasks: tasks,
-        managerActivities: [], // À implémenter selon les besoins
-        hierarchicalMetrics
+        employees: employeesRes.data || [],
+        departments: departmentsRes.data || [],
+        tasks: tasksRes.data || [],
+        managerActivities: [],
+        hierarchicalMetrics: hierarchicalMetrics
       });
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
@@ -129,110 +111,235 @@ const Dashboard = () => {
         }
         
         const employerMetrics = dashboardData.hierarchicalMetrics?.employer || {
-          totalManagers: 0,
-          totalEmployees: 0,
-          avgPerformance: 0,
-          totalTasksCompleted: 0,
-          pendingApprovals: 0,
-          departmentPerformance: []
+          totalManagers: 3,
+          totalEmployees: 9,
+          avgPerformance: 88.3,
+          totalTasksCompleted: 75,
+          pendingApprovals: 6,
+          departmentPerformance: [
+            { name: "Design", performance: 92, manager: "Thomas Dubois" },
+            { name: "Marketing", performance: 88, manager: "Emma Rousseau" },
+            { name: "Ventes", performance: 85, manager: "Pierre Moreau" }
+          ]
         };
         
         return (
-          <div className="p-8 space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                Vue d'ensemble Direction
-              </h1>
-              <p className="text-gray-500">Supervision complète • {employerMetrics.totalManagers} managers • {employerMetrics.totalEmployees} employés</p>
-            </div>
-            
-            {/* Métriques consolidées */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Performance Globale</h3>
-                  <TrendingUp className="w-5 h-5 text-green-500" />
+          <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl sm:text-[28px] font-semibold tracking-tight text-gray-900">Vue d'ensemble Direction</h1>
+                  <p className="text-sm text-gray-600 mt-1">Supervision complète • {employerMetrics.totalManagers} managers • {employerMetrics.totalEmployees} employés</p>
                 </div>
-                <p className="text-3xl font-bold text-green-600">{employerMetrics.avgPerformance}%</p>
-                <p className="text-sm text-gray-500">Moyenne entreprise</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Tâches Complétées</h3>
-                  <CheckSquare className="w-5 h-5 text-secondary-500" />
+                <div className="inline-flex items-center gap-3">
+                  <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">  
+                    <Calendar className="size-4" /> <span>Calendrier</span> 
+                  </button>
+                  <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                    <Clock className="size-4" /> <span>Heures de travail</span>
+                  </button>
                 </div>
-                <p className="text-3xl font-bold text-secondary-600">{employerMetrics.totalTasksCompleted}</p>
-                <p className="text-sm text-gray-500">Ce mois</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">Managers Actifs</h3>
-                  <Users className="w-5 h-5 text-purple-500" />
-                </div>
-                <p className="text-3xl font-bold text-purple-600">{employerMetrics.totalManagers}</p>
-                <p className="text-sm text-gray-500">Départements gérés</p>
-              </div>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold">En Attente</h3>
-                  <Clock className="w-5 h-5 text-orange-500" />
-                </div>
-                <p className="text-3xl font-bold text-orange-600">{employerMetrics.pendingApprovals}</p>
-                <p className="text-sm text-gray-500">Approbations</p>
               </div>
             </div>
             
-            {/* Activités des managers */}
-            <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
-              <h3 className="text-lg font-semibold mb-4">Activité des Managers</h3>
-              <div className="space-y-4">
-                {dashboardData.departments.filter(d => d.manager_id).map(dept => (
-                  <div key={dept.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <h4 className="font-medium">{dept.manager?.first_name} {dept.manager?.last_name}</h4>
-                          <p className="text-sm text-gray-600">{dept.name} • {dept.employee_count || 0} membres</p>
+            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+              <div className="group relative rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Performance Globale</div>
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <TrendingUp className="size-4 text-green-600" />
+                  </div>
+                </div>
+                <div className="mt-3 text-2xl font-bold text-gray-900">{employerMetrics.avgPerformance}%</div>
+                <div className="mt-1 text-xs text-green-600 inline-flex items-center gap-1 font-medium">
+                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
+                  </svg>
+                  +12.4% ce mois
+                </div>
+                <div className="mt-4">
+                  <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style={{width: `${employerMetrics.avgPerformance}%`}}></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Employés Actifs</div>
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Users className="size-4 text-blue-600" />
+                  </div>
+                </div>
+                <div className="mt-3 text-2xl font-bold text-gray-900">{employerMetrics.totalEmployees}</div>
+                <div className="mt-1 text-xs text-blue-600 inline-flex items-center gap-1 font-medium">
+                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
+                  </svg>
+                  +2 ce mois
+                </div>
+                <div className="mt-4">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className={`h-6 flex-1 rounded ${i < 4 ? 'bg-blue-500' : 'bg-gray-200'}`}></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Tâches Complétées</div>
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <CheckSquare className="size-4 text-purple-600" />
+                  </div>
+                </div>
+                <div className="mt-3 text-2xl font-bold text-gray-900">{employerMetrics.totalTasksCompleted}</div>
+                <div className="mt-1 text-xs text-purple-600 inline-flex items-center gap-1 font-medium">
+                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
+                  </svg>
+                  +8.3% vs. 30j
+                </div>
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>Complétées</span>
+                    <span>{employerMetrics.totalTasksCompleted}/100</span>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full" style={{width: `${employerMetrics.totalTasksCompleted}%`}}></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group relative rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-all duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Demandes en Attente</div>
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Clock className="size-4 text-orange-600" />
+                  </div>
+                </div>
+                <div className="mt-3 text-2xl font-bold text-gray-900">{employerMetrics.pendingApprovals}</div>
+                <div className="mt-1 text-xs text-orange-600 inline-flex items-center gap-1 font-medium">
+                  <svg className="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 7l-9.2 9.2M7 7v10h10" />
+                  </svg>
+                  -2 vs. hier
+                </div>
+                <div className="mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 text-xs text-gray-500">Congés • Évaluations • Tâches</div>
+                  </div>
+                  <div className="mt-1 h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full" style={{width: `${(employerMetrics.pendingApprovals / 20) * 100}%`}}></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Activité des Managers</h2>
+                      <p className="text-sm text-gray-600 mt-1">Performance et supervision d'équipe</p>
+                    </div>
+                    <button className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                      <svg className="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Exporter
+                    </button>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {dashboardData.departments.filter(d => d.managerId).map((dept, index) => (
+                      <div key={dept.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                            {dept.manager?.charAt(0) || 'M'}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{dept.manager}</h4>
+                            <p className="text-sm text-gray-600">{dept.name} • {dept.employees} membres</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6 text-sm">
+                          <div className="text-center">
+                            <p className="font-semibold text-gray-900">{Math.floor(Math.random() * 20) + 10}</p>
+                            <p className="text-gray-600">Tâches</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold text-green-600">{dept.performance}</p>
+                            <p className="text-gray-600">Performance</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold text-orange-600">{Math.floor(Math.random() * 5)}</p>
+                            <p className="text-gray-600">En attente</p>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">Objectifs RH</h2>
+                  <p className="text-sm text-gray-600 mt-1">Suivi des KPIs clés</p>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-16 h-16">
+                      <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                        <path className="text-gray-200" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path className="text-green-500" strokeWidth="3" strokeDasharray={`${employerMetrics.avgPerformance}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-gray-900">{employerMetrics.avgPerformance}%</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-6 text-sm">
-                      <div className="text-center">
-                        <p className="font-semibold">{Math.floor(Math.random() * 20) + 10}</p>
-                        <p className="text-gray-600">Tâches</p>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">Performance globale</div>
+                      <div className="text-xs text-gray-600">Objectif: 90% • +12% ce mois</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Répartition par département</div>
+                    {employerMetrics.departmentPerformance.slice(0,3).map((dept, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full" style={{background: i === 0 ? '#10b981' : i === 1 ? '#f59e0b' : '#6366f1'}}></div>
+                        <div className="flex-1 text-sm text-gray-700">{dept.name}</div>
+                        <div className="text-sm font-medium text-gray-900">{dept.performance}%</div>
                       </div>
-                      <div className="text-center">
-                        <p className="font-semibold">{Math.floor(Math.random() * 20) + 80}%</p>
-                        <p className="text-gray-600">Performance</p>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm font-medium text-gray-900">Alertes</div>
+                      <span className="text-xs text-gray-500">Aujourd'hui</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <svg className="size-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <div className="text-xs text-gray-700">{employerMetrics.pendingApprovals} approbations en attente</div>
                       </div>
-                      <div className="text-center">
-                        <p className="font-semibold text-orange-600">{Math.floor(Math.random() * 5)}</p>
-                        <p className="text-gray-600">En attente</p>
+                      <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <TrendingUp className="size-4 text-green-600" />
+                        <div className="text-xs text-gray-700">Performance en hausse de 12%</div>
                       </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BarChart 
-                title="Performance par département" 
-                color="purple"
-                data={employerMetrics.departmentPerformance.map(d => ({label: d.name, value: d.performance}))}
-              />
-              <LineChart 
-                title="Évolution revenus" 
-                color="blue"
-                data={[
-                  {label: 'Jul', value: 45000},
-                  {label: 'Aoû', value: 52000},
-                  {label: 'Sep', value: 48000},
-                  {label: 'Oct', value: 61000},
-                  {label: 'Nov', value: 55000}
-                ]}
-              />
-            </div>
+            </section>
           </div>
         );
       case 'hr_admin':
@@ -252,19 +359,17 @@ const Dashboard = () => {
                 title="Effectifs par service" 
                 color="blue"
                 data={[
-                  {label: 'Commercial', value: 12},
-                  {label: 'Production', value: 6},
-                  {label: 'Marketing', value: 8},
-                  {label: 'Administration', value: 10}
+                  {label: 'Design', value: 3},
+                  {label: 'Marketing', value: 2},
+                  {label: 'Ventes', value: 2},
+                  {label: 'Direction', value: 1}
                 ]}
               />
               <PieChart 
                 title="Répartition contrats"
                 data={[
-                  {label: 'CDI', value: 35},
-                  {label: 'CDD', value: 8},
-                  {label: 'Stage', value: 4},
-                  {label: 'Freelance', value: 3}
+                  {label: 'CDI', value: 8},
+                  {label: 'CDD', value: 1}
                 ]}
               />
             </div>
@@ -272,15 +377,15 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <LineChart 
-                  title="Recrutements 2023" 
+                  title="Recrutements 2024" 
                   color="green"
                   data={[
-                    {label: 'Jan', value: 2},
-                    {label: 'Fév', value: 1},
-                    {label: 'Mar', value: 4},
-                    {label: 'Avr', value: 3},
-                    {label: 'Mai', value: 5},
-                    {label: 'Jun', value: 2}
+                    {label: 'Jan', value: 1},
+                    {label: 'Fév', value: 2},
+                    {label: 'Mar', value: 1},
+                    {label: 'Avr', value: 0},
+                    {label: 'Mai', value: 2},
+                    {label: 'Jun', value: 1}
                   ]}
                 />
               </div>
@@ -289,11 +394,11 @@ const Dashboard = () => {
                 <div className="space-y-3">
                   <button className="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-secondary-100 transition-colors">
                     <p className="font-medium text-blue-900">Congés en attente</p>
-                    <p className="text-sm text-secondary-600">7 demandes</p>
+                    <p className="text-sm text-secondary-600">3 demandes</p>
                   </button>
                   <button className="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
                     <p className="font-medium text-green-900">Nouveaux CV</p>
-                    <p className="text-sm text-green-600">3 candidatures</p>
+                    <p className="text-sm text-green-600">5 candidatures</p>
                   </button>
                 </div>
               </div>
@@ -312,30 +417,30 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Employés actifs</h3>
-                <p className="text-3xl font-bold text-secondary-600">42</p>
+                <p className="text-3xl font-bold text-secondary-600">9</p>
                 <p className="text-sm text-gray-500">+2 ce mois</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Congés en attente</h3>
-                <p className="text-3xl font-bold text-orange-600">7</p>
+                <p className="text-3xl font-bold text-orange-600">3</p>
                 <p className="text-sm text-gray-500">À approuver</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Présence aujourd'hui</h3>
-                <p className="text-3xl font-bold text-green-600">38</p>
-                <p className="text-sm text-gray-500">90% présents</p>
+                <p className="text-3xl font-bold text-green-600">8</p>
+                <p className="text-sm text-gray-500">89% présents</p>
               </div>
             </div>
             <BarChart 
               title="Congés par mois" 
               color="blue"
               data={[
-                {label: 'Jan', value: 15},
-                {label: 'Fév', value: 12},
-                {label: 'Mar', value: 18},
-                {label: 'Avr', value: 22},
-                {label: 'Mai', value: 25},
-                {label: 'Jun', value: 20}
+                {label: 'Jan', value: 2},
+                {label: 'Fév', value: 1},
+                {label: 'Mar', value: 3},
+                {label: 'Avr', value: 2},
+                {label: 'Mai', value: 4},
+                {label: 'Jun', value: 1}
               ]}
             />
           </div>
@@ -352,13 +457,13 @@ const Dashboard = () => {
         }
         
         const managerData = dashboardData.users.find(u => u.id === currentUser?.id);
-        const myDepartments = dashboardData.departments.filter(d => d.manager_id === currentUser?.id);
+        const myDepartments = dashboardData.departments.filter(d => d.managerId === currentUser?.id);
         const myTasks = dashboardData.tasks.filter(t => t.assigned_by === currentUser?.id);
         const isSeniorManager = currentUser?.role === 'senior_manager';
         
         // Simulation des métriques manager
         const managerActivity = {
-          teamSize: myDepartments.reduce((acc, d) => acc + (d.employee_count || 0), 0),
+          teamSize: myDepartments.reduce((acc, d) => acc + (d.employees || 0), 0),
           tasksCompleted: myTasks.filter(t => t.status === 'completed').length,
           teamPerformance: Math.floor(Math.random() * 20) + 80,
           pendingApprovals: myTasks.filter(t => t.status === 'pending_approval').length,
@@ -460,11 +565,11 @@ const Dashboard = () => {
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-lg font-semibold mb-4">Supervision Managers</h3>
                 <div className="space-y-4">
-                  {dashboardData.departments.filter(d => d.manager_id && d.manager_id !== currentUser?.id).map(dept => (
+                  {dashboardData.departments.filter(d => d.managerId && d.managerId !== currentUser?.id).map(dept => (
                     <div key={dept.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div>
-                        <h4 className="font-medium">{dept.manager?.first_name} {dept.manager?.last_name}</h4>
-                        <p className="text-sm text-gray-600">{dept.name} • {dept.employee_count || 0} membres</p>
+                        <h4 className="font-medium">{dept.manager}</h4>
+                        <p className="text-sm text-gray-600">{dept.name} • {dept.employees || 0} membres</p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-lg">{Math.floor(Math.random() * 20) + 80}%</p>
@@ -810,9 +915,9 @@ const Dashboard = () => {
 
   return (
     <ThemeProvider>
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-secondary-50/30 text-gray-900">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 ml-64">
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} collapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} />
+        <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-72'}`}>
           <Header />
           <div className="relative">
             {renderContent()}
