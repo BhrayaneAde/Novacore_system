@@ -4,7 +4,7 @@ from app.db.database import get_db
 from app.core.email import email_service
 from app.api.deps import get_current_user
 from app.db import models
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 import secrets
 import logging
 from datetime import datetime
@@ -27,6 +27,13 @@ class EmailRequest(BaseModel):
     to_email: EmailStr
     subject: str
     content: str
+
+class TestEmailRequest(BaseModel):
+    host: str
+    port: int
+    user: str
+    pass_: str = Field(alias="pass")
+    testEmail: EmailStr
 
 @router.post("/send-invitation")
 async def send_invitation(
@@ -199,3 +206,78 @@ async def get_invitation_stats(
     }
     
     return stats
+
+@router.post("/test-email")
+async def test_email_configuration(request: TestEmailRequest):
+    """Teste la configuration SMTP en envoyant un email de test"""
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        
+        # Créer le message de test
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = "Test de configuration SMTP - NovaCore"
+        msg['From'] = f"NovaCore RH <{request.user}>"
+        msg['To'] = request.testEmail
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>✅ Test réussi !</h1>
+                </div>
+                <div class="content">
+                    <p>Félicitations ! Votre configuration SMTP fonctionne parfaitement.</p>
+                    <p>Vous pouvez maintenant envoyer des emails automatiques depuis NovaCore.</p>
+                    <hr>
+                    <p><small>Configuration testée :</small></p>
+                    <ul>
+                        <li>Serveur : {request.host}:{request.port}</li>
+                        <li>Utilisateur : {request.user}</li>
+                        <li>Email de test : {request.testEmail}</li>
+                    </ul>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Test réussi !
+        
+        Votre configuration SMTP fonctionne parfaitement.
+        Vous pouvez maintenant envoyer des emails automatiques depuis NovaCore.
+        
+        Configuration testée :
+        - Serveur : {request.host}:{request.port}
+        - Utilisateur : {request.user}
+        - Email de test : {request.testEmail}
+        """
+        
+        msg.attach(MIMEText(text_content, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+        
+        # Envoyer l'email
+        with smtplib.SMTP(request.host, request.port) as server:
+            server.starttls()
+            server.login(request.user, request.pass_)
+            server.send_message(msg)
+        
+        logger.info(f"Email de test envoyé avec succès à {request.testEmail}")
+        return {"success": True, "message": "Email de test envoyé avec succès"}
+        
+    except Exception as e:
+        logger.error(f"Erreur test email: {e}")
+        raise HTTPException(status_code=400, detail=f"Erreur configuration SMTP: {str(e)}")

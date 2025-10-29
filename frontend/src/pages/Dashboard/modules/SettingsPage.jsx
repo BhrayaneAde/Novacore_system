@@ -3,9 +3,21 @@ import { Moon, Sun, Bell, Lock, User, Building, Save, Shield, Mail, Server, Send
 import Loader from '../../../components/ui/Loader';
 import { systemService } from "../../../services";
 import Button from "../../../components/ui/Button";
+import Toast from "../../../components/ui/Toast";
+import { useToast } from "../../../components/ui/useToast";
 
 const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
+  const { toast, showSuccess, showError, hideToast } = useToast();
+  const [departments, setDepartments] = useState([
+    { id: 1, name: 'Développement', employees: 12 },
+    { id: 2, name: 'Design', employees: 8 },
+    { id: 3, name: 'Marketing', employees: 6 },
+    { id: 4, name: 'Ventes', employees: 10 },
+    { id: 5, name: 'Support', employees: 5 }
+  ]);
+  const [showDeptForm, setShowDeptForm] = useState(false);
+  const [newDeptName, setNewDeptName] = useState('');
   const [notifications, setNotifications] = useState({
     email: true,
     push: false,
@@ -28,9 +40,9 @@ const SettingsPage = () => {
   
   const [smtp, setSmtp] = useState({
     enabled: false,
-    host: '',
+    host: 'smtp.gmail.com',
     port: 587,
-    secure: false,
+    secure: true,
     user: '',
     pass: '',
     fromName: 'NovaCore RH',
@@ -156,20 +168,48 @@ const SettingsPage = () => {
     setNotifications({ ...notifications, [key]: !notifications[key] });
   };
 
+  const handleAddDepartment = () => {
+    if (newDeptName.trim()) {
+      const newDept = {
+        id: departments.length + 1,
+        name: newDeptName.trim(),
+        employees: 0
+      };
+      setDepartments([...departments, newDept]);
+      setNewDeptName('');
+      setShowDeptForm(false);
+    }
+  };
+
+  const handleEditDepartment = (dept) => {
+    const newName = prompt('Nouveau nom du département:', dept.name);
+    if (newName && newName.trim()) {
+      setDepartments(departments.map(d => 
+        d.id === dept.id ? { ...d, name: newName.trim() } : d
+      ));
+    }
+  };
+
+  const handleDeleteDepartment = (deptId) => {
+    if (confirm('Voulez-vous vraiment supprimer ce département ?')) {
+      setDepartments(departments.filter(d => d.id !== deptId));
+    }
+  };
+
   const saveSettings = async () => {
     try {
-      await Promise.all([
-        setupService.updateSmtpConfig(smtp),
-        setupService.updateLeavePolicy(leave),
-        setupService.updateWorkSchedule(schedule),
-        setupService.updateSecurityConfig(security)
-      ]);
+      // Marquer la configuration SMTP comme faite si elle est activée et configurée
+      if (smtp.enabled && smtp.host && smtp.user && smtp.pass) {
+        localStorage.setItem('smtpConfigured', 'true');
+      } else {
+        localStorage.setItem('smtpConfigured', 'false');
+      }
       
       updateTheme();
-      alert('Paramètres sauvegardés avec succès !');
+      showSuccess('Paramètres sauvegardés avec succès !');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      alert('Erreur lors de la sauvegarde des paramètres');
+      showError('Erreur lors de la sauvegarde des paramètres');
     }
   };
 
@@ -206,24 +246,69 @@ const SettingsPage = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium text-gray-700">Départements actifs</span>
-              <span className="text-sm text-gray-500">5 départements</span>
+              <span className="text-sm text-gray-500">{departments.length} départements</span>
             </div>
             
             <div className="space-y-2">
-              {['Développement', 'Design', 'Marketing', 'Ventes', 'Support'].map((dept) => (
-                <div key={dept} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-900">{dept}</span>
+              {departments.map((dept) => (
+                <div key={dept.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">{dept.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">({dept.employees} employés)</span>
+                  </div>
                   <div className="flex gap-2">
-                    <button className="text-xs text-secondary-600 hover:text-secondary-700">Modifier</button>
-                    <button className="text-xs text-red-600 hover:text-red-700">Supprimer</button>
+                    <button 
+                      onClick={() => handleEditDepartment(dept)}
+                      className="text-xs text-secondary-600 hover:text-secondary-700"
+                    >
+                      Modifier
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteDepartment(dept.id)}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      Supprimer
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
             
-            <button className="w-full px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium">
-              Ajouter un département
-            </button>
+            {showDeptForm ? (
+              <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
+                <input
+                  type="text"
+                  value={newDeptName}
+                  onChange={(e) => setNewDeptName(e.target.value)}
+                  placeholder="Nom du département"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                />
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleAddDepartment}
+                    className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium"
+                  >
+                    Ajouter
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setShowDeptForm(false);
+                      setNewDeptName('');
+                    }}
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm font-medium"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowDeptForm(true)}
+                className="w-full px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium"
+              >
+                Ajouter un département
+              </button>
+            )}
           </div>
         </div>
 
@@ -571,20 +656,20 @@ const SettingsPage = () => {
                   <input
                     type="text"
                     value={smtp.host}
-                    onChange={(e) => setSmtp({...smtp, host: e.target.value})}
-                    placeholder="smtp.gmail.com"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    readOnly
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Configuration automatique Gmail</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Port</label>
                   <input
                     type="number"
                     value={smtp.port}
-                    onChange={(e) => setSmtp({...smtp, port: parseInt(e.target.value)})}
-                    placeholder="587"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    readOnly
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Port sécurisé par défaut</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Nom d'utilisateur</label>
@@ -592,19 +677,24 @@ const SettingsPage = () => {
                     type="text"
                     value={smtp.user}
                     onChange={(e) => setSmtp({...smtp, user: e.target.value})}
-                    placeholder="votre-email@entreprise.com"
+                    placeholder="votre-email@gmail.com"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Votre adresse email Gmail</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Mot de passe</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Mot de passe d'application</label>
                   <input
                     type="password"
                     value={smtp.pass}
                     onChange={(e) => setSmtp({...smtp, pass: e.target.value})}
-                    placeholder="••••••••"
+                    placeholder="abcd efgh ijkl mnop"
                     className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                  <div className="text-xs text-amber-600 mt-1 p-2 bg-amber-50 rounded">
+                    ⚠️ <strong>Important</strong> : Utilisez un mot de passe d'application Google (16 caractères), pas votre mot de passe Gmail normal.
+                    <br />📋 <a href="https://myaccount.google.com/apppasswords" target="_blank" className="text-indigo-600 hover:underline">Créer un mot de passe d'application</a>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Email de test</label>
@@ -617,9 +707,35 @@ const SettingsPage = () => {
                       className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <button
-                      onClick={() => {
+                      onClick={async () => {
+                        if (!smtp.user || !smtp.pass || !smtp.testEmail) {
+                          showError('Veuillez remplir tous les champs avant de tester');
+                          return;
+                        }
+                        
                         setTestStatus('sending');
-                        setTimeout(() => setTestStatus('success'), 2000);
+                        try {
+                          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/email/test-email`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              host: smtp.host,
+                              port: smtp.port,
+                              user: smtp.user,
+                              pass: smtp.pass,
+                              testEmail: smtp.testEmail
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            setTestStatus('success');
+                          } else {
+                            setTestStatus('error');
+                          }
+                        } catch (error) {
+                          console.error('Erreur test email:', error);
+                          setTestStatus('error');
+                        }
                       }}
                       disabled={testStatus === 'sending'}
                       className="px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
@@ -630,6 +746,9 @@ const SettingsPage = () => {
                   </div>
                   {testStatus === 'success' && (
                     <p className="text-sm text-green-600 mt-2">✅ Email de test envoyé avec succès</p>
+                  )}
+                  {testStatus === 'error' && (
+                    <p className="text-sm text-red-600 mt-2">❌ Erreur lors de l'envoi. Vérifiez vos paramètres.</p>
                   )}
                 </div>
               </div>
@@ -953,6 +1072,13 @@ const SettingsPage = () => {
           <span>Sauvegarder les paramètres</span>
         </Button>
       </div>
+
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   );
 };

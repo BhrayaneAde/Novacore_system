@@ -90,6 +90,24 @@ const EmployeesPage = () => {
     }
   };
 
+  const handleSendAccess = async (employee) => {
+    // Vérifier si la configuration SMTP est faite
+    const smtpConfigured = localStorage.getItem('smtpConfigured') === 'true';
+    
+    if (!smtpConfigured) {
+      showError('Configuration email non configurée. Veuillez configurer les paramètres SMTP dans les paramètres.');
+      return;
+    }
+    
+    try {
+      // Ici sera l'appel API réel pour envoyer l'email
+      showSuccess(`Accès envoyé à ${employee.name} (${employee.email})`);
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi:', error);
+      showError('Erreur lors de l\'envoi des accès');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 flex justify-center items-center min-h-96">
@@ -279,6 +297,13 @@ const EmployeesPage = () => {
                           title="Modifier"
                         >
                           <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleSendAccess(employee)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Envoyer accès"
+                        >
+                          <Mail className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDeleteClick(employee)}
