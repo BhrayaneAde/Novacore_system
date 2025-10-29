@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { employeesService } from "../../../services";
-import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical, Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Loader from "../../../components/ui/Loader";
 import EmployeeForm from "../../../components/forms/EmployeeForm";
+import ConfirmModal from "../../../components/ui/ConfirmModal";
+import Toast from "../../../components/ui/Toast";
+import { useToast } from "../../../components/ui/useToast";
 
 const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +14,11 @@ const EmployeesPage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
+  const { toast, showSuccess, showError, hideToast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -28,41 +36,59 @@ const EmployeesPage = () => {
   }, []);
   
   const filteredEmployees = employees.filter(emp => {
-    const fullName = `${emp.first_name} ${emp.last_name}`;
+    const fullName = emp.name || '';
     return fullName.toLowerCase().includes(searchTerm.toLowerCase()) &&
            (selectedDepartment === 'all' || emp.department === selectedDepartment);
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   const handleSave = async (formData) => {
     try {
       if (selectedEmployee) {
-        // Modifier
-        const updatedEmployees = employees.map(emp => 
-          emp.id === selectedEmployee.id ? { ...emp, ...formData } : emp
-        );
-        setEmployees(updatedEmployees);
+        await employeesService.update(selectedEmployee.id, formData);
+        showSuccess('Employé modifié avec succès !');
       } else {
-        // Ajouter
-        const newEmployee = {
-          id: Date.now(),
-          ...formData
-        };
-        setEmployees([...employees, newEmployee]);
+        await employeesService.create(formData);
+        showSuccess('Employé ajouté avec succès !');
       }
+      const employeesData = await employeesService.getAll();
+      setEmployees(employeesData.data || []);
       setShowForm(false);
       setSelectedEmployee(null);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      showError('Erreur lors de la sauvegarde de l\'employé');
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
-      setEmployees(employees.filter(emp => emp.id !== id));
-    }
+  const handleDeleteClick = (employee) => {
+    setEmployeeToDelete(employee);
+    setShowConfirmModal(true);
   };
 
-
+  const handleConfirmDelete = async () => {
+    try {
+      await employeesService.delete(employeeToDelete.id);
+      const employeesData = await employeesService.getAll();
+      setEmployees(employeesData.data || []);
+      setShowConfirmModal(false);
+      setEmployeeToDelete(null);
+      showSuccess('Employé supprimé avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      showError('Erreur lors de la suppression de l\'employé');
+      setShowConfirmModal(false);
+      setEmployeeToDelete(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -76,8 +102,23 @@ const EmployeesPage = () => {
     <div className="p-6 mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des employés</h1>
-        <p className="text-gray-600">{employees.length} employés au total</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des employés</h1>
+            <p className="text-gray-600">{employees.length} employés au total</p>
+          </div>
+          <button 
+            onClick={() => {
+              setSelectedEmployee(null);
+              setShowForm(true);
+            }}
+            style={{ backgroundColor: '#055169' }}
+            className="hover:opacity-90 text-white px-6 py-3 rounded-lg flex items-center space-x-2 transition-all shadow-lg"
+          >
+            <UserPlus className="w-5 h-5" />
+            <span>Ajouter un employé</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -97,7 +138,7 @@ const EmployeesPage = () => {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <UserPlus className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-2xl font-bold text-green-600">{employees.filter(e => e.is_active).length}</span>
+            <span className="text-2xl font-bold text-green-600">{employees.filter(e => e.status === 'active').length}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Employés actifs</h3>
           <p className="text-sm text-gray-600">En poste</p>
@@ -107,7 +148,7 @@ const EmployeesPage = () => {
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-2xl font-bold text-orange-600">{employees.filter(e => !e.is_active).length}</span>
+            <span className="text-2xl font-bold text-orange-600">{employees.filter(e => e.status !== 'active').length}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">En congé</h3>
           <p className="text-sm text-gray-600">Temporairement</p>
@@ -134,7 +175,8 @@ const EmployeesPage = () => {
                 setSelectedEmployee(null);
                 setShowForm(true);
               }}
-              className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              style={{ backgroundColor: '#055169' }}
+              className="hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all"
             >
               <UserPlus className="w-4 h-4" />
               <span>Ajouter</span>
@@ -183,69 +225,173 @@ const EmployeesPage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredEmployees.map((employee) => (
-                <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {employee.first_name?.[0]}{employee.last_name?.[0]}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{employee.first_name} {employee.last_name}</p>
-                        <p className="text-sm text-gray-500">{employee.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 text-gray-900">{employee.position}</td>
-                  <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-blue-800">
-                      {employee.department}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      employee.is_active ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {employee.is_active ? 'Actif' : 'Inactif'}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-gray-600">
-                    {new Date(employee.hire_date).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="font-semibold text-gray-900">
-                      {employee.salary?.toLocaleString('fr-FR') || 'N/A'} €
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setShowForm(true);
-                        }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Modifier"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(employee.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+              {paginatedEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="py-8 text-center text-gray-500">
+                    {searchTerm || selectedDepartment !== 'all' ? 'Aucun employé trouvé' : 'Aucun employé enregistré'}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedEmployees.map((employee) => (
+                  <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {employee.name?.[0] || 'E'}{employee.name?.split(' ')[1]?.[0] || ''}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{employee.name}</p>
+                          <p className="text-sm text-gray-500">{employee.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">{employee.role || 'Non défini'}</td>
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-blue-800">
+                        {employee.department?.name || 'Non assigné'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        employee.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {employee.status === 'active' ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-gray-600">
+                      {employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('fr-FR') : 'Non définie'}
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="font-semibold text-gray-900">
+                        {employee.salary ? `${employee.salary.toLocaleString('fr-FR')} FCFA` : 'Non défini'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowForm(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Modifier"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(employee)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 mt-6">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="text-sm text-gray-700">
+              Affichage de {startIndex + 1} à {Math.min(startIndex + itemsPerPage, filteredEmployees.length)} sur {filteredEmployees.length} employés
+            </div>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {totalPages <= 7 ? (
+                Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                      currentPage === page
+                        ? 'bg-secondary-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))
+              ) : (
+                <>
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                      currentPage === 1
+                        ? 'bg-secondary-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    1
+                  </button>
+                  
+                  {currentPage > 4 && (
+                    <span className="px-2 py-2 text-gray-500">...</span>
+                  )}
+                  
+                  {Array.from({ length: 3 }, (_, i) => {
+                    const page = currentPage - 1 + i;
+                    if (page > 1 && page < totalPages) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                            currentPage === page
+                              ? 'bg-secondary-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    }
+                    return null;
+                  })}
+                  
+                  {currentPage < totalPages - 3 && (
+                    <span className="px-2 py-2 text-gray-500">...</span>
+                  )}
+                  
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                      currentPage === totalPages
+                        ? 'bg-secondary-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <EmployeeForm
         isOpen={showForm}
@@ -255,6 +401,27 @@ const EmployeesPage = () => {
         }}
         onSave={handleSave}
         employee={selectedEmployee}
+      />
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => {
+          setShowConfirmModal(false);
+          setEmployeeToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer l'employé"
+        message={`Êtes-vous sûr de vouloir supprimer ${employeeToDelete?.name} ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        type="danger"
+      />
+
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
       />
     </div>
   );

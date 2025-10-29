@@ -1,64 +1,72 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 
 const Toast = ({ 
-  type = 'info', 
+  type = 'success', 
   message, 
-  duration = 5000, 
-  onClose,
-  className = ''
+  isVisible, 
+  onClose, 
+  duration = 4000 
 }) => {
-  const [isVisible, setIsVisible] = useState(true);
-
   useEffect(() => {
-    if (duration > 0) {
+    if (isVisible && duration > 0) {
       const timer = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onClose, 300);
+        onClose();
       }, duration);
       return () => clearTimeout(timer);
     }
-  }, [duration, onClose]);
+  }, [isVisible, duration, onClose]);
 
-  const types = {
-    success: {
-      icon: CheckCircle,
-      classes: 'bg-green-50 text-green-800 border-green-200'
-    },
-    error: {
-      icon: XCircle,
-      classes: 'bg-red-50 text-red-800 border-red-200'
-    },
-    warning: {
-      icon: AlertCircle,
-      classes: 'bg-primary-50 text-primary-800 border-primary-200'
-    },
-    info: {
-      icon: Info,
-      classes: 'bg-secondary-50 text-secondary-800 border-secondary-200'
+  if (!isVisible) return null;
+
+  const getToastStyles = () => {
+    switch (type) {
+      case 'success':
+        return {
+          bg: 'bg-green-50 border-green-200',
+          icon: <CheckCircle className="w-5 h-5 text-green-600" />,
+          text: 'text-green-800'
+        };
+      case 'error':
+        return {
+          bg: 'bg-red-50 border-red-200',
+          icon: <XCircle className="w-5 h-5 text-red-600" />,
+          text: 'text-red-800'
+        };
+      case 'warning':
+        return {
+          bg: 'bg-yellow-50 border-yellow-200',
+          icon: <AlertCircle className="w-5 h-5 text-yellow-600" />,
+          text: 'text-yellow-800'
+        };
+      default:
+        return {
+          bg: 'bg-blue-50 border-blue-200',
+          icon: <AlertCircle className="w-5 h-5 text-blue-600" />,
+          text: 'text-blue-800'
+        };
     }
   };
 
-  const { icon: Icon, classes } = types[type];
+  const styles = getToastStyles();
 
   return (
-    <div 
-      className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
-        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-      }`}
-    >
-      <div className={`flex items-center gap-3 p-4 rounded-lg border shadow-lg max-w-sm ${classes} ${className}`}>
-        <Icon className="w-5 h-5 flex-shrink-0" />
-        <p className="text-sm font-medium flex-1">{message}</p>
-        <button
-          onClick={() => {
-            setIsVisible(false);
-            setTimeout(onClose, 300);
-          }}
-          className="text-current hover:opacity-70"
-        >
-          <X className="w-4 h-4" />
-        </button>
+    <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+      <div className={`${styles.bg} border rounded-lg shadow-lg p-4 max-w-sm`}>
+        <div className="flex items-start gap-3">
+          {styles.icon}
+          <div className="flex-1">
+            <p className={`text-sm font-medium ${styles.text}`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-white hover:bg-opacity-20 rounded transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
       </div>
     </div>
   );

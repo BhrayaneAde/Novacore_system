@@ -3,41 +3,35 @@ import { X, Save, User, Mail, Phone, Calendar, MapPin, DollarSign } from 'lucide
 
 const EmployeeForm = ({ isOpen, onClose, onSave, employee = null }) => {
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
+    name: '',
     email: '',
     phone: '',
-    position: '',
-    department: '',
+    role: '',
+    status: 'active',
     hire_date: '',
-    salary: '',
-    is_active: true
+    salary: ''
   });
 
   useEffect(() => {
     if (employee) {
       setFormData({
-        first_name: employee.first_name || '',
-        last_name: employee.last_name || '',
+        name: employee.name || '',
         email: employee.email || '',
         phone: employee.phone || '',
-        position: employee.position || '',
-        department: employee.department || '',
+        role: employee.role || '',
+        status: employee.status || 'active',
         hire_date: employee.hire_date ? employee.hire_date.split('T')[0] : '',
-        salary: employee.salary || '',
-        is_active: employee.is_active !== undefined ? employee.is_active : true
+        salary: employee.salary || ''
       });
     } else {
       setFormData({
-        first_name: '',
-        last_name: '',
+        name: '',
         email: '',
         phone: '',
-        position: '',
-        department: '',
+        role: '',
+        status: 'active',
         hire_date: '',
-        salary: '',
-        is_active: true
+        salary: ''
       });
     }
   }, [employee, isOpen]);
@@ -77,29 +71,15 @@ const EmployeeForm = ({ isOpen, onClose, onSave, employee = null }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <User className="w-4 h-4 inline mr-2" />
-                Prénom
+                Nom complet
               </label>
               <input
                 type="text"
-                name="first_name"
-                value={formData.first_name}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <User className="w-4 h-4 inline mr-2" />
-                Nom
-              </label>
-              <input
-                type="text"
-                name="last_name"
-                value={formData.last_name}
-                onChange={handleChange}
-                required
+                placeholder="Prénom Nom"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -140,31 +120,12 @@ const EmployeeForm = ({ isOpen, onClose, onSave, employee = null }) => {
               </label>
               <input
                 type="text"
-                name="position"
-                value={formData.position}
+                name="role"
+                value={formData.role}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Département
-              </label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Sélectionner un département</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Ventes">Ventes</option>
-                <option value="Direction">Direction</option>
-              </select>
             </div>
 
             <div>
@@ -199,18 +160,19 @@ const EmployeeForm = ({ isOpen, onClose, onSave, employee = null }) => {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="is_active"
-              id="is_active"
-              checked={formData.is_active}
-              onChange={handleChange}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="is_active" className="ml-2 text-sm text-gray-700">
-              Employé actif
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Statut
             </label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="active">Actif</option>
+              <option value="inactive">Inactif</option>
+            </select>
           </div>
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
