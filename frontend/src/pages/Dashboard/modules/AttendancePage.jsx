@@ -114,7 +114,7 @@ const AttendancePage = () => {
       title: "Congés ce mois",
       value: leaveRequests.length,
       icon: TrendingUp,
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-blue-50 text-secondary-600",
     },
   ];
 

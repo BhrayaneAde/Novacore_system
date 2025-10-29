@@ -23,7 +23,7 @@ const FormField = ({
     w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors
     ${hasError 
       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+      : 'border-gray-300 focus:ring-secondary-500 focus:border-secondary-500'
     }
     ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}
   `;
@@ -74,7 +74,7 @@ const FormField = ({
               checked={value || false}
               onChange={(e) => onChange(name, e.target.checked)}
               onBlur={() => onBlur && onBlur(name)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
               disabled={disabled}
               {...props}
             />

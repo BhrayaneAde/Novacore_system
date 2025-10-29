@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}`,
+  timeout: 10000, // 10 secondes
   headers: {
     'Content-Type': 'application/json',
   },
@@ -20,6 +21,15 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Gestion des erreurs de timeout et réseau
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.code = 'NETWORK_ERROR';
+      error.message = 'Timeout de connexion';
+    } else if (!error.response) {
+      error.code = 'NETWORK_ERROR';
+      error.message = 'Erreur de réseau';
+    }
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
       window.location.href = '/login';

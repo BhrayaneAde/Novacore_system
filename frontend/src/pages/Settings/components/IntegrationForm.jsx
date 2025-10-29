@@ -68,7 +68,7 @@ const IntegrationForm = ({ configs, onSubmit, onCancel }) => {
     const { type, required, label } = fieldConfig;
     const value = formData[fieldKey] || '';
 
-    const baseClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+    const baseClasses = `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
       required ? 'border-gray-300' : 'border-gray-200'
     }`;
 

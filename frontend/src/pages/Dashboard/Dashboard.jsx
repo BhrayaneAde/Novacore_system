@@ -12,6 +12,7 @@ import PieChart from "../../components/charts/PieChart";
 import LineChart from "../../components/charts/LineChart";
 import { CheckSquare, Target, Calendar, Clock, FileText, Users, TrendingUp } from "lucide-react";
 import { systemService } from "../../services";
+import Loader from "../../components/ui/Loader";
 
 // Services de compatibilité
 const usersService = { getAll: () => systemService.employees.getAll() };
@@ -120,9 +121,9 @@ const Dashboard = () => {
       case 'employer':
         if (loading) {
           return (
-            <div className="p-8 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Chargement...</span>
+            <div className="p-8 flex flex-col items-center justify-center py-12">
+              <Loader size={48} />
+              <span className="mt-4 text-gray-600">Chargement du tableau de bord...</span>
             </div>
           );
         }
@@ -158,9 +159,9 @@ const Dashboard = () => {
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">Tâches Complétées</h3>
-                  <CheckSquare className="w-5 h-5 text-blue-500" />
+                  <CheckSquare className="w-5 h-5 text-secondary-500" />
                 </div>
-                <p className="text-3xl font-bold text-blue-600">{employerMetrics.totalTasksCompleted}</p>
+                <p className="text-3xl font-bold text-secondary-600">{employerMetrics.totalTasksCompleted}</p>
                 <p className="text-sm text-gray-500">Ce mois</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -286,9 +287,9 @@ const Dashboard = () => {
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="text-lg font-semibold mb-4">Actions rapides</h3>
                 <div className="space-y-3">
-                  <button className="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                  <button className="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-secondary-100 transition-colors">
                     <p className="font-medium text-blue-900">Congés en attente</p>
-                    <p className="text-sm text-blue-600">7 demandes</p>
+                    <p className="text-sm text-secondary-600">7 demandes</p>
                   </button>
                   <button className="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
                     <p className="font-medium text-green-900">Nouveaux CV</p>
@@ -311,7 +312,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <h3 className="font-semibold mb-2">Employés actifs</h3>
-                <p className="text-3xl font-bold text-blue-600">42</p>
+                <p className="text-3xl font-bold text-secondary-600">42</p>
                 <p className="text-sm text-gray-500">+2 ce mois</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -343,9 +344,9 @@ const Dashboard = () => {
       case 'senior_manager':
         if (loading) {
           return (
-            <div className="p-8 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Chargement...</span>
+            <div className="p-8 flex flex-col items-center justify-center py-12">
+              <Loader size={48} />
+              <span className="mt-4 text-gray-600">Chargement des données manager...</span>
             </div>
           );
         }
@@ -385,9 +386,9 @@ const Dashboard = () => {
               <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-semibold">Mon Équipe</h3>
-                  <Users className="w-5 h-5 text-blue-500" />
+                  <Users className="w-5 h-5 text-secondary-500" />
                 </div>
-                <p className="text-3xl font-bold text-blue-600">{managerActivity?.teamSize || 0}</p>
+                <p className="text-3xl font-bold text-secondary-600">{managerActivity?.teamSize || 0}</p>
                 <p className="text-sm text-gray-500">Membres {isSeniorManager ? '(direct + indirect)' : 'actifs'}</p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -486,17 +487,17 @@ const Dashboard = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <button 
                     onClick={() => setActiveTab('task-management')}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-secondary-100 transition-all group border border-gray-100 hover:border-secondary-200"
                   >
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-                      <CheckSquare className="w-6 h-6 text-blue-600" />
+                    <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+                      <CheckSquare className="w-6 h-6 text-secondary-600" />
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">Mes Tâches</h3>
                     <p className="text-sm text-gray-600">3 en cours</p>
                   </button>
                   <button 
                     onClick={() => setActiveTab('leaves')}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-primary-100 transition-all group border border-gray-100 hover:border-primary-200"
                   >
                     <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
                       <Calendar className="w-6 h-6 text-green-600" />
@@ -506,7 +507,7 @@ const Dashboard = () => {
                   </button>
                   <button 
                     onClick={() => setActiveTab('timesheet')}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-teal-100 transition-all group border border-gray-100 hover:border-teal-200"
                   >
                     <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-200 transition-colors">
                       <Clock className="w-6 h-6 text-purple-600" />
@@ -516,7 +517,7 @@ const Dashboard = () => {
                   </button>
                   <button 
                     onClick={() => setActiveTab('documents')}
-                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group"
+                    className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg hover:shadow-primary-100 transition-all group border border-gray-100 hover:border-primary-200"
                   >
                     <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
                       <FileText className="w-6 h-6 text-orange-600" />
@@ -533,15 +534,15 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="bg-white rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <Calendar className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-6 h-6 text-secondary-600" />
                       </div>
-                      <span className="text-2xl font-bold text-blue-600">15</span>
+                      <span className="text-2xl font-bold text-secondary-600">15</span>
                     </div>
                     <h3 className="font-semibold text-gray-900 mb-1">Congés restants</h3>
                     <p className="text-sm text-gray-600">Sur 25 jours annuels</p>
                     <div className="mt-3 bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                      <div className="bg-secondary-600 h-2 rounded-full" style={{width: '60%'}}></div>
                     </div>
                   </div>
                   <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -596,7 +597,7 @@ const Dashboard = () => {
                       <h3 className="text-lg font-semibold text-gray-900">Tâches urgentes</h3>
                       <button 
                         onClick={() => setActiveTab('task-management')}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="text-secondary-600 hover:text-secondary-700 text-sm font-medium"
                       >
                         Voir tout
                       </button>
@@ -626,8 +627,8 @@ const Dashboard = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Planning de la semaine</h3>
                     <div className="space-y-4">
                       <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-bold text-blue-600">LUN</span>
+                        <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-bold text-secondary-600">LUN</span>
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">Réunion équipe</h4>
@@ -673,8 +674,8 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <FileText className="w-4 h-4 text-secondary-600" />
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">Document ajouté</p>
@@ -705,7 +706,7 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Tâches complétées</span>
-                        <span className="font-semibold text-blue-600">24</span>
+                        <span className="font-semibold text-secondary-600">24</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Formations suivies</span>
@@ -809,11 +810,13 @@ const Dashboard = () => {
 
   return (
     <ThemeProvider>
-      <div className="flex min-h-screen bg-gray-50 text-gray-900">
+      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-white to-secondary-50/30 text-gray-900">
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="flex-1 ml-64">
           <Header />
-          {renderContent()}
+          <div className="relative">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </ThemeProvider>

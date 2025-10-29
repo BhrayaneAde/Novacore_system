@@ -7,7 +7,13 @@ import Table from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import SearchInput from "../../components/ui/SearchInput";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Avatar from "../../components/ui/Avatar";
+import EmptyState from "../../components/ui/EmptyState";
+import Modal from "../../components/ui/Modal";
 import { UserPlus, Search, Filter, X, Download, Trash2, Edit, Eye } from "lucide-react";
+import Loader from "../../components/ui/Loader";
 
 const EmployeesList = () => {
   const navigate = useNavigate();
@@ -116,7 +122,11 @@ const EmployeesList = () => {
       sortable: true,
       render: (row) => (
         <div className="flex items-center gap-3">
-          <img src={row.avatar} alt={row.name} className="w-10 h-10 rounded-full" />
+          <Avatar 
+            src={row.avatar} 
+            name={row.name} 
+            size="md"
+          />
           <div>
             <p className="text-sm font-medium text-gray-900">{row.name}</p>
             <p className="text-sm text-gray-500">{row.email}</p>
@@ -134,7 +144,7 @@ const EmployeesList = () => {
       header: "Département",
       accessor: "department",
       sortable: true,
-      render: (row) => <Badge variant="info">{row.department}</Badge>,
+      render: (row) => <StatusBadge variant="info">{row.department}</StatusBadge>,
     },
     {
       header: "Date d'embauche",
@@ -151,9 +161,9 @@ const EmployeesList = () => {
       accessor: "status",
       sortable: true,
       render: (row) => (
-        <Badge variant={row.status === "active" ? "success" : "warning"}>
+        <StatusBadge status={row.status === "active" ? "active" : "pending"}>
           {row.status === "active" ? "Actif" : "En congé"}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -162,7 +172,7 @@ const EmployeesList = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(`/app/employees/${row.id}`)}
-            className="p-1 text-blue-600 hover:text-blue-700"
+            className="p-1 text-secondary-600 hover:text-secondary-700"
             title="Voir détails"
           >
             <Eye className="w-4 h-4" />
@@ -225,16 +235,11 @@ const EmployeesList = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Recherche
                 </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Nom, email, poste..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                <SearchInput
+                  placeholder="Nom, email, poste..."
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
               </div>
               
               <div>
@@ -244,7 +249,7 @@ const EmployeesList = () => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Tous les statuts</option>
                   <option value="active">Actif</option>
@@ -259,7 +264,7 @@ const EmployeesList = () => {
                 <select
                   value={departmentFilter}
                   onChange={(e) => setDepartmentFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Tous les départements</option>
                   {departments.map(dept => (
@@ -275,7 +280,7 @@ const EmployeesList = () => {
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Aucun tri</option>
                   <option value="name">Nom</option>

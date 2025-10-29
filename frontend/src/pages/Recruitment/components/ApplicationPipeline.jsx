@@ -29,7 +29,7 @@ const ApplicationPipeline = ({ currentStage = "screening" }) => {
                   isCompleted
                     ? "bg-green-500 text-white"
                     : isCurrent
-                    ? "bg-blue-500 text-white"
+                    ? "bg-secondary-500 text-white"
                     : "bg-gray-200 text-gray-400"
                 }`}
               >
@@ -42,14 +42,14 @@ const ApplicationPipeline = ({ currentStage = "screening" }) => {
               <div className="flex-1">
                 <p
                   className={`text-sm font-medium ${
-                    isCurrent ? "text-blue-600" : isCompleted ? "text-green-600" : "text-gray-500"
+                    isCurrent ? "text-secondary-600" : isCompleted ? "text-green-600" : "text-gray-500"
                   }`}
                 >
                   {stage.label}
                 </p>
               </div>
               {isCurrent && (
-                <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium text-secondary-600 bg-blue-50 px-2 py-1 rounded-full">
                   En cours
                 </span>
               )}

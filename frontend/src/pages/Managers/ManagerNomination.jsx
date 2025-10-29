@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Users, Building2, MessageSquare, CheckCircle, XCircle, Clock, Plus } from 'lucide-react';
 import { employeesService, hrService, usersService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
+import Loader from '../../components/ui/Loader';
 
 const ManagerNomination = () => {
   const { user } = useAuthStore();
@@ -101,7 +102,7 @@ const ManagerNomination = () => {
         {canNominate && (
           <button
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Proposer un Manager
@@ -120,7 +121,7 @@ const ManagerNomination = () => {
                 <select
                   value={formData.proposedManagerId}
                   onChange={(e) => setFormData({...formData, proposedManagerId: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   required
                 >
                   <option value="">Sélectionner un employé</option>
@@ -137,7 +138,7 @@ const ManagerNomination = () => {
                 <select
                   value={formData.departmentId}
                   onChange={(e) => setFormData({...formData, departmentId: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   required
                 >
                   <option value="">Sélectionner un département</option>
@@ -154,7 +155,7 @@ const ManagerNomination = () => {
                 <textarea
                   value={formData.reason}
                   onChange={(e) => setFormData({...formData, reason: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="3"
                   placeholder="Expliquez pourquoi cette personne devrait être manager..."
                   required
@@ -166,7 +167,7 @@ const ManagerNomination = () => {
                 <textarea
                   value={formData.comments}
                   onChange={(e) => setFormData({...formData, comments: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="2"
                   placeholder="Commentaires additionnels..."
                 />
@@ -175,7 +176,7 @@ const ManagerNomination = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-secondary-600 text-white py-2 rounded-lg hover:bg-secondary-700 transition-colors"
                 >
                   Proposer
                 </button>
@@ -199,8 +200,8 @@ const ManagerNomination = () => {
         </div>
         <div className="divide-y divide-gray-200">
           {loading ? (
-            <div className="p-6 text-center">
-              <p>Chargement des nominations...</p>
+            <div className="p-6 flex justify-center">
+              <Loader />
             </div>
           ) : (
             nominations.map((nomination) => {
@@ -220,8 +221,8 @@ const ManagerNomination = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Users className="w-5 h-5 text-blue-600" />
+                      <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-secondary-600" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">

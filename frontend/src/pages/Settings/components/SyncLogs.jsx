@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { systemService } from '../../services/system';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 
 const SyncLogs = ({ integrationId, isOpen, onClose }) => {
   const [logs, setLogs] = useState([]);
@@ -31,7 +32,7 @@ const SyncLogs = ({ integrationId, isOpen, onClose }) => {
       case 'failed':
         return <XCircle className="w-4 h-4 text-red-500" />;
       case 'running':
-        return <Clock className="w-4 h-4 text-blue-500 animate-pulse" />;
+        return <Clock className="w-4 h-4 text-secondary-500 animate-pulse" />;
       default:
         return <AlertCircle className="w-4 h-4 text-gray-500" />;
     }
@@ -44,7 +45,7 @@ const SyncLogs = ({ integrationId, isOpen, onClose }) => {
       case 'failed':
         return 'text-red-600 bg-red-50';
       case 'running':
-        return 'text-blue-600 bg-blue-50';
+        return 'text-secondary-600 bg-blue-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
@@ -68,7 +69,7 @@ const SyncLogs = ({ integrationId, isOpen, onClose }) => {
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <Loader size={24} />
               <span className="ml-2 text-gray-600">Chargement des logs...</span>
             </div>
           ) : logs.length === 0 ? (

@@ -7,7 +7,7 @@ const PerformanceReports = () => {
   const stats = [
     { label: "Note moyenne", value: "4.3/5", icon: Award, color: "bg-purple-50 text-purple-600" },
     { label: "Objectifs atteints", value: "87%", icon: Target, color: "bg-green-50 text-green-600" },
-    { label: "Progression", value: "+12%", icon: TrendingUp, color: "bg-blue-50 text-blue-600" },
+    { label: "Progression", value: "+12%", icon: TrendingUp, color: "bg-blue-50 text-secondary-600" },
   ];
 
   return (

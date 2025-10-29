@@ -57,7 +57,7 @@ const IntegrationCard = ({ integration, onTest, onSync, onDelete, onShowLogs }) 
               <AlertCircle className="w-4 h-4 text-red-500" title={integration.last_error} />
             )}
             {integration.status === 'syncing' && (
-              <Activity className="w-4 h-4 text-blue-500 animate-pulse" />
+              <Activity className="w-4 h-4 text-secondary-500 animate-pulse" />
             )}
           </div>
         </div>

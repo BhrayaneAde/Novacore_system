@@ -6,8 +6,16 @@
 }
 
 :root {
-  --primary-color: #3B82F6;
-  --secondary-color: #1E40AF;
+  --primary-color: #f59e0b; /* Or */
+  --secondary-color: #055169; /* Bleu pétrole */
+  --primary-50: #fffbeb;
+  --primary-100: #fef3c7;
+  --primary-500: #f59e0b;
+  --primary-600: #d97706;
+  --secondary-50: #f0f9ff;
+  --secondary-100: #e0f2fe;
+  --secondary-500: #055169;
+  --secondary-600: #044a5c;
   --font-family: Inter;
 }
 

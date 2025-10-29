@@ -1,17 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHRStore } from "../../store/useHRStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Avatar from "../../components/ui/Avatar";
+import Tabs from "../../components/ui/Tabs";
 import Button from "../../components/ui/Button";
+import Loader from "../../components/ui/Loader";
 import { UserPlus, Briefcase, Users, Plus } from "lucide-react";
 
 const RecruitmentOverview = () => {
   const navigate = useNavigate();
   const { jobOpenings, candidates } = useHRStore();
   const [activeTab, setActiveTab] = useState("candidates");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-96">
+          <Loader />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const candidateColumns = [
     {
@@ -19,7 +38,7 @@ const RecruitmentOverview = () => {
       accessor: "name",
       render: (row) => (
         <div className="flex items-center gap-3">
-          <img src={row.avatar} alt={row.name} className="w-10 h-10 rounded-full" />
+          <Avatar src={row.avatar} name={row.name} size="md" />
           <div>
             <p className="text-sm font-medium text-gray-900">{row.name}</p>
             <p className="text-sm text-gray-500">{row.email}</p>
@@ -35,7 +54,7 @@ const RecruitmentOverview = () => {
     {
       header: "Expérience",
       accessor: "experience",
-      render: (row) => <Badge variant="info">{row.experience}</Badge>,
+      render: (row) => <StatusBadge variant="info">{row.experience}</StatusBadge>,
     },
     {
       header: "Statut",
@@ -53,7 +72,7 @@ const RecruitmentOverview = () => {
           offer: "Offre",
           rejected: "Rejeté",
         };
-        return <Badge variant={variants[row.status]}>{labels[row.status]}</Badge>;
+        return <StatusBadge status={row.status}>{labels[row.status]}</StatusBadge>;
       },
     },
     {
@@ -61,7 +80,7 @@ const RecruitmentOverview = () => {
       render: (row) => (
         <button
           onClick={() => navigate(`/app/recruitment/candidates/${row.id}`)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="text-sm text-secondary-600 hover:text-secondary-700 font-medium"
         >
           Voir profil
         </button>
@@ -78,12 +97,12 @@ const RecruitmentOverview = () => {
     {
       header: "Département",
       accessor: "department",
-      render: (row) => <Badge variant="info">{row.department}</Badge>,
+      render: (row) => <StatusBadge variant="info">{row.department}</StatusBadge>,
     },
     {
       header: "Type",
       accessor: "type",
-      render: (row) => <Badge variant="purple">{row.type}</Badge>,
+      render: (row) => <StatusBadge variant="purple">{row.type}</StatusBadge>,
     },
     {
       header: "Candidatures",
@@ -96,9 +115,9 @@ const RecruitmentOverview = () => {
       header: "Statut",
       accessor: "status",
       render: (row) => (
-        <Badge variant={row.status === "open" ? "success" : "default"}>
+        <StatusBadge status={row.status === "open" ? "success" : "error"}>
           {row.status === "open" ? "Ouvert" : "Fermé"}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -106,7 +125,7 @@ const RecruitmentOverview = () => {
       render: (row) => (
         <button
           onClick={() => navigate(`/app/recruitment/jobs/${row.id}`)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="text-sm text-secondary-600 hover:text-secondary-700 font-medium"
         >
           Gérer
         </button>
@@ -133,7 +152,7 @@ const RecruitmentOverview = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
                 <Briefcase className="w-6 h-6" />
               </div>
               <div>
@@ -168,28 +187,14 @@ const RecruitmentOverview = () => {
           </Card>
         </div>
 
-        <div className="flex gap-2 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("candidates")}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "candidates"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Candidats ({candidates.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("jobs")}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === "jobs"
-                ? "text-blue-600 border-b-2 border-blue-600"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            Offres d'emploi ({jobOpenings.length})
-          </button>
-        </div>
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          tabs={[
+            { value: 'candidates', label: `Candidats (${candidates.length})` },
+            { value: 'jobs', label: `Offres d'emploi (${jobOpenings.length})` }
+          ]}
+        />
 
         <Card>
           {activeTab === "candidates" ? (

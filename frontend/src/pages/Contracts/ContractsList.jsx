@@ -1,14 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Table from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
+import Loader from "../../components/ui/Loader";
 import { FilePlus, Download, Eye } from "lucide-react";
 
 const ContractsList = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-96">
+          <Loader />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const contracts = [
     {
@@ -70,7 +87,7 @@ const ContractsList = () => {
   const getTypeBadge = (type) => {
     const colors = {
       CDI: "bg-green-100 text-green-700",
-      CDD: "bg-blue-100 text-blue-700",
+      CDD: "bg-secondary-100 text-blue-700",
       STAGE: "bg-purple-100 text-purple-700",
       ALTERNANCE: "bg-orange-100 text-orange-700",
     };
@@ -131,7 +148,7 @@ const ContractsList = () => {
         <div className="flex gap-2">
           <button
             onClick={() => navigate(`/app/contracts/${row.id}`)}
-            className="text-blue-600 hover:text-blue-700"
+            className="text-secondary-600 hover:text-secondary-700"
             title="Voir"
           >
             <Eye className="w-4 h-4" />

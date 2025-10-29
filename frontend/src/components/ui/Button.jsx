@@ -12,12 +12,39 @@ const Button = ({
 }) => {
   const baseStyles = "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
-  const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-    secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500",
-    success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-    outline: "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500",
+  const getVariantStyles = (variant) => {
+    switch (variant) {
+      case 'primary':
+        return {
+          background: 'linear-gradient(to right, #f59e0b, #055169)',
+          color: 'white',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        };
+      case 'secondary':
+        return {
+          backgroundColor: '#e0f2fe',
+          color: '#055169',
+          border: '1px solid #bae6fd'
+        };
+      case 'success':
+        return {
+          backgroundColor: '#059669',
+          color: 'white'
+        };
+      case 'danger':
+        return {
+          backgroundColor: '#dc2626',
+          color: 'white'
+        };
+      case 'outline':
+        return {
+          border: '2px solid #055169',
+          color: '#055169',
+          backgroundColor: 'transparent'
+        };
+      default:
+        return {};
+    }
   };
 
   const sizes = {
@@ -31,7 +58,8 @@ const Button = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseStyles} ${sizes[size]} ${className}`}
+      style={getVariantStyles(variant)}
     >
       {Icon && <Icon className="w-4 h-4" />}
       {children}

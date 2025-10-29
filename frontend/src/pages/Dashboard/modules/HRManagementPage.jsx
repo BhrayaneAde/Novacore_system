@@ -1,10 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, FileText, GraduationCap, Mail, BarChart3, TrendingUp, Calendar, CheckCircle, Clock, AlertCircle, Download, Send, Plus, Edit, Trash2, Check, X, DollarSign, UserPlus, FolderOpen, CalendarClock, Bell } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import Loader from '../../../components/ui/Loader';
 
 const HRManagementPage = () => {
   const [activeTab, setActiveTab] = useState('onboarding');
   const { currentUser, isEmployer } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
 
 
 
@@ -66,7 +81,7 @@ const HRManagementPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-secondary-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -87,7 +102,7 @@ const HRManagementPage = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestion des Ressources Humaines</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <Users className="w-5 h-5 text-blue-600 mt-0.5" />
+            <Users className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Centre de Contrôle RH</h3>
               <p className="text-blue-700 text-sm mb-2">
@@ -160,9 +175,9 @@ const HRManagementPage = () => {
                     {task.status === 'completed' ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : task.status === 'in_progress' ? (
-                      <Clock className="w-5 h-5 text-blue-600" />
+                      <Clock className="w-5 h-5 text-secondary-600" />
                     ) : (
-                      <AlertCircle className="w-5 h-5 text-yellow-600" />
+                      <AlertCircle className="w-5 h-5 text-primary-600" />
                     )}
                     <div>
                       <p className="font-medium text-gray-900">{task.title}</p>
@@ -205,9 +220,9 @@ const HRManagementPage = () => {
                     {task.status === 'completed' ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : task.status === 'in_progress' ? (
-                      <Clock className="w-5 h-5 text-blue-600" />
+                      <Clock className="w-5 h-5 text-secondary-600" />
                     ) : (
-                      <AlertCircle className="w-5 h-5 text-yellow-600" />
+                      <AlertCircle className="w-5 h-5 text-primary-600" />
                     )}
                     <div>
                       <p className="font-medium text-gray-900">{task.title}</p>
@@ -233,8 +248,8 @@ const HRManagementPage = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-secondary-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Gestion des Congés</h3>
@@ -266,8 +281,8 @@ const HRManagementPage = () => {
                   <tr key={request.id} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold text-sm">
+                        <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                          <span className="text-secondary-600 font-semibold text-sm">
                             {request.employee.split(' ').map(n => n[0]).join('')}
                           </span>
                         </div>
@@ -280,7 +295,7 @@ const HRManagementPage = () => {
                     <td className="py-4 px-6">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         request.type === 'Congés payés' ? 'bg-green-100 text-green-800' :
-                        request.type === 'RTT' ? 'bg-blue-100 text-blue-800' :
+                        request.type === 'RTT' ? 'bg-secondary-100 text-blue-800' :
                         request.type === 'Congé maladie' ? 'bg-red-100 text-red-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
@@ -351,10 +366,10 @@ const HRManagementPage = () => {
           <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-yellow-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-5 h-5 text-yellow-600" />
+                <Clock className="w-5 h-5 text-primary-600" />
                 <h4 className="font-semibold text-yellow-900">En attente</h4>
               </div>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-2xl font-bold text-primary-600">
                 {leaveRequests.filter(r => r.status === 'pending').length}
               </p>
             </div>
@@ -378,10 +393,10 @@ const HRManagementPage = () => {
             </div>
             <div className="bg-blue-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
+                <Calendar className="w-5 h-5 text-secondary-600" />
                 <h4 className="font-semibold text-blue-900">Total jours</h4>
               </div>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-secondary-600">
                 {leaveRequests.filter(r => r.status === 'approved').reduce((sum, r) => sum + r.days, 0)}
               </p>
             </div>
@@ -396,13 +411,13 @@ const HRManagementPage = () => {
             {hrReports.map((report) => (
               <div key={report.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-secondary-600" />
                   </div>
                   {getTrendIcon(report.trend)}
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{report.title}</h3>
-                <p className="text-2xl font-bold text-blue-600 mb-2">{report.value}</p>
+                <p className="text-2xl font-bold text-secondary-600 mb-2">{report.value}</p>
                 <p className="text-xs text-gray-500">Généré le {report.lastGenerated}</p>
               </div>
             ))}
@@ -411,7 +426,7 @@ const HRManagementPage = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Génération de rapports</h3>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+              <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 Nouveau rapport
               </button>
@@ -494,7 +509,7 @@ const HRManagementPage = () => {
                       <td className="py-4 px-6 text-gray-900">{training.nextSession}</td>
                       <td className="py-4 px-6">
                         <div className="flex gap-2">
-                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                          <button className="p-2 text-secondary-600 hover:bg-blue-50 rounded">
                             <Edit className="w-4 h-4" />
                           </button>
                           <button className="p-2 text-red-600 hover:bg-red-50 rounded">
@@ -558,15 +573,15 @@ const HRManagementPage = () => {
               {['Sophie Martin', 'Thomas Dubois', 'Emma Rousseau', 'Pierre Moreau'].map((name, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">{name.split(' ').map(n => n[0]).join('')}</span>
+                    <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                      <span className="text-secondary-600 font-semibold text-sm">{name.split(' ').map(n => n[0]).join('')}</span>
                     </div>
                     <div>
                       <p className="font-medium">{name}</p>
                       <p className="text-sm text-gray-600">Janvier 2025</p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                  <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm">
                     Générer
                   </button>
                 </div>
@@ -629,7 +644,7 @@ const HRManagementPage = () => {
           <div className="bg-white rounded-xl p-6 border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold">Gestion documentaire</h3>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700">
                 Ajouter document
               </button>
             </div>
@@ -672,7 +687,7 @@ const HRManagementPage = () => {
                 <div key={i} className="aspect-square border border-gray-200 rounded p-2 text-sm">
                   <div className="font-medium">{((i % 31) + 1)}</div>
                   {i % 7 < 5 && i > 6 && (
-                    <div className="text-xs text-blue-600 mt-1">8h-17h</div>
+                    <div className="text-xs text-secondary-600 mt-1">8h-17h</div>
                   )}
                 </div>
               ))}
@@ -700,7 +715,7 @@ const HRManagementPage = () => {
                   <div key={index} className={`p-3 rounded-lg border-l-4 ${
                     alert.priority === 'high' ? 'bg-red-50 border-red-500' :
                     alert.priority === 'medium' ? 'bg-yellow-50 border-yellow-500' :
-                    'bg-blue-50 border-blue-500'
+                    'bg-blue-50 border-secondary-500'
                   }`}>
                     <div className="flex justify-between items-start">
                       <div>
@@ -770,7 +785,7 @@ const HRManagementPage = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded">
+                    <button className="p-2 text-secondary-600 hover:bg-blue-50 rounded">
                       <Edit className="w-4 h-4" />
                     </button>
                     <button className="p-2 text-green-600 hover:bg-green-50 rounded">

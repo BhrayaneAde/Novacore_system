@@ -4,7 +4,7 @@ import { useHRStore } from "../../store/useHRStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Table from "../../components/ui/Table";
-import Badge from "../../components/ui/Badge";
+import StatusBadge from "../../components/ui/StatusBadge";
 import Button from "../../components/ui/Button";
 import { DollarSign, Download, Send, Plus } from "lucide-react";
 
@@ -45,9 +45,9 @@ const PayrollOverview = () => {
       header: "Statut",
       accessor: "status",
       render: (row) => (
-        <Badge variant={row.status === "processed" ? "success" : "warning"}>
+        <StatusBadge status={row.status === "processed" ? "success" : "warning"}>
           {row.status === "processed" ? "Traité" : "En attente"}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -55,7 +55,7 @@ const PayrollOverview = () => {
       render: (row) => (
         <button
           onClick={() => navigate(`/app/payroll/payslips/${row.id}`)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="text-sm text-secondary-600 hover:text-secondary-700 font-medium"
         >
           Voir détails
         </button>
@@ -82,7 +82,7 @@ const PayrollOverview = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-6 h-6" />
               </div>
               <div>

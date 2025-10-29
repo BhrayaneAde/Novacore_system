@@ -115,7 +115,7 @@ const PayslipDetail = () => {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold text-gray-900">Net à payer</span>
-                  <span className="text-2xl font-bold text-blue-600">
+                  <span className="text-2xl font-bold text-secondary-600">
                     {payslip.netSalary.toLocaleString("fr-FR")} €
                   </span>
                 </div>

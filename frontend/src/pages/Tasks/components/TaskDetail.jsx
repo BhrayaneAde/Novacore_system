@@ -62,7 +62,7 @@ const TaskDetail = ({ task, onUpdate, onClose }) => {
   const getStatusColor = (status) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
-      in_progress: 'bg-blue-100 text-blue-800',
+      in_progress: 'bg-secondary-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-gray-100 text-gray-800'
     };
@@ -147,13 +147,13 @@ const TaskDetail = ({ task, onUpdate, onClose }) => {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Ajouter un commentaire..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 resize-none"
                       rows={3}
                     />
                     <button
                       type="submit"
                       disabled={loading || !newComment.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       <Plus className="w-4 h-4" />
                       Ajouter
@@ -167,8 +167,8 @@ const TaskDetail = ({ task, onUpdate, onClose }) => {
                     <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-blue-600" />
+                          <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-secondary-600" />
                           </div>
                           <span className="font-medium text-gray-900">
                             {comment.author?.name || 'Utilisateur'}
@@ -239,7 +239,7 @@ const TaskDetail = ({ task, onUpdate, onClose }) => {
                   <button
                     onClick={() => handleStatusChange('in_progress')}
                     disabled={task.status === 'in_progress'}
-                    className="w-full px-3 py-2 text-left text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 text-left text-sm bg-secondary-100 text-blue-800 rounded-lg hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Marquer en cours
                   </button>

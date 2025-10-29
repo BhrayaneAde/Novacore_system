@@ -105,7 +105,7 @@ const GoalSettingPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-secondary-100 text-blue-800';
       case 'not_started': return 'bg-gray-100 text-gray-800';
       case 'overdue': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -135,7 +135,7 @@ const GoalSettingPage = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestion des Objectifs</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <Target className="w-5 h-5 text-blue-600 mt-0.5" />
+            <Target className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Objectifs SMART</h3>
               <p className="text-blue-700 text-sm mb-2">
@@ -177,18 +177,18 @@ const GoalSettingPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Target className="w-6 h-6 text-blue-600" />
+            <Target className="w-6 h-6 text-secondary-600" />
             <h3 className="font-semibold text-gray-900">Total</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">{myGoals.length}</p>
+          <p className="text-2xl font-bold text-secondary-600">{myGoals.length}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-6 h-6 text-yellow-600" />
+            <Clock className="w-6 h-6 text-primary-600" />
             <h3 className="font-semibold text-gray-900">En cours</h3>
           </div>
-          <p className="text-2xl font-bold text-yellow-600">
+          <p className="text-2xl font-bold text-primary-600">
             {myGoals.filter(g => g.status === 'in_progress').length}
           </p>
         </div>
@@ -240,10 +240,10 @@ const GoalSettingPage = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-600 mb-1">{goal.progress}%</div>
+                  <div className="text-2xl font-bold text-secondary-600 mb-1">{goal.progress}%</div>
                   <div className="w-24 bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all" 
+                      className="bg-secondary-600 h-2 rounded-full transition-all" 
                       style={{ width: `${goal.progress}%` }}
                     />
                   </div>
@@ -304,7 +304,7 @@ const GoalSettingPage = () => {
                 type="text"
                 value={newGoal.title}
                 onChange={(e) => setNewGoal({...newGoal, title: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 placeholder="Ex: Augmenter les ventes de 20%"
               />
             </div>
@@ -315,7 +315,7 @@ const GoalSettingPage = () => {
                 type="text"
                 value={newGoal.assignedTo}
                 onChange={(e) => setNewGoal({...newGoal, assignedTo: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 placeholder="Nom de l'employé ou équipe"
               />
             </div>
@@ -325,7 +325,7 @@ const GoalSettingPage = () => {
               <textarea
                 value={newGoal.description}
                 onChange={(e) => setNewGoal({...newGoal, description: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 rows="3"
                 placeholder="Description détaillée de l'objectif..."
               />
@@ -336,7 +336,7 @@ const GoalSettingPage = () => {
               <select
                 value={newGoal.category}
                 onChange={(e) => setNewGoal({...newGoal, category: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="Performance">Performance</option>
                 <option value="Formation">Formation</option>
@@ -351,7 +351,7 @@ const GoalSettingPage = () => {
               <select
                 value={newGoal.priority}
                 onChange={(e) => setNewGoal({...newGoal, priority: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="low">Basse</option>
                 <option value="medium">Moyenne</option>
@@ -364,7 +364,7 @@ const GoalSettingPage = () => {
               <select
                 value={newGoal.type}
                 onChange={(e) => setNewGoal({...newGoal, type: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="individual">Individuel</option>
                 <option value="team">Équipe</option>
@@ -377,7 +377,7 @@ const GoalSettingPage = () => {
                 type="date"
                 value={newGoal.deadline}
                 onChange={(e) => setNewGoal({...newGoal, deadline: e.target.value})}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               />
             </div>
           </div>
@@ -391,7 +391,7 @@ const GoalSettingPage = () => {
             </button>
             <button
               onClick={handleCreateGoal}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700"
             >
               Créer l'objectif
             </button>

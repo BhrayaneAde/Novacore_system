@@ -3,7 +3,9 @@ import { useAuthStore } from "../../store/useAuthStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
-import Badge from "../../components/ui/Badge";
+import StatusBadge from "../../components/ui/StatusBadge";
+import Avatar from "../../components/ui/Avatar";
+import Modal from "../../components/ui/Modal";
 import PermissionGuard from "../../components/auth/PermissionGuard";
 import { UserPlus, Mail, Shield, MoreVertical, Edit, Trash2, Send, CheckCircle } from "lucide-react";
 import { usersService, emailService, USER_ROLES } from "../../services";
@@ -183,18 +185,18 @@ const UserManagement = () => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <Badge variant={
+                    <StatusBadge status={
                       invitation.email_status === 'sent' ? 'info' :
                       invitation.email_status === 'opened' ? 'warning' :
                       invitation.email_status === 'accepted' ? 'success' :
-                      invitation.email_status === 'failed' ? 'error' : 'gray'
+                      invitation.email_status === 'failed' ? 'error' : 'pending'
                     }>
                       {invitation.email_status === 'sent' && 'Email envoyé'}
                       {invitation.email_status === 'opened' && 'Email ouvert'}
                       {invitation.email_status === 'accepted' && 'Employé actif'}
                       {invitation.email_status === 'failed' && 'Échec envoi'}
                       {invitation.email_status === 'pending' && 'En attente'}
-                    </Badge>
+                    </StatusBadge>
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -225,10 +227,10 @@ const UserManagement = () => {
             {users.map((user) => (
               <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
-                  <img
+                  <Avatar
                     src={user.avatar}
-                    alt={`${user.firstName} ${user.lastName}`}
-                    className="w-12 h-12 rounded-full"
+                    name={`${user.firstName} ${user.lastName}`}
+                    size="lg"
                   />
                   <div>
                     <h4 className="font-medium text-gray-900">
@@ -242,13 +244,13 @@ const UserManagement = () => {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <Badge variant={getRoleBadgeVariant(user.role)}>
+                  <StatusBadge variant={getRoleBadgeVariant(user.role)}>
                     {roles[user.role]?.name}
-                  </Badge>
+                  </StatusBadge>
                   
-                  <Badge variant={user.isActive ? "success" : "warning"}>
+                  <StatusBadge status={user.isActive ? "active" : "warning"}>
                     {user.isActive ? "Actif" : "Inactif"}
-                  </Badge>
+                  </StatusBadge>
                   
                   <PermissionGuard permission="users.manage">
                     <div className="flex items-center gap-1">
@@ -271,7 +273,7 @@ const UserManagement = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <div className="flex items-center gap-3 mb-6">
-                <Mail className="w-6 h-6 text-blue-600" />
+                <Mail className="w-6 h-6 text-secondary-600" />
                 <h3 className="text-lg font-semibold">Inviter un utilisateur</h3>
               </div>
               
@@ -285,7 +287,7 @@ const UserManagement = () => {
                     required
                     value={inviteForm.email}
                     onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="utilisateur@exemple.com"
                   />
                 </div>
@@ -300,7 +302,7 @@ const UserManagement = () => {
                       required
                       value={inviteForm.firstName}
                       onChange={(e) => setInviteForm({...inviteForm, firstName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     />
                   </div>
                   <div>
@@ -312,7 +314,7 @@ const UserManagement = () => {
                       required
                       value={inviteForm.lastName}
                       onChange={(e) => setInviteForm({...inviteForm, lastName: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     />
                   </div>
                 </div>
@@ -324,7 +326,7 @@ const UserManagement = () => {
                   <select
                     value={inviteForm.role}
                     onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="employee">Employé</option>
                     <option value="manager">Manager</option>

@@ -28,7 +28,7 @@ const ContractsOverview = () => {
       title: "Tous les Contrats",
       description: "Liste complète des contrats",
       icon: FileText,
-      color: "bg-blue-500",
+      color: "bg-secondary-500",
       path: "/app/contracts/list",
       count: "234 contrats"
     },
@@ -58,7 +58,7 @@ const ContractsOverview = () => {
   ];
 
   const stats = [
-    { label: "Total Contrats", value: "234", color: "text-blue-600" },
+    { label: "Total Contrats", value: "234", color: "text-secondary-600" },
     { label: "CDI", value: "156", color: "text-green-600" },
     { label: "CDD", value: "52", color: "text-orange-600" },
     { label: "Stage", value: "26", color: "text-purple-600" },
@@ -103,7 +103,7 @@ const ContractsOverview = () => {
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{module.description}</p>
                   {module.count && (
-                    <p className="text-xs font-medium text-blue-600">{module.count}</p>
+                    <p className="text-xs font-medium text-secondary-600">{module.count}</p>
                   )}
                 </div>
               </div>
@@ -113,7 +113,7 @@ const ContractsOverview = () => {
 
         <Card className="bg-blue-50 border-blue-200">
           <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-blue-600 mt-0.5" />
+            <FileText className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h4 className="font-semibold text-blue-900 mb-1">Génération automatique de contrats</h4>
               <p className="text-sm text-blue-700">

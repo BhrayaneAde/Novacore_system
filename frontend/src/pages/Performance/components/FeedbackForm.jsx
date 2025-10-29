@@ -38,7 +38,7 @@ const FeedbackForm = ({ onSubmit, employeeName }) => {
           value={formData.strengths}
           onChange={(e) => setFormData({ ...formData, strengths: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           placeholder="Quels sont les points forts de cette personne ?"
         />
       </div>
@@ -51,7 +51,7 @@ const FeedbackForm = ({ onSubmit, employeeName }) => {
           value={formData.improvements}
           onChange={(e) => setFormData({ ...formData, improvements: e.target.value })}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           placeholder="Quels sont les axes d'amélioration ?"
         />
       </div>
@@ -64,7 +64,7 @@ const FeedbackForm = ({ onSubmit, employeeName }) => {
           value={formData.comments}
           onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
           rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           placeholder="Autres commentaires..."
         />
       </div>

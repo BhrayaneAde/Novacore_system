@@ -125,7 +125,7 @@ export default function CompanySetup() {
           <button
             onClick={handleSetupCompany}
             disabled={loading}
-            className="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600 disabled:opacity-50"
+            className="w-full bg-secondary-500 text-white p-3 rounded hover:bg-secondary-600 disabled:opacity-50"
           >
             {loading ? 'Configuration...' : 'Créer l\'entreprise'}
           </button>
@@ -222,7 +222,7 @@ export default function CompanySetup() {
           </p>
           <button
             onClick={() => window.location.href = '/login'}
-            className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600"
+            className="bg-secondary-500 text-white px-6 py-3 rounded hover:bg-secondary-600"
           >
             Accéder à NovaCore
           </button>

@@ -90,7 +90,7 @@ const EmployeeLeaves = () => {
             </div>
             <button 
               onClick={() => setShowNewRequestModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all"
+              className="bg-secondary-600 hover:bg-secondary-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all"
             >
               <Plus className="w-5 h-5" />
               Nouvelle demande
@@ -101,15 +101,15 @@ const EmployeeLeaves = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-secondary-600" />
                 </div>
-                <span className="text-3xl font-bold text-blue-600">{leaveBalance.remaining}</span>
+                <span className="text-3xl font-bold text-secondary-600">{leaveBalance.remaining}</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-1">Congés restants</h3>
               <p className="text-sm text-gray-600">Sur {leaveBalance.total} jours annuels</p>
               <div className="mt-3 bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-600 h-2 rounded-full" style={{width: `${(leaveBalance.remaining / leaveBalance.total) * 100}%`}}></div>
+                <div className="bg-secondary-600 h-2 rounded-full" style={{width: `${(leaveBalance.remaining / leaveBalance.total) * 100}%`}}></div>
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -138,9 +138,9 @@ const EmployeeLeaves = () => {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-yellow-600" />
+                  <Clock className="w-6 h-6 text-primary-600" />
                 </div>
-                <span className="text-3xl font-bold text-yellow-600">{leaveBalance.pending}</span>
+                <span className="text-3xl font-bold text-primary-600">{leaveBalance.pending}</span>
               </div>
               <h3 className="font-semibold text-gray-900 mb-1">En attente</h3>
               <p className="text-sm text-gray-600">Demandes à approuver</p>
@@ -157,13 +157,13 @@ const EmployeeLeaves = () => {
                   placeholder="Rechercher une demande..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
                 />
               </div>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[160px]"
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 bg-white min-w-[160px]"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="approuvé">Approuvé</option>
@@ -230,7 +230,7 @@ const EmployeeLeaves = () => {
                   </div>
                   <StatusIcon className={`w-6 h-6 flex-shrink-0 ${
                     request.status === 'Approuvé' ? 'text-green-600' :
-                    request.status === 'En attente' ? 'text-yellow-600' : 'text-red-600'
+                    request.status === 'En attente' ? 'text-primary-600' : 'text-red-600'
                   }`} />
                 </div>
               </div>

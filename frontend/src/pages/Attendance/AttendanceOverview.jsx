@@ -62,7 +62,7 @@ const AttendanceOverview = () => {
       render: (row) => (
         <button
           onClick={() => navigate(`/app/attendance/requests/${row.id}`)}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          className="text-sm text-secondary-600 hover:text-secondary-700 font-medium"
         >
           Voir détails
         </button>
@@ -88,7 +88,7 @@ const AttendanceOverview = () => {
       title: "Congés ce mois",
       value: leaveRequests.length,
       icon: TrendingUp,
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-blue-50 text-secondary-600",
     },
   ];
 

@@ -93,7 +93,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   // Filtrer les menus selon les permissions
   const getMenuItems = () => {
     const roleBasedItems = {
-      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings'],
+      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management'],
       'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nomination', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
       'hr_user': ['dashboard', 'employees'],
       'manager': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'advanced-reports', 'performance'],
@@ -120,15 +120,15 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-40 flex flex-col justify-between">
+    <aside className="fixed left-0 top-0 h-full w-64" style={{background: 'linear-gradient(135deg, #023342 0%, #055169 100%)', borderRight: '1px solid #e5e7eb', zIndex: 40, display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
       <div>
         <div className="p-6 border-b border-gray-200 flex items-center gap-2">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-semibold text-sm ${
-            currentUser?.role === 'employer' ? 'bg-purple-600' :
-            currentUser?.role === 'hr_admin' ? 'bg-blue-600' :
-            currentUser?.role === 'hr_user' ? 'bg-cyan-600' :
-            currentUser?.role === 'manager' ? 'bg-orange-600' :
-            currentUser?.role === 'employee' ? 'bg-green-600' : 'bg-gray-600'
+            currentUser?.role === 'employer' ? 'bg-gradient-to-r from-primary-500 to-primary-600' :
+            currentUser?.role === 'hr_admin' ? 'bg-gradient-to-r from-secondary-500 to-secondary-600' :
+            currentUser?.role === 'hr_user' ? 'bg-gradient-to-r from-teal-500 to-teal-600' :
+            currentUser?.role === 'manager' ? 'bg-gradient-to-r from-primary-400 to-secondary-500' :
+            currentUser?.role === 'employee' ? 'bg-gradient-to-r from-secondary-400 to-secondary-500' : 'bg-gray-600'
           }`}>
             {currentUser?.role === 'employer' ? 'CEO' :
              currentUser?.role === 'hr_admin' ? 'HR+' :
@@ -152,10 +152,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
               <button
                 key={i}
                 onClick={() => setActiveTab(item.tab)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors w-full text-left ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all w-full text-left ${
                   isActive
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-gradient-to-r from-primary-50 to-secondary-50 text-secondary-700 border-l-4 border-secondary-500 shadow-sm"
+                    : "text-gray-600 hover:bg-gradient-to-r hover:from-primary-25 hover:to-secondary-25 hover:text-secondary-600"
                 }`}
               >
                 <item.icon className="w-5 h-5" />

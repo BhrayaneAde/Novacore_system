@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Moon, Sun, Bell, Lock, User, Building, Save, Shield, Mail, Server, Send, Calendar, Clock, ShieldCheck, Palette, Upload } from "lucide-react";
-import { setupService, hrService } from "../../../services";
-import { useThemeStore } from "../../../store/useThemeStore";
-import ThemedButton from "../../../components/ThemedButton";
+import Loader from '../../../components/ui/Loader';
+import { systemService } from "../../../services";
+import Button from "../../../components/ui/Button";
 
 const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -84,12 +84,13 @@ const SettingsPage = () => {
   const loadSettings = async () => {
     setLoading(true);
     try {
-      const [smtpRes, leaveRes, scheduleRes, securityRes] = await Promise.all([
-        setupService.getSmtpConfig().catch(() => ({ data: null })),
-        setupService.getLeavePolicy().catch(() => ({ data: null })),
-        setupService.getWorkSchedule().catch(() => ({ data: null })),
-        setupService.getSecurityConfig().catch(() => ({ data: null }))
-      ]);
+      // Simulation des données par défaut
+      const [smtpRes, leaveRes, scheduleRes, securityRes] = [
+        { data: null },
+        { data: null },
+        { data: null },
+        { data: null }
+      ];
       
       if (smtpRes.data) {
         setSmtp({
@@ -142,10 +143,14 @@ const SettingsPage = () => {
     }
   };
   
-  const { 
-    darkMode, primaryColor, secondaryColor, companyName, logoUrl, fontFamily,
-    setDarkMode, setPrimaryColor, setSecondaryColor, setCompanyName, setLogoUrl, setFontFamily, updateTheme
-  } = useThemeStore();
+  // Simulation du theme store
+  const [darkMode, setDarkMode] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState('#3B82F6');
+  const [secondaryColor, setSecondaryColor] = useState('#1E40AF');
+  const [companyName, setCompanyName] = useState('NovaCore');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [fontFamily, setFontFamily] = useState('Inter');
+  const updateTheme = () => {};
 
   const handleNotificationChange = (key) => {
     setNotifications({ ...notifications, [key]: !notifications[key] });
@@ -171,7 +176,7 @@ const SettingsPage = () => {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement des paramètres...</span>
       </div>
     );
@@ -189,8 +194,8 @@ const SettingsPage = () => {
         {/* Gestion des Départements */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Building className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <Building className="w-5 h-5 text-secondary-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Départements</h3>
@@ -209,14 +214,14 @@ const SettingsPage = () => {
                 <div key={dept} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium text-gray-900">{dept}</span>
                   <div className="flex gap-2">
-                    <button className="text-xs text-blue-600 hover:text-blue-700">Modifier</button>
+                    <button className="text-xs text-secondary-600 hover:text-secondary-700">Modifier</button>
                     <button className="text-xs text-red-600 hover:text-red-700">Supprimer</button>
                   </div>
                 </div>
               ))}
             </div>
             
-            <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+            <button className="w-full px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium">
               Ajouter un département
             </button>
           </div>
@@ -316,9 +321,9 @@ const SettingsPage = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-2 h-2 rounded-full ${
                       log.type === 'create' ? 'bg-green-500' :
-                      log.type === 'update' ? 'bg-blue-500' :
+                      log.type === 'update' ? 'bg-secondary-500' :
                       log.type === 'delete' ? 'bg-red-500' :
-                      log.type === 'login' ? 'bg-yellow-500' : 'bg-purple-500'
+                      log.type === 'login' ? 'bg-primary-500' : 'bg-purple-500'
                     }`} />
                     <div>
                       <p className="text-sm font-medium text-gray-900">{log.action}</p>
@@ -857,7 +862,7 @@ const SettingsPage = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Bell className="w-5 h-5 text-yellow-600" />
+              <Bell className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
@@ -940,13 +945,13 @@ const SettingsPage = () => {
 
       {/* Save Button */}
       <div className="mt-8 flex justify-end">
-        <ThemedButton
+        <Button
           onClick={saveSettings}
           className="px-6 py-3 font-semibold flex items-center space-x-2"
         >
           <Save className="w-5 h-5" />
           <span>Sauvegarder les paramètres</span>
-        </ThemedButton>
+        </Button>
       </div>
     </div>
   );

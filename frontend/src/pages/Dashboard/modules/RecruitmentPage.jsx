@@ -1,9 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UserPlus, Briefcase, Users, Search, Filter, MapPin, Clock } from "lucide-react";
+import Loader from "../../../components/ui/Loader";
 
 const RecruitmentPage = () => {
   const [activeTab, setActiveTab] = useState("candidates");
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
   
   const candidates = [
     {
@@ -114,10 +129,10 @@ const RecruitmentPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Briefcase className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-6 h-6 text-secondary-600" />
             </div>
-            <span className="text-2xl font-bold text-blue-600">{openJobs}</span>
+            <span className="text-2xl font-bold text-secondary-600">{openJobs}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Postes ouverts</h3>
           <p className="text-sm text-gray-600">Recrutement actif</p>
@@ -160,7 +175,7 @@ const RecruitmentPage = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
               <Briefcase className="w-4 h-4" />
               <span>Nouvelle offre</span>
             </button>
@@ -173,7 +188,7 @@ const RecruitmentPage = () => {
               placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
             />
           </div>
         </div>
@@ -183,7 +198,7 @@ const RecruitmentPage = () => {
             onClick={() => setActiveTab("candidates")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "candidates"
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "text-secondary-600 border-b-2 border-secondary-600"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -193,7 +208,7 @@ const RecruitmentPage = () => {
             onClick={() => setActiveTab("jobs")}
             className={`px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === "jobs"
-                ? "text-blue-600 border-b-2 border-blue-600"
+                ? "text-secondary-600 border-b-2 border-secondary-600"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -233,14 +248,14 @@ const RecruitmentPage = () => {
                     </td>
                     <td className="py-4 px-6 text-gray-900">{candidate.position}</td>
                     <td className="py-4 px-6">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-blue-800">
                         {candidate.experience}
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                         candidate.status === 'screening' ? 'bg-yellow-100 text-yellow-800' :
-                        candidate.status === 'interview' ? 'bg-blue-100 text-blue-800' :
+                        candidate.status === 'interview' ? 'bg-secondary-100 text-blue-800' :
                         candidate.status === 'offer' ? 'bg-green-100 text-green-800' :
                         'bg-red-100 text-red-800'
                       }`}>
@@ -253,7 +268,7 @@ const RecruitmentPage = () => {
                       {new Date(candidate.appliedDate).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="py-4 px-6">
-                      <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                      <button className="text-secondary-600 hover:text-secondary-700 font-medium text-sm">
                         Voir profil
                       </button>
                     </td>
@@ -303,7 +318,7 @@ const RecruitmentPage = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6">
-                      <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                      <button className="text-secondary-600 hover:text-secondary-700 font-medium text-sm">
                         Gérer
                       </button>
                     </td>

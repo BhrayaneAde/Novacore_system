@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import Loader from '../../components/ui/Loader';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { Link } from 'react-router-dom';
 import { authService } from '../../services';
 
@@ -57,7 +59,7 @@ const ForgotPasswordPage = () => {
             <div className="mt-8">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-secondary-600 hover:text-secondary-500 font-medium transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Retour à la connexion
@@ -108,7 +110,7 @@ const ForgotPasswordPage = () => {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader size={20} className="mr-2" />
                   Envoi en cours...
                 </div>
               ) : (

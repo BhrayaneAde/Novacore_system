@@ -96,7 +96,7 @@ const DepartmentTable = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
-                  <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <button className="text-sm text-secondary-600 hover:text-secondary-700 font-medium">
                     Voir détails
                   </button>
                 </td>

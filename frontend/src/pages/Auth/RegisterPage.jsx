@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import Loader from '../../components/ui/Loader';
 import { User, Mail, Lock, Building, Phone, Eye, EyeOff, AlertCircle, CheckCircle, Sparkles, Shield } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../../services';
 
@@ -44,7 +46,7 @@ const RegisterPage = () => {
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength < 50) return 'bg-red-500';
-    if (passwordStrength < 75) return 'bg-yellow-500';
+    if (passwordStrength < 75) return 'bg-primary-500';
     return 'bg-green-500';
   };
 
@@ -328,15 +330,15 @@ const RegisterPage = () => {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-1 transition-colors"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-1 transition-colors"
               />
               <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
                 J'accepte les{' '}
-                <Link to="/terms" className="font-semibold text-purple-600 hover:text-purple-500 transition-colors">
+                <Link to="/terms" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
                   conditions d'utilisation
                 </Link>{' '}
                 et la{' '}
-                <Link to="/privacy" className="font-semibold text-purple-600 hover:text-purple-500 transition-colors">
+                <Link to="/privacy" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
                   politique de confidentialité
                 </Link>
               </label>
@@ -346,11 +348,11 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader size={20} className="mr-2" />
                   Création du compte...
                 </div>
               ) : (
@@ -361,10 +363,10 @@ const RegisterPage = () => {
         </div>
 
         {/* Security Notice */}
-        <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
+        <div className="mt-6 bg-secondary-50 rounded-xl p-4 border border-secondary-100">
           <div className="flex items-center">
-            <Shield className="w-5 h-5 text-blue-600 mr-2" />
-            <p className="text-sm text-blue-800">
+            <Shield className="w-5 h-5 text-secondary-600 mr-2" />
+            <p className="text-sm text-secondary-800">
               <span className="font-semibold">Sécurité garantie :</span> Vos données sont chiffrées et protégées selon les standards les plus élevés.
             </p>
           </div>

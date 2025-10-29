@@ -111,19 +111,3 @@ def delete_employee(
     db.commit()
     return {"message": "Employé supprimé avec succès"}
 
-@router.get("/test")
-def get_employees_test(
-    db: Session = Depends(get_db)
-):
-    """Test endpoint without auth"""
-    employees = db.query(Employee).all()
-    return {
-        "count": len(employees),
-        "employees": [{
-            "id": e.id,
-            "name": e.name,
-            "email": e.email,
-            "role": e.role,
-            "department_id": e.department_id
-        } for e in employees]
-    }

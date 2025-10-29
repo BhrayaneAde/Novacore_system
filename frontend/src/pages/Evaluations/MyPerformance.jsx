@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Star, TrendingUp, TrendingDown, Target, Calendar, CheckCircle, Clock, Award } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { performanceService, tasksService, usersService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -67,7 +68,7 @@ const MyPerformance = () => {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement de vos données de performance...</span>
       </div>
     );
@@ -95,7 +96,7 @@ const MyPerformance = () => {
         <select
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
         >
           {myEvaluations.map(evaluation => (
             <option key={evaluation.period} value={evaluation.period}>
@@ -108,7 +109,7 @@ const MyPerformance = () => {
       {currentEvaluation ? (
         <>
           {/* Score global et progression */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white mb-8">
+          <div className="bg-gradient-to-r from-secondary-600 to-primary-600 rounded-xl p-8 text-white mb-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold mb-2">Score Global</h2>
@@ -147,7 +148,7 @@ const MyPerformance = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-blue-600" />
+                    <CheckCircle className="w-5 h-5 text-secondary-600" />
                     <span className="text-gray-700">Tâches terminées</span>
                   </div>
                   <div className="text-right">
@@ -156,7 +157,7 @@ const MyPerformance = () => {
                     </span>
                     <div className="w-24 bg-gray-200 rounded-full h-2 mt-1">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                        className="bg-secondary-600 h-2 rounded-full" 
                         style={{ width: `${currentEvaluation.task_completion || 0}%` }}
                       ></div>
                     </div>
@@ -294,13 +295,13 @@ const MyPerformance = () => {
               <div className="space-y-3">
                 {(currentEvaluation.objectives || []).map((objective, index) => (
                   <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Target className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <Target className="w-5 h-5 text-secondary-600 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
                       <p className="text-gray-900 font-medium">{objective}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="flex-1 bg-gray-200 rounded-full h-2">
                           <div 
-                            className="bg-blue-600 h-2 rounded-full" 
+                            className="bg-secondary-600 h-2 rounded-full" 
                             style={{ width: `${Math.random() * 100}%` }}
                           ></div>
                         </div>

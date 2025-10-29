@@ -12,7 +12,7 @@ const EmployeeStatsCards = () => {
       title: 'Total Employés',
       value: stats.total,
       icon: Users,
-      color: 'text-blue-600',
+      color: 'text-secondary-600',
       bgColor: 'bg-blue-50',
       change: '+2 ce mois'
     },

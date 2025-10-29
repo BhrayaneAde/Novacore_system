@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { employeesService } from "../../../services";
 import { UserPlus, Mail, Phone, Calendar, Search, Filter, MoreVertical } from "lucide-react";
+import Loader from "../../../components/ui/Loader";
 
 const EmployeesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,22 +32,30 @@ const EmployeesPage = () => {
 
 
 
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 mx-auto">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Gestion des employés</h1>
-        <p className="text-gray-600">{loading ? 'Chargement...' : `${employees.length} employés au total`}</p>
+        <p className="text-gray-600">{employees.length} employés au total</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <UserPlus className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <UserPlus className="w-6 h-6 text-secondary-600" />
             </div>
-            <span className="text-2xl font-bold text-blue-600">{employees.length}</span>
+            <span className="text-2xl font-bold text-secondary-600">{employees.length}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Total employés</h3>
           <p className="text-sm text-gray-600">Tous départements</p>
@@ -88,7 +97,7 @@ const EmployeesPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">Liste des employés</h2>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
               <UserPlus className="w-4 h-4" />
               <span>Ajouter</span>
             </button>
@@ -102,13 +111,13 @@ const EmployeesPage = () => {
                 placeholder="Rechercher un employé..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
               />
             </div>
             <select 
               value={selectedDepartment} 
               onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
             >
               <option value="all">Tous les départements</option>
               <option value="Développement">Développement</option>
@@ -140,7 +149,7 @@ const EmployeesPage = () => {
                 <tr key={employee.id} className="hover:bg-gray-50 transition-colors">
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                      <div className="w-10 h-10 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">
                           {employee.first_name?.[0]}{employee.last_name?.[0]}
                         </span>
@@ -153,7 +162,7 @@ const EmployeesPage = () => {
                   </td>
                   <td className="py-4 px-6 text-gray-900">{employee.position}</td>
                   <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary-100 text-blue-800">
                       {employee.department}
                     </span>
                   </td>

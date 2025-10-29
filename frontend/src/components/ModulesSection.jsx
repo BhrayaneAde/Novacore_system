@@ -115,7 +115,7 @@ const ModulesSection = () => {
 
   const getColorClasses = (color) => {
     const colors = {
-      blue: { bg: 'bg-blue-50', text: 'text-blue-600', hover: 'hover:text-blue-600' },
+      blue: { bg: 'bg-blue-50', text: 'text-secondary-600', hover: 'hover:text-secondary-600' },
       purple: { bg: 'bg-purple-50', text: 'text-purple-600', hover: 'hover:text-purple-600' },
       green: { bg: 'bg-green-50', text: 'text-green-600', hover: 'hover:text-green-600' },
       orange: { bg: 'bg-orange-50', text: 'text-orange-600', hover: 'hover:text-orange-600' },

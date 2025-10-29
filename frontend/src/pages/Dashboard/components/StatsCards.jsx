@@ -1,12 +1,13 @@
 import React from "react";
 import { Users, CalendarCheck, UserPlus, Clock } from "lucide-react";
+import StatusBadge from "../../../components/ui/StatusBadge";
 
 const stats = [
   {
     title: "Employés actifs",
     value: "247",
     icon: Users,
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-blue-50 text-secondary-600",
     tag: "+12%",
     tagColor: "bg-green-50 text-green-600",
   },
@@ -24,7 +25,7 @@ const stats = [
     icon: UserPlus,
     color: "bg-amber-50 text-amber-600",
     tag: "12 actifs",
-    tagColor: "bg-blue-50 text-blue-600",
+    tagColor: "bg-blue-50 text-secondary-600",
   },
   {
     title: "Demandes de congés",
@@ -47,9 +48,9 @@ const StatsCards = () => (
           <div className={`w-10 h-10 ${s.color} rounded-lg flex items-center justify-center`}>
             <s.icon className="w-5 h-5" />
           </div>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${s.tagColor}`}>
+          <StatusBadge variant={s.title.includes('présence') ? 'info' : s.title.includes('Candidatures') ? 'warning' : s.title.includes('congés') ? 'pending' : 'success'}>
             {s.tag}
-          </span>
+          </StatusBadge>
         </div>
         <p className="text-2xl font-semibold text-gray-900 mb-1">{s.value}</p>
         <p className="text-sm text-gray-600">{s.title}</p>

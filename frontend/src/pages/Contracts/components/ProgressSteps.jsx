@@ -10,7 +10,7 @@ const ProgressSteps = ({ steps, currentStep }) => {
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                 currentStep >= step.num
-                  ? "bg-blue-600 text-white"
+                  ? "bg-secondary-600 text-white"
                   : "bg-gray-200 text-gray-500"
               }`}
             >
@@ -19,7 +19,7 @@ const ProgressSteps = ({ steps, currentStep }) => {
             {/* Label */}
             <span
               className={`text-xs mt-2 font-medium ${
-                currentStep >= step.num ? "text-blue-600" : "text-gray-500"
+                currentStep >= step.num ? "text-secondary-600" : "text-gray-500"
               }`}
             >
               {step.label}
@@ -29,7 +29,7 @@ const ProgressSteps = ({ steps, currentStep }) => {
           {index < steps.length - 1 && (
             <div
               className={`h-1 flex-1 mx-2 transition-all ${
-                currentStep > step.num ? "bg-blue-600" : "bg-gray-200"
+                currentStep > step.num ? "bg-secondary-600" : "bg-gray-200"
               }`}
             />
           )}

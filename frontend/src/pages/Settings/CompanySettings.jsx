@@ -38,7 +38,7 @@ const CompanySettings = () => {
             Retour
           </Button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
               <Building2 className="w-5 h-5" />
             </div>
             <h1 className="text-3xl font-semibold tracking-tight">Paramètres de l'entreprise</h1>
@@ -58,7 +58,7 @@ const CompanySettings = () => {
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -71,7 +71,7 @@ const CompanySettings = () => {
                     name="legalName"
                     value={formData.legalName}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -84,7 +84,7 @@ const CompanySettings = () => {
                     name="siret"
                     value={formData.siret}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -97,7 +97,7 @@ const CompanySettings = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -110,7 +110,7 @@ const CompanySettings = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -123,7 +123,7 @@ const CompanySettings = () => {
                     name="website"
                     value={formData.website}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
               </div>
@@ -137,7 +137,7 @@ const CompanySettings = () => {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 />
               </div>
 
@@ -151,7 +151,7 @@ const CompanySettings = () => {
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -164,7 +164,7 @@ const CompanySettings = () => {
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -177,7 +177,7 @@ const CompanySettings = () => {
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
               </div>

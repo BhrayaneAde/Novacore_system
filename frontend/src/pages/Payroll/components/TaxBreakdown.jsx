@@ -15,7 +15,7 @@ const TaxBreakdown = ({ salary }) => {
   const total = Object.values(breakdown).reduce((sum, item) => sum + item.amount, 0);
 
   const items = [
-    { label: "Sécurité sociale", data: breakdown.socialSecurity, color: "bg-blue-500" },
+    { label: "Sécurité sociale", data: breakdown.socialSecurity, color: "bg-secondary-500" },
     { label: "Retraite", data: breakdown.retirement, color: "bg-purple-500" },
     { label: "Chômage", data: breakdown.unemployment, color: "bg-amber-500" },
     { label: "Autres", data: breakdown.other, color: "bg-gray-500" },
@@ -24,7 +24,7 @@ const TaxBreakdown = ({ salary }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+        <div className="w-12 h-12 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
           <PieChart className="w-6 h-6" />
         </div>
         <div>

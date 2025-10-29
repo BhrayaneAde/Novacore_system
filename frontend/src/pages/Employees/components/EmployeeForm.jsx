@@ -14,7 +14,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.name || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="Jean Dupont"
           />
         </div>
@@ -29,7 +29,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.email || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="jean.dupont@novacore.com"
           />
         </div>
@@ -44,7 +44,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.role || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="Développeur Full Stack"
           />
         </div>
@@ -58,7 +58,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.department || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           >
             <option value="">Sélectionner un département</option>
             <option value="Développement">Développement</option>
@@ -79,7 +79,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             name="phone"
             value={formData.phone || ""}
             onChange={onChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="+33 6 12 34 56 78"
           />
         </div>
@@ -94,7 +94,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.salary || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="50000"
           />
         </div>
@@ -109,7 +109,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             value={formData.hireDate || ""}
             onChange={onChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           />
         </div>
 
@@ -121,7 +121,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
             name="status"
             value={formData.status || "active"}
             onChange={onChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
           >
             <option value="active">Actif</option>
             <option value="on_leave">En congé</option>
@@ -131,7 +131,7 @@ const EmployeeForm = ({ formData, onChange, onSubmit, submitLabel = "Enregistrer
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+        className="w-full bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors font-medium"
       >
         {submitLabel}
       </button>

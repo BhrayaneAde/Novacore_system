@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Filter, Search, Calendar, Clock, User, AlertCircle, CheckCircle, BarChart3, MessageSquare } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { tasksService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 import TaskCard from './components/TaskCard';
@@ -7,6 +8,9 @@ import TaskForm from './components/TaskForm';
 import TaskFilters from './components/TaskFilters';
 import TaskAnalytics from './components/TaskAnalytics';
 import TaskDetail from './components/TaskDetail';
+import EmptyState from '../../components/ui/EmptyState';
+import StatusBadge from '../../components/ui/StatusBadge';
+import Tabs from '../../components/ui/Tabs';
 
 const TaskManagement = () => {
   const { currentUser } = useAuthStore();
@@ -95,7 +99,7 @@ const TaskManagement = () => {
   if (loading && tasks.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement...</span>
       </div>
     );
@@ -114,43 +118,20 @@ const TaskManagement = () => {
         
         <div className="flex items-center gap-3">
           {/* View Toggle */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setView('list')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                view === 'list' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Liste
-            </button>
-            <button
-              onClick={() => setView('board')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                view === 'board' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Tableau
-            </button>
-            <button
-              onClick={() => setView('analytics')}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                view === 'analytics' 
-                  ? 'bg-white text-gray-900 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Analytics
-            </button>
-          </div>
+          <Tabs
+            value={view}
+            onValueChange={setView}
+            tabs={[
+              { value: 'list', label: 'Liste' },
+              { value: 'board', label: 'Tableau' },
+              { value: 'analytics', label: 'Analytics' }
+            ]}
+          />
 
           {canCreateTasks && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Nouvelle tâche
@@ -182,7 +163,7 @@ const TaskManagement = () => {
                   <p className="text-sm text-gray-600">Total</p>
                   <p className="text-2xl font-bold text-gray-900">{tasks.length}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-blue-500" />
+                <CheckCircle className="w-8 h-8 text-secondary-500" />
               </div>
             </div>
             
@@ -190,11 +171,11 @@ const TaskManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">En cours</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-2xl font-bold text-secondary-600">
                     {getTasksByStatus('in_progress').length}
                   </p>
                 </div>
-                <Clock className="w-8 h-8 text-blue-500" />
+                <Clock className="w-8 h-8 text-secondary-500" />
               </div>
             </div>
             
@@ -239,26 +220,28 @@ const TaskManagement = () => {
               ))}
               
               {tasks.length === 0 && (
-                <div className="text-center py-12">
-                  <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Aucune tâche trouvée
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {Object.values(filters).some(f => f) 
-                      ? 'Essayez de modifier vos filtres'
-                      : 'Commencez par créer votre première tâche'
-                    }
-                  </p>
-                  {canCreateTasks && (
-                    <button
-                      onClick={() => setShowCreateForm(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Créer une tâche
-                    </button>
-                  )}
-                </div>
+                <EmptyState
+                  icon={CheckCircle}
+                  heading="Aucune tâche trouvée"
+                  children={
+                    <div>
+                      <p className="mb-4">
+                        {Object.values(filters).some(f => f) 
+                          ? 'Essayez de modifier vos filtres'
+                          : 'Commencez par créer votre première tâche'
+                        }
+                      </p>
+                      {canCreateTasks && (
+                        <button
+                          onClick={() => setShowCreateForm(true)}
+                          className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors"
+                        >
+                          Créer une tâche
+                        </button>
+                      )}
+                    </div>
+                  }
+                />
               )}
             </div>
           ) : (
@@ -274,7 +257,7 @@ const TaskManagement = () => {
                 };
                 const statusColors = {
                   pending: 'bg-yellow-100 text-yellow-800',
-                  in_progress: 'bg-blue-100 text-blue-800',
+                  in_progress: 'bg-secondary-100 text-blue-800',
                   completed: 'bg-green-100 text-green-800',
                   cancelled: 'bg-gray-100 text-gray-800'
                 };

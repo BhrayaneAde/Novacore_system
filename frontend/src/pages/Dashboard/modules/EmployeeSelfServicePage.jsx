@@ -51,7 +51,7 @@ const EmployeeSelfServicePage = () => {
             <h2 className="text-xl font-semibold text-gray-900">Informations personnelles</h2>
             <button
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2"
             >
               {isEditing ? <Save className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
               {isEditing ? 'Sauvegarder' : 'Modifier'}
@@ -66,7 +66,7 @@ const EmployeeSelfServicePage = () => {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 />
               ) : (
                 <p className="p-3 bg-gray-50 rounded-lg">{formData.phone}</p>
@@ -79,7 +79,7 @@ const EmployeeSelfServicePage = () => {
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   rows="2"
                 />
               ) : (
@@ -94,7 +94,7 @@ const EmployeeSelfServicePage = () => {
                   type="text"
                   value={formData.emergencyContact}
                   onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 />
               ) : (
                 <p className="p-3 bg-gray-50 rounded-lg">{formData.emergencyContact}</p>
@@ -108,7 +108,7 @@ const EmployeeSelfServicePage = () => {
                   type="text"
                   value={formData.bankAccount}
                   onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                 />
               ) : (
                 <p className="p-3 bg-gray-50 rounded-lg font-mono text-sm">{formData.bankAccount}</p>
@@ -120,7 +120,7 @@ const EmployeeSelfServicePage = () => {
         {/* Suivi du temps */}
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-6">
-            <Clock className="w-6 h-6 text-blue-600" />
+            <Clock className="w-6 h-6 text-secondary-600" />
             <h2 className="text-xl font-semibold text-gray-900">Suivi du temps</h2>
           </div>
 
@@ -143,7 +143,7 @@ const EmployeeSelfServicePage = () => {
             ))}
           </div>
 
-          <button className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="w-full mt-4 px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700">
             Ajouter des heures
           </button>
         </div>
@@ -197,7 +197,7 @@ const EmployeeSelfServicePage = () => {
             <div className="p-4 bg-blue-50 rounded-lg">
               <h3 className="font-medium text-blue-900 mb-2">Évaluer vos collègues</h3>
               <p className="text-sm text-blue-700 mb-3">Feedback sur la collaboration en équipe</p>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+              <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm">
                 Donner un feedback
               </button>
             </div>

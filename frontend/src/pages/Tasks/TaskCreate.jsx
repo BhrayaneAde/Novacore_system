@@ -81,7 +81,7 @@ const TaskCreate = () => {
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Titre de la tâche"
                 />
               </div>
@@ -95,7 +95,7 @@ const TaskCreate = () => {
                   value={formData.description}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Description détaillée de la tâche..."
                 />
               </div>
@@ -109,7 +109,7 @@ const TaskCreate = () => {
                     name="assigned_to"
                     value={formData.assigned_to}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="">Sélectionner un employé</option>
                     {employees.map((emp) => (
@@ -129,7 +129,7 @@ const TaskCreate = () => {
                     value={formData.priority}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="low">Basse</option>
                     <option value="medium">Moyenne</option>
@@ -147,7 +147,7 @@ const TaskCreate = () => {
                     value={formData.status}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="todo">À faire</option>
                     <option value="in_progress">En cours</option>
@@ -165,7 +165,7 @@ const TaskCreate = () => {
                     name="due_date"
                     value={formData.due_date}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -180,7 +180,7 @@ const TaskCreate = () => {
                     onChange={handleChange}
                     step="0.5"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="Nombre d'heures estimées"
                   />
                 </div>

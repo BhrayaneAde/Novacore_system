@@ -5,7 +5,7 @@ import { Target } from "lucide-react";
 const GoalsList = ({ goals }) => {
   const getProgressColor = (progress) => {
     if (progress >= 80) return "bg-green-500";
-    if (progress >= 50) return "bg-blue-500";
+    if (progress >= 50) return "bg-secondary-500";
     return "bg-amber-500";
   };
 
@@ -15,7 +15,7 @@ const GoalsList = ({ goals }) => {
         <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
                 <Target className="w-4 h-4" />
               </div>
               <div>

@@ -3,7 +3,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Loader from "../../components/ui/Loader";
 import { useToast } from "../../components/ui/Toast";
 import { leavesService, employeesService, systemService } from "../../services";
 import { ChevronLeft, ChevronRight, Calendar, Filter, Plus, Eye, RefreshCw, Download } from "lucide-react";
@@ -277,7 +277,7 @@ const AttendanceCalendar = () => {
     const colors = {
       presence: 'bg-green-100 text-green-800 border-green-200',
       absence: 'bg-red-100 text-red-800 border-red-200',
-      leave: 'bg-blue-100 text-blue-800 border-blue-200',
+      leave: 'bg-secondary-100 text-blue-800 border-blue-200',
       holiday: 'bg-purple-100 text-purple-800 border-purple-200'
     };
     return colors[event.type] || 'bg-gray-100 text-gray-800 border-gray-200';
@@ -425,7 +425,7 @@ const AttendanceCalendar = () => {
             <div className="flex flex-wrap gap-4">
               {[
                 { type: 'presence', color: 'bg-green-100 border-green-200', label: 'Présence' },
-                { type: 'leave', color: 'bg-blue-100 border-blue-200', label: 'Congés' },
+                { type: 'leave', color: 'bg-secondary-100 border-blue-200', label: 'Congés' },
                 { type: 'absence', color: 'bg-red-100 border-red-200', label: 'Absence' },
                 { type: 'holiday', color: 'bg-purple-100 border-purple-200', label: 'Jour férié' }
               ].map(({ type, color, label }) => (
@@ -477,7 +477,10 @@ const AttendanceCalendar = () => {
         <Card>
           {loading ? (
             <div className="text-center py-12">
-              <LoadingSpinner size="lg" text="Chargement du calendrier..." />
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader size={32} />
+                <p className="mt-3 text-gray-600">Chargement du calendrier...</p>
+              </div>
             </div>
           ) : events.length === 0 ? (
             <div className="text-center py-12">
@@ -514,7 +517,7 @@ const AttendanceCalendar = () => {
                         <div className={`text-sm font-medium mb-2 ${
                           day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
                         } ${
-                          day.isToday ? 'text-blue-600' : ''
+                          day.isToday ? 'text-secondary-600' : ''
                         }`}>
                           {day.date.getDate()}
                         </div>
@@ -573,7 +576,7 @@ const AttendanceCalendar = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">En congés</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-secondary-600">
                   {events.filter(e => 
                     e.type === 'leave' && 
                     new Date(e.start) <= new Date() && 
@@ -582,7 +585,7 @@ const AttendanceCalendar = () => {
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Eye className="w-6 h-6 text-blue-600" />
+                <Eye className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>

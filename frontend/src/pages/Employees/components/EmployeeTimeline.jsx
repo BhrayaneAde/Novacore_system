@@ -17,7 +17,7 @@ const EmployeeTimeline = ({ employeeId }) => {
       title: "Employé du mois",
       date: "2023-11-01",
       icon: Award,
-      color: "bg-yellow-500",
+      color: "bg-primary-500",
     },
     {
       id: 3,
@@ -25,7 +25,7 @@ const EmployeeTimeline = ({ employeeId }) => {
       title: "Embauche",
       date: "2022-03-15",
       icon: Briefcase,
-      color: "bg-blue-500",
+      color: "bg-secondary-500",
     },
   ];
 

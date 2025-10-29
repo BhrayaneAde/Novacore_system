@@ -113,7 +113,7 @@ const ContractPromotion = () => {
                       <h3 className="font-semibold text-gray-900">{employee.name}</h3>
                       <p className="text-sm text-gray-600">{employee.currentPosition}</p>
                       <div className="flex gap-4 mt-2">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                        <span className="text-xs bg-secondary-100 text-blue-700 px-2 py-1 rounded">
                           {employee.contractType}
                         </span>
                         <span className="text-xs text-gray-600">{employee.department}</span>
@@ -187,7 +187,7 @@ const ContractPromotion = () => {
                     type="text"
                     value={formData.newPosition}
                     onChange={(e) => handleChange("newPosition", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="Ex: Développeur Senior"
                   />
                 </div>
@@ -203,7 +203,7 @@ const ContractPromotion = () => {
                       type="number"
                       value={formData.newSalary}
                       onChange={(e) => handleChange("newSalary", e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       placeholder="3500"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">
@@ -221,7 +221,7 @@ const ContractPromotion = () => {
                   <select
                     value={formData.newDepartment}
                     onChange={(e) => handleChange("newDepartment", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="">Sélectionner...</option>
                     <option value="IT">IT</option>
@@ -241,7 +241,7 @@ const ContractPromotion = () => {
                   type="date"
                   value={formData.effectiveDate}
                   onChange={(e) => handleChange("effectiveDate", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 />
               </div>
 
@@ -253,7 +253,7 @@ const ContractPromotion = () => {
                   value={formData.reason}
                   onChange={(e) => handleChange("reason", e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Ex: Reconnaissance des compétences acquises et des résultats obtenus..."
                 />
               </div>
@@ -266,7 +266,7 @@ const ContractPromotion = () => {
                   value={formData.additionalClauses}
                   onChange={(e) => handleChange("additionalClauses", e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Ajoutez des clauses spécifiques si nécessaire..."
                 />
               </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, Play, FileText, Plus, Trash2, Download, Save, Eye, Edit3 } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { employeesService } from '../../services';
 import jsPDF from 'jspdf';
 
@@ -338,7 +339,7 @@ const ContractEditor = ({ onBack }) => {
           
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <Loader size={32} />
               <p className="text-gray-500 mt-2">Chargement des employés...</p>
             </div>
           ) : (
@@ -347,10 +348,10 @@ const ContractEditor = ({ onBack }) => {
                 <div
                   key={employee.id}
                   onClick={() => handleEmployeeSelect(employee)}
-                  className="p-4 border-2 border-gray-200 rounded-xl hover:border-blue-500 cursor-pointer transition-all hover:shadow-lg"
+                  className="p-4 border-2 border-gray-200 rounded-xl hover:border-secondary-500 cursor-pointer transition-all hover:shadow-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    <div className="w-12 h-12 bg-secondary-600 rounded-full flex items-center justify-center text-white font-semibold">
                       {employee.first_name?.[0]}{employee.last_name?.[0]}
                     </div>
                     <div>
@@ -417,7 +418,7 @@ const ContractEditor = ({ onBack }) => {
                 <button
                   onClick={() => setEditStep(1)}
                   className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold ${
-                    editStep === 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    editStep === 1 ? 'bg-secondary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
@@ -426,12 +427,12 @@ const ContractEditor = ({ onBack }) => {
                   Variables
                 </button>
                 <div className={`w-20 h-1 rounded-full self-center ${
-                  editStep === 2 ? 'bg-blue-600' : 'bg-gray-300'
+                  editStep === 2 ? 'bg-secondary-600' : 'bg-gray-300'
                 }`} />
                 <button
                   onClick={() => setEditStep(2)}
                   className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold ${
-                    editStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    editStep === 2 ? 'bg-secondary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
@@ -448,7 +449,7 @@ const ContractEditor = ({ onBack }) => {
                   <div className="p-6 border-b bg-white">
                     <button
                       onClick={addArticle}
-                      className="w-full px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2"
+                      className="w-full px-4 py-3 bg-secondary-600 text-white rounded-xl hover:bg-secondary-700 flex items-center justify-center gap-2"
                     >
                       <Plus className="w-5 h-5" />
                       Nouvel article
@@ -460,12 +461,12 @@ const ContractEditor = ({ onBack }) => {
                         key={article.id}
                         onClick={() => setCurrentArticleId(article.id)}
                         className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          currentArticleId === article.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                          currentArticleId === article.id ? 'border-secondary-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                            currentArticleId === article.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                            currentArticleId === article.id ? 'bg-secondary-600 text-white' : 'bg-gray-100 text-gray-600'
                           }`}>
                             {index + 1}
                           </div>
@@ -495,7 +496,7 @@ const ContractEditor = ({ onBack }) => {
                       {/* Logo Upload */}
                       <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
                         <div className="flex items-center gap-3 mb-6">
-                          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                          <div className="w-10 h-10 bg-secondary-600 rounded-xl flex items-center justify-center">
                             <FileText className="w-5 h-5 text-white" />
                           </div>
                           <h4 className="text-xl font-bold text-gray-900">Logo de l'entreprise</h4>
@@ -528,7 +529,7 @@ const ContractEditor = ({ onBack }) => {
                                   }
                                 }}
                               />
-                              <div className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 text-base font-semibold shadow-lg group-hover:shadow-xl transform group-hover:scale-105">
+                              <div className="px-6 py-3 bg-secondary-600 text-white rounded-xl hover:bg-secondary-700 transition-all duration-200 text-base font-semibold shadow-lg group-hover:shadow-xl transform group-hover:scale-105">
                                 📎 Ajouter un logo
                               </div>
                             </label>
@@ -581,7 +582,7 @@ const ContractEditor = ({ onBack }) => {
                                 <textarea
                                   value={contractVariables[variable.key] || ''}
                                   onChange={(e) => setContractVariables(prev => ({ ...prev, [variable.key]: e.target.value }))}
-                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                                   rows={2}
                                   placeholder={`Saisir ${variable.label.toLowerCase()}`}
                                 />
@@ -590,7 +591,7 @@ const ContractEditor = ({ onBack }) => {
                                   type={variable.type}
                                   value={contractVariables[variable.key] || ''}
                                   onChange={(e) => setContractVariables(prev => ({ ...prev, [variable.key]: e.target.value }))}
-                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 focus:bg-white"
+                                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 transition-all duration-200 bg-gray-50 focus:bg-white"
                                   placeholder={`Saisir ${variable.label.toLowerCase()}`}
                                 />
                               )}
@@ -607,20 +608,20 @@ const ContractEditor = ({ onBack }) => {
                         <div
                           key={article.id}
                           className={`p-8 border-2 rounded-2xl transition-all ${
-                            currentArticleId === article.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                            currentArticleId === article.id ? 'border-secondary-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300 bg-white'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-4">
                               <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold ${
-                                currentArticleId === article.id ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                                currentArticleId === article.id ? 'bg-secondary-600 text-white' : 'bg-gray-100 text-gray-600'
                               }`}>
                                 {index + 1}
                               </div>
                               <div>
                                 <h4 className="text-xl font-bold text-gray-900">Article {index + 1}</h4>
                                 <p className={`text-sm font-medium ${
-                                  currentArticleId === article.id ? 'text-blue-600' : 'text-gray-500'
+                                  currentArticleId === article.id ? 'text-secondary-600' : 'text-gray-500'
                                 }`}>
                                   {currentArticleId === article.id ? '✏️ En cours d\'édition' : '👆 Cliquez pour éditer'}
                                 </p>
@@ -638,7 +639,7 @@ const ContractEditor = ({ onBack }) => {
                                 value={article.title}
                                 onChange={(e) => updateArticle(article.id, 'title', e.target.value)}
                                 onFocus={() => setCurrentArticleId(article.id)}
-                                className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold transition-all duration-200 bg-gray-50 focus:bg-white shadow-sm focus:shadow-md"
+                                className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 text-lg font-semibold transition-all duration-200 bg-gray-50 focus:bg-white shadow-sm focus:shadow-md"
                                 placeholder="Ex: ENGAGEMENT, RÉMUNÉRATION, DURÉE DU TRAVAIL..."
                               />
                             </div>
@@ -651,7 +652,7 @@ const ContractEditor = ({ onBack }) => {
                                 value={article.content}
                                 onChange={(e) => updateArticle(article.id, 'content', e.target.value)}
                                 onFocus={() => setCurrentArticleId(article.id)}
-                                className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base leading-relaxed resize-none transition-all duration-200 bg-gray-50 focus:bg-white shadow-sm focus:shadow-md"
+                                className="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-secondary-500 text-base leading-relaxed resize-none transition-all duration-200 bg-gray-50 focus:bg-white shadow-sm focus:shadow-md"
                                 rows={8}
                                 placeholder="Rédigez le contenu de cet article. Vous pouvez utiliser des variables entre crochets comme [NOM ENTREPRISE], [DATE DEBUT], etc."
                               />
@@ -667,7 +668,7 @@ const ContractEditor = ({ onBack }) => {
                   {editStep === 1 ? (
                     <button
                       onClick={() => setEditStep(2)}
-                      className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-lg"
+                      className="flex items-center gap-2 px-6 py-3 bg-secondary-600 text-white rounded-xl hover:bg-secondary-700 font-semibold shadow-lg"
                     >
                       Suivant : Articles <ArrowRight className="w-5 h-5" />
                     </button>

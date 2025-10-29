@@ -67,7 +67,7 @@ const EmployeePayslips = () => {
               <h1 className="text-3xl font-bold text-gray-900">Mes Fiches de Paie</h1>
               <p className="text-gray-600 mt-1">Consultez et téléchargez vos bulletins de salaire</p>
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all">
+            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all">
               <Download className="w-5 h-5" />
               Télécharger tout
             </button>
@@ -90,10 +90,10 @@ const EmployeePayslips = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Bonus total</p>
-                  <p className="text-3xl font-bold text-blue-600 mt-1">{totalBonus.toLocaleString()}€</p>
+                  <p className="text-3xl font-bold text-secondary-600 mt-1">{totalBonus.toLocaleString()}€</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-secondary-600" />
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Cette année</p>
@@ -133,13 +133,13 @@ const EmployeePayslips = () => {
                   placeholder="Rechercher par mois..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
                 />
               </div>
               <select
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
-                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[120px]"
+                className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 bg-white min-w-[120px]"
               >
                 {years.map(year => (
                   <option key={year} value={year}>{year}</option>
@@ -154,8 +154,8 @@ const EmployeePayslips = () => {
             <div key={payslip.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center">
-                    <FileText className="w-8 h-8 text-blue-600" />
+                  <div className="w-16 h-16 bg-secondary-100 rounded-2xl flex items-center justify-center">
+                    <FileText className="w-8 h-8 text-secondary-600" />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-1">{payslip.month}</h3>
@@ -168,7 +168,7 @@ const EmployeePayslips = () => {
                         Brut: {payslip.grossSalary.toLocaleString()}€
                       </span>
                       {payslip.bonus > 0 && (
-                        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                        <span className="bg-secondary-100 text-blue-800 px-3 py-1 rounded-full font-medium">
                           Bonus: {payslip.bonus}€
                         </span>
                       )}
@@ -179,7 +179,7 @@ const EmployeePayslips = () => {
                   <button className="p-3 hover:bg-gray-100 rounded-xl transition-colors">
                     <Eye className="w-5 h-5 text-gray-600" />
                   </button>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl transition-colors">
+                  <button className="bg-secondary-600 hover:bg-secondary-700 text-white p-3 rounded-xl transition-colors">
                     <Download className="w-5 h-5" />
                   </button>
                 </div>

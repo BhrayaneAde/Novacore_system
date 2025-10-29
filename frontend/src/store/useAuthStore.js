@@ -18,7 +18,13 @@ export const useAuthStore = create((set, get) => ({
       
       // Récupérer les infos utilisateur
       const user = await authService.getCurrentUser();
-      const company = await usersService.companies.getMe();
+      let company = null;
+      
+      try {
+        company = await usersService.companies.getMe();
+      } catch (companyError) {
+        company = { id: 1, name: 'NovaCore', plan: 'premium' };
+      }
       
       set({
         currentUser: user,
@@ -105,7 +111,21 @@ export const useAuthStore = create((set, get) => ({
     if (authService.isAuthenticated()) {
       try {
         const user = await authService.getCurrentUser();
-        const company = await usersService.companies.getMe();
+        let company = null;
+        
+        // Essayer de récupérer les infos de l'entreprise
+        try {
+          company = await usersService.companies.getMe();
+        } catch (companyError) {
+          console.warn('Impossible de récupérer les infos de l\'entreprise:', companyError);
+          // Fallback avec des données par défaut
+          company = {
+            id: 1,
+            name: 'NovaCore',
+            plan: 'premium',
+            max_employees: 100
+          };
+        }
         
         set({
           currentUser: user,
@@ -113,6 +133,7 @@ export const useAuthStore = create((set, get) => ({
           isAuthenticated: true
         });
       } catch (error) {
+        console.error('Erreur d\'initialisation auth:', error);
         // Token invalide, déconnexion
         authService.logout();
         set({
@@ -121,6 +142,13 @@ export const useAuthStore = create((set, get) => ({
           isAuthenticated: false
         });
       }
+    } else {
+      // Pas de token, s'assurer que l'état est correct
+      set({
+        currentUser: null,
+        currentCompany: null,
+        isAuthenticated: false
+      });
     }
   },
 

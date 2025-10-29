@@ -88,7 +88,7 @@ const LeaveRequestCreate = () => {
                   value={formData.employee_id}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Sélectionner un employé</option>
                   {employees.map((emp) => (
@@ -108,7 +108,7 @@ const LeaveRequestCreate = () => {
                   value={formData.leave_type}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="vacation">Vacances</option>
                   <option value="sick">Maladie</option>
@@ -126,7 +126,7 @@ const LeaveRequestCreate = () => {
                     value={formData.start_date}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
 
@@ -140,7 +140,7 @@ const LeaveRequestCreate = () => {
                     value={formData.end_date}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
               </div>
@@ -163,7 +163,7 @@ const LeaveRequestCreate = () => {
                   onChange={handleChange}
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Décrivez le motif de votre demande..."
                 />
               </div>

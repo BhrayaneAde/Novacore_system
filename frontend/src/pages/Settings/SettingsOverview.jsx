@@ -13,7 +13,7 @@ const SettingsOverview = () => {
       title: "Entreprise",
       description: "Informations générales de l'entreprise",
       path: "/app/settings/company",
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-blue-50 text-secondary-600",
     },
     {
       icon: Users,

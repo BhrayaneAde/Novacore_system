@@ -259,10 +259,10 @@ const InterviewScheduler = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Aujourd'hui</p>
-                <p className="text-2xl font-bold text-blue-600">{todayInterviews.length}</p>
+                <p className="text-2xl font-bold text-secondary-600">{todayInterviews.length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-blue-600" />
+                <Calendar className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>
@@ -312,7 +312,7 @@ const InterviewScheduler = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
             <Button variant="outline" onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}>
               Aujourd'hui
@@ -366,7 +366,7 @@ const InterviewScheduler = () => {
                           )}
                           
                           {interview.job_position && (
-                            <span className="text-blue-600">{interview.job_position}</span>
+                            <span className="text-secondary-600">{interview.job_position}</span>
                           )}
                         </div>
                         
@@ -441,7 +441,7 @@ const InterviewScheduler = () => {
                     <select
                       value={formData.candidate_id}
                       onChange={(e) => setFormData({...formData, candidate_id: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       required
                     >
                       <option value="">Sélectionner un candidat</option>
@@ -458,7 +458,7 @@ const InterviewScheduler = () => {
                     <select
                       value={formData.interviewer_id}
                       onChange={(e) => setFormData({...formData, interviewer_id: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       required
                     >
                       <option value="">Sélectionner un intervieweur</option>
@@ -478,7 +478,7 @@ const InterviewScheduler = () => {
                       type="date"
                       value={formData.date}
                       onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       required
                     />
                   </div>
@@ -488,7 +488,7 @@ const InterviewScheduler = () => {
                     <select
                       value={formData.time}
                       onChange={(e) => setFormData({...formData, time: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       required
                     >
                       <option value="">Sélectionner une heure</option>
@@ -505,7 +505,7 @@ const InterviewScheduler = () => {
                     <select
                       value={formData.duration}
                       onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     >
                       <option value={30}>30 min</option>
                       <option value={45}>45 min</option>
@@ -522,7 +522,7 @@ const InterviewScheduler = () => {
                     <select
                       value={formData.type}
                       onChange={(e) => setFormData({...formData, type: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     >
                       <option value="in_person">En présentiel</option>
                       <option value="video">Visioconférence</option>
@@ -536,7 +536,7 @@ const InterviewScheduler = () => {
                       <select
                         value={formData.room_id}
                         onChange={(e) => setFormData({...formData, room_id: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                       >
                         <option value="">Sélectionner une salle</option>
                         {rooms.map(room => (
@@ -555,7 +555,7 @@ const InterviewScheduler = () => {
                     type="text"
                     value={formData.job_position}
                     onChange={(e) => setFormData({...formData, job_position: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="Ex: Développeur Full Stack"
                   />
                 </div>
@@ -566,7 +566,7 @@ const InterviewScheduler = () => {
                     value={formData.notes}
                     onChange={(e) => setFormData({...formData, notes: e.target.value})}
                     rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="Notes ou instructions spéciales..."
                   />
                 </div>

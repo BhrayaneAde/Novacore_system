@@ -19,7 +19,7 @@ const AttendanceChart = ({ data = [] }) => {
           <div key={index} className="flex-1 flex flex-col items-center gap-2">
             <div className="w-full bg-gray-100 rounded-t-lg relative" style={{ height: "100%" }}>
               <div
-                className="absolute bottom-0 w-full bg-blue-500 rounded-t-lg transition-all"
+                className="absolute bottom-0 w-full bg-secondary-500 rounded-t-lg transition-all"
                 style={{ height: `${item.value}%` }}
               />
             </div>

@@ -4,7 +4,7 @@ const ContractTemplate = ({ template, selected, onClick }) => {
   const getTypeColor = (type) => {
     const colors = {
       'CDI': 'bg-green-100 text-green-800 border-green-200',
-      'CDD': 'bg-blue-100 text-blue-800 border-blue-200',
+      'CDD': 'bg-secondary-100 text-blue-800 border-blue-200',
       'STAGE': 'bg-purple-100 text-purple-800 border-purple-200',
       'FREELANCE': 'bg-orange-100 text-orange-800 border-orange-200'
     };
@@ -16,7 +16,7 @@ const ContractTemplate = ({ template, selected, onClick }) => {
       onClick={onClick}
       className={`relative border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
         selected
-          ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50"
+          ? "ring-2 ring-blue-500 border-secondary-500 bg-blue-50"
           : "border-gray-200 hover:border-blue-300"
       }`}
     >
@@ -46,7 +46,7 @@ const ContractTemplate = ({ template, selected, onClick }) => {
           </span>
           
           {selected && (
-            <div className="flex items-center text-blue-600">
+            <div className="flex items-center text-secondary-600">
               <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>

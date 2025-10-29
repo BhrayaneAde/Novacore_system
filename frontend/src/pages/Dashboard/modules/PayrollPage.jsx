@@ -69,10 +69,10 @@ const PayrollPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-secondary-600" />
             </div>
-            <span className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-secondary-600">
               {totalPayroll.toLocaleString("fr-FR")} €
             </span>
           </div>
@@ -118,7 +118,7 @@ const PayrollPage = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">Registre de paie - Janvier 2024</h2>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+            <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
               <DollarSign className="w-4 h-4" />
               <span>Traiter la paie</span>
             </button>
@@ -132,13 +132,13 @@ const PayrollPage = () => {
                 placeholder="Rechercher un employé..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
               />
             </div>
             <select 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
             >
               <option value="2024-01">Janvier 2024</option>
               <option value="2023-12">Décembre 2023</option>
@@ -205,7 +205,7 @@ const PayrollPage = () => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center space-x-2">
-                      <button className="text-blue-600 hover:text-blue-700 transition-colors">
+                      <button className="text-secondary-600 hover:text-secondary-700 transition-colors">
                         <Download className="w-4 h-4" />
                       </button>
                       {record.status === 'pending' && (
@@ -230,7 +230,7 @@ const PayrollPage = () => {
                 Salaires traités: <span className="font-bold">{processedCount}/{payrollRecords.length}</span>
               </span>
               <span className="text-sm font-medium text-gray-900">
-                Montant total: <span className="font-bold text-blue-600">{totalPayroll.toLocaleString("fr-FR")} €</span>
+                Montant total: <span className="font-bold text-secondary-600">{totalPayroll.toLocaleString("fr-FR")} €</span>
               </span>
             </div>
           </div>

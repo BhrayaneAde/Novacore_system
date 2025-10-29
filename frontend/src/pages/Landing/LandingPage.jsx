@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -12,11 +12,25 @@ import {
 } from "lucide-react";
 import ModulesSection from "../../components/ModulesSection";
 import ThemeProvider from "../../components/ThemeProvider";
+import Loader from "../../components/ui/Loader";
 
 const LandingPage = () => {
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     document.title = "NovaCore - Système d'exploitation RH complet";
+    // Simuler le chargement initial
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider>
@@ -68,13 +82,13 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 to="/register"
-                className="w-full sm:w-auto px-6 py-3 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
               >
                 Commencer gratuitement <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/login"
-                className="w-full sm:w-auto px-6 py-3 border border-white/30 text-white font-medium rounded-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 border-2 border-secondary-400/50 text-white font-medium rounded-lg hover:bg-secondary-500/20 hover:border-secondary-300 transition-all flex items-center justify-center gap-2"
               >
                 <PlayCircle className="w-4 h-4" /> Voir la vidéo
               </Link>
@@ -153,10 +167,10 @@ const LandingPage = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Employeur", icon: Crown, gradient: "from-purple-500 to-pink-500" },
-              { title: "Admin RH", icon: ShieldCheck, gradient: "from-blue-500 to-cyan-500" },
-              { title: "Manager", icon: Briefcase, gradient: "from-orange-500 to-red-500" },
-              { title: "Employé", icon: User, gradient: "from-green-500 to-emerald-500" },
+              { title: "Employeur", icon: Crown, gradient: "from-primary-500 to-primary-600" },
+              { title: "Admin RH", icon: ShieldCheck, gradient: "from-secondary-500 to-secondary-600" },
+              { title: "Manager", icon: Briefcase, gradient: "from-primary-400 to-secondary-500" },
+              { title: "Employé", icon: User, gradient: "from-secondary-400 to-teal-500" },
             ].map((r, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${r.gradient} flex items-center justify-center mb-4`}>
@@ -180,10 +194,10 @@ const LandingPage = () => {
             Rejoignez les entreprises qui simplifient leurs opérations avec NovaCore.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/register" className="px-8 py-4 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-100 transition">
+            <Link to="/register" className="px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg font-medium hover:from-primary-600 hover:to-primary-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
               Démarrer gratuitement
             </Link>
-            <Link to="/login" className="px-8 py-4 border border-white/30 text-white rounded-lg font-medium hover:bg-white/10 transition">
+            <Link to="/login" className="px-8 py-4 border-2 border-secondary-400/50 text-white rounded-lg font-medium hover:bg-secondary-500/20 hover:border-secondary-300 transition-all">
               Planifier une démo
             </Link>
           </div>

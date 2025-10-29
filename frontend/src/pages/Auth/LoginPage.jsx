@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Lock, Mail, AlertCircle, Eye, EyeOff, Shield, Users, Building2, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
+import Loader from '../../components/ui/Loader';
+import Toast from '../../components/ui/Toast';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -41,18 +43,18 @@ const LoginPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-secondary-50 via-white to-primary-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">NovaCore</h1>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Connexion</h2>
           <p className="text-gray-600">
             Pas encore de compte ?{' '}
-            <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+            <Link to="/register" className="font-semibold text-secondary-600 hover:text-secondary-700 transition-colors">
               Créer un compte
             </Link>
           </p>
@@ -60,12 +62,12 @@ const LoginPage = () => {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          )}
+          <Toast
+            show={!!error}
+            type="error"
+            message={error}
+            onClose={() => setError('')}
+          />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -80,7 +82,7 @@ const LoginPage = () => {
                   id="email"
                   type="email"
                   required
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="votre@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -100,7 +102,7 @@ const LoginPage = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Votre mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -124,13 +126,13 @@ const LoginPage = () => {
                 <input
                   id="remember"
                   type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
+                  className="h-4 w-4 text-secondary-600 focus:ring-secondary-500 border-gray-300 rounded transition-colors"
                 />
                 <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
                   Se souvenir de moi
                 </label>
               </div>
-              <Link to="/forgot-password" className="text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+              <Link to="/forgot-password" className="text-sm font-semibold text-secondary-600 hover:text-secondary-500 transition-colors">
                 Mot de passe oublié ?
               </Link>
             </div>
@@ -138,11 +140,11 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full bg-gradient-to-r from-secondary-600 to-primary-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-secondary-700 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader size={20} className="mr-2" />
                   Connexion...
                 </div>
               ) : (
@@ -170,11 +172,11 @@ const LoginPage = () => {
                   <div className="flex items-center space-x-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                       account.color === 'purple' ? 'bg-purple-100' :
-                      account.color === 'blue' ? 'bg-blue-100' : 'bg-green-100'
+                      account.color === 'blue' ? 'bg-secondary-100' : 'bg-green-100'
                     }`}>
                       <IconComponent className={`w-4 h-4 ${
                         account.color === 'purple' ? 'text-purple-600' :
-                        account.color === 'blue' ? 'text-blue-600' : 'text-green-600'
+                        account.color === 'blue' ? 'text-secondary-600' : 'text-green-600'
                       }`} />
                     </div>
                     <div className="text-left">

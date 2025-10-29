@@ -3,7 +3,7 @@ import DashboardLayout from '../../layouts/DashboardLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import Loader from '../../components/ui/Loader';
 import { useToast } from '../../components/ui/Toast';
 import { systemService } from '../../services';
 import { Plus, Users, CheckCircle, Clock, AlertTriangle, Settings, Eye, Play } from 'lucide-react';
@@ -122,8 +122,8 @@ const OnboardingDashboard = () => {
 
   const getProgressColor = (percentage) => {
     if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 50) return 'bg-blue-500';
-    if (percentage >= 25) return 'bg-yellow-500';
+    if (percentage >= 50) return 'bg-secondary-500';
+    if (percentage >= 25) return 'bg-primary-500';
     return 'bg-red-500';
   };
 
@@ -167,12 +167,12 @@ const OnboardingDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Workflows actifs</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-secondary-600">
                   {analytics?.active_workflows || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>
@@ -234,7 +234,7 @@ const OnboardingDashboard = () => {
                   onClick={() => setSelectedTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm ${
                     selectedTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
+                      ? 'border-secondary-500 text-secondary-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -253,7 +253,10 @@ const OnboardingDashboard = () => {
           <div className="p-6">
             {loading ? (
               <div className="text-center py-8">
-                <LoadingSpinner size="lg" text="Chargement des workflows..." />
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Loader size={32} />
+                  <p className="mt-3 text-gray-600">Chargement des workflows...</p>
+                </div>
               </div>
             ) : workflows.length === 0 ? (
               <div className="text-center py-8">

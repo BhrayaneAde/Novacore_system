@@ -5,7 +5,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Loader from "../../components/ui/Loader";
 import { useToast } from "../../components/ui/Toast";
 import { ArrowLeft, Play, CheckCircle, AlertTriangle, Download, Eye, Calculator, FileText, Users, Euro } from "lucide-react";
 
@@ -376,7 +376,7 @@ const PayrollProcess = () => {
                   <div className="flex flex-col items-center flex-1">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                       s.completed ? "bg-green-600 text-white" :
-                      s.id === step ? "bg-blue-600 text-white" :
+                      s.id === step ? "bg-secondary-600 text-white" :
                       "bg-gray-200 text-gray-600"
                     }`}>
                       {s.completed ? <CheckCircle className="w-6 h-6" /> : s.id}
@@ -401,7 +401,7 @@ const PayrollProcess = () => {
             {step === 1 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+                  <Calendar className="w-6 h-6 text-secondary-600" />
                   <h3 className="text-xl font-semibold text-gray-900">Sélection de la période de paie</h3>
                 </div>
                 
@@ -413,7 +413,7 @@ const PayrollProcess = () => {
                     <select 
                       value={selectedPeriod} 
                       onChange={(e) => setSelectedPeriod(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     >
                       <option value="">Sélectionner une période</option>
                       <option value="2024-12">Décembre 2024</option>
@@ -439,17 +439,20 @@ const PayrollProcess = () => {
             {step === 2 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <Users className="w-6 h-6 text-blue-600" />
+                  <Users className="w-6 h-6 text-secondary-600" />
                   <h3 className="text-xl font-semibold text-gray-900">Vérification des données employés</h3>
                 </div>
                 
                 {loading ? (
                   <div className="text-center py-8">
-                    <LoadingSpinner size="lg" text="Chargement des données..." />
+                    <div className="flex flex-col items-center justify-center py-8">
+                      <Loader size={32} />
+                      <p className="mt-3 text-gray-600">Chargement des données...</p>
+                    </div>
                   </div>
                 ) : payrollData.length === 0 ? (
                   <div className="text-center py-8">
-                    <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                    <AlertTriangle className="w-12 h-12 text-primary-500 mx-auto mb-4" />
                     <p className="text-gray-600">Aucune donnée trouvée pour cette période</p>
                     {retryCount < 3 && (
                       <Button 
@@ -499,7 +502,7 @@ const PayrollProcess = () => {
             {step === 3 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <Calculator className="w-6 h-6 text-blue-600" />
+                  <Calculator className="w-6 h-6 text-secondary-600" />
                   <h3 className="text-xl font-semibold text-gray-900">Résultats des calculs</h3>
                 </div>
                 
@@ -528,7 +531,7 @@ const PayrollProcess = () => {
                   
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-medium text-blue-900">Total Net</h4>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-secondary-600">
                       {Object.values(calculations).reduce((sum, calc) => sum + calc.net_salary, 0).toLocaleString('fr-FR')} €
                     </p>
                   </div>
@@ -547,7 +550,7 @@ const PayrollProcess = () => {
             {step === 4 && (
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-blue-600" />
+                  <FileText className="w-6 h-6 text-secondary-600" />
                   <h3 className="text-xl font-semibold text-gray-900">Génération des bulletins</h3>
                 </div>
                 
@@ -561,17 +564,20 @@ const PayrollProcess = () => {
                   
                   {processingStatus === 'generating' && (
                     <div>
-                      <LoadingSpinner size="xl" text="Génération en cours..." />
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Loader size={48} />
+                        <p className="mt-3 text-gray-600">Génération en cours...</p>
+                      </div>
                     </div>
                   )}
                   
                   {(processingStatus === 'completed' || processingStatus === 'partial') && (
                     <div>
                       <CheckCircle className={`w-16 h-16 mx-auto mb-4 ${
-                        processingStatus === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                        processingStatus === 'completed' ? 'text-green-600' : 'text-primary-600'
                       }`} />
                       <p className={`font-medium ${
-                        processingStatus === 'completed' ? 'text-green-600' : 'text-yellow-600'
+                        processingStatus === 'completed' ? 'text-green-600' : 'text-primary-600'
                       }`}>
                         {processingStatus === 'completed' ? 
                           'Bulletins générés avec succès' : 

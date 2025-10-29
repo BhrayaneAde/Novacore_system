@@ -4,10 +4,26 @@ import apiClient from '../api/client';
 // Service pour l'inscription initiale (sans token)
 const publicClient = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}`,
+  timeout: 10000, // 10 secondes
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Intercepteur pour gérer les erreurs réseau
+publicClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.code = 'NETWORK_ERROR';
+      error.message = 'Timeout de connexion';
+    } else if (!error.response) {
+      error.code = 'NETWORK_ERROR';
+      error.message = 'Erreur de réseau';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authService = {
   async login(email, password) {

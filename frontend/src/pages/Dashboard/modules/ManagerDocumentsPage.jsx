@@ -55,7 +55,7 @@ const ManagerDocumentsPage = () => {
       {/* Actions */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2">
             <Upload className="w-4 h-4" />
             Télécharger
           </button>
@@ -72,8 +72,8 @@ const ManagerDocumentsPage = () => {
             <div key={doc.id} className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-secondary-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">{doc.name}</h3>
@@ -105,7 +105,7 @@ const ManagerDocumentsPage = () => {
                         setSelectedDoc(doc);
                         setShowShareModal(true);
                       }}
-                      className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg"
+                      className="p-2 text-secondary-600 hover:bg-secondary-100 rounded-lg"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
@@ -181,7 +181,7 @@ const ManagerDocumentsPage = () => {
               </button>
               <button
                 onClick={() => handleShare(selectedDoc.id, [teamMembers[0]?.id], "")}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                className="px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 Partager

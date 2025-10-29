@@ -4,7 +4,7 @@ import { UserPlus, FileText, Calendar, TrendingUp } from "lucide-react";
 const activities = [
   {
     icon: UserPlus,
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-blue-50 text-secondary-600",
     title: "Nouvel employé ajouté",
     description: "Thomas Martin a rejoint l'équipe Développement",
     time: "Il y a 2 heures",
@@ -32,7 +32,7 @@ const activities = [
   },
   {
     icon: UserPlus,
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-blue-50 text-secondary-600",
     title: "Candidature reçue",
     description: "Poste: Développeur Full Stack Senior",
     time: "Il y a 3 jours",
@@ -44,7 +44,7 @@ const ActivityFeed = () => {
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">Activité récente</h2>
-        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+        <button className="text-sm text-secondary-600 hover:text-secondary-700 font-medium">
           Voir tout
         </button>
       </div>

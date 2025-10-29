@@ -68,7 +68,7 @@ const SearchBar = ({
               value={query}
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(query.length > 0 && suggestions.length > 0)}
-              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             />
             {query && (
               <button
@@ -105,7 +105,7 @@ const SearchBar = ({
             onClick={() => setShowFilterPanel(!showFilterPanel)}
             className={`px-3 py-2 border rounded-lg transition-colors ${
               showFilterPanel 
-                ? 'border-blue-500 bg-blue-50 text-blue-600' 
+                ? 'border-secondary-500 bg-blue-50 text-secondary-600' 
                 : 'border-gray-300 text-gray-600 hover:bg-gray-50'
             }`}
           >
@@ -126,7 +126,7 @@ const SearchBar = ({
                 <select
                   value={filter.value || ''}
                   onChange={(e) => onFilterChange(key, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Tous</option>
                   {filter.options.map(option => (

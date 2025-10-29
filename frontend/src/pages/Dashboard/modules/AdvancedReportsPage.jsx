@@ -1,14 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, Download, Filter, Calendar, TrendingUp, Users, DollarSign, Clock } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 import BarChart from '../../../components/charts/BarChart';
 import LineChart from '../../../components/charts/LineChart';
 import PieChart from '../../../components/charts/PieChart';
+import Loader from '../../../components/ui/Loader';
 
 const AdvancedReportsPage = () => {
   const { currentUser, isEmployer, isHRAdmin, isManager } = useAuthStore();
   const [selectedReport, setSelectedReport] = useState('performance');
   const [dateRange, setDateRange] = useState('last_month');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
 
   const reports = {
     performance: {
@@ -148,7 +163,7 @@ const AdvancedReportsPage = () => {
               <select
                 value={selectedReport}
                 onChange={(e) => setSelectedReport(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               >
                 {availableReports.map(key => (
                   <option key={key} value={key}>{reports[key].title}</option>
@@ -161,7 +176,7 @@ const AdvancedReportsPage = () => {
               <select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="last_week">7 derniers jours</option>
                 <option value="last_month">30 derniers jours</option>
@@ -178,7 +193,7 @@ const AdvancedReportsPage = () => {
             </button>
             <button
               onClick={exportReport}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2"
             >
               <Download className="w-4 h-4" />
               Exporter
@@ -217,8 +232,8 @@ const AdvancedReportsPage = () => {
                   {currentReport.data.individualTop.map((person, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 font-semibold text-sm">{index + 1}</span>
+                        <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center">
+                          <span className="text-secondary-600 font-semibold text-sm">{index + 1}</span>
                         </div>
                         <div>
                           <p className="font-medium text-gray-900">{person.name}</p>
@@ -318,10 +333,10 @@ const AdvancedReportsPage = () => {
           
           <div className="bg-white rounded-xl border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <Users className="w-6 h-6 text-blue-600" />
+              <Users className="w-6 h-6 text-secondary-600" />
               <h3 className="font-semibold text-gray-900">Équipes</h3>
             </div>
-            <p className="text-2xl font-bold text-blue-600">4</p>
+            <p className="text-2xl font-bold text-secondary-600">4</p>
             <p className="text-sm text-gray-600">départements analysés</p>
           </div>
           

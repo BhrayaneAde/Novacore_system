@@ -1,15 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useHRStore } from "../../store/useHRStore";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
+import Loader from "../../components/ui/Loader";
 import { Target, TrendingUp, Award, CheckCircle, Plus } from "lucide-react";
 
 const PerformanceOverview = () => {
   const navigate = useNavigate();
   const { performanceReviews } = useHRStore();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center min-h-96">
+          <Loader />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const renderStars = (rating) => {
     return (
@@ -30,7 +47,7 @@ const PerformanceOverview = () => {
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return "bg-green-500";
-    if (progress >= 50) return "bg-blue-500";
+    if (progress >= 50) return "bg-secondary-500";
     return "bg-amber-500";
   };
 
@@ -74,7 +91,7 @@ const PerformanceOverview = () => {
 
           <Card>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>

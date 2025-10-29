@@ -28,7 +28,7 @@ const ContractSummary = ({ contractData }) => {
       icon: FileText,
       label: "Type de contrat",
       value: getContractTypeName(contractData.contractType),
-      color: "text-blue-600",
+      color: "text-secondary-600",
     },
     {
       icon: User,
@@ -92,7 +92,7 @@ const ContractSummary = ({ contractData }) => {
       {contractData.specificClauses && (
         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
           <div className="flex items-start gap-3">
-            <FileText className="w-5 h-5 text-blue-600 mt-1" />
+            <FileText className="w-5 h-5 text-secondary-600 mt-1" />
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-blue-900 mb-1">Clauses spécifiques</h3>
               <p className="text-sm text-blue-800">{contractData.specificClauses}</p>

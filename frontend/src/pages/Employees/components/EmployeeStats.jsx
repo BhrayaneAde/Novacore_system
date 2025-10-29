@@ -11,7 +11,7 @@ const EmployeeStats = ({ employee }) => {
       icon: DollarSign,
       label: "Salaire annuel",
       value: `${employee.salary?.toLocaleString("fr-FR")} €`,
-      color: "bg-blue-50 text-blue-600",
+      color: "bg-blue-50 text-secondary-600",
     },
     {
       icon: Calendar,

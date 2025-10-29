@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { CheckSquare, Clock, Calendar, AlertCircle, CheckCircle, User, MessageSquare } from "lucide-react";
-import { tasksService } from "../../../services";
+import Loader from '../../../components/ui/Loader';
+import { systemService } from "../../../services";
+
+// Service de compatibilité
+const tasksService = {
+  getMyTasks: () => systemService.tasks?.getAll() || Promise.resolve({ data: [] }),
+  update: (id, data) => systemService.tasks?.update(id, data) || Promise.resolve()
+};
 import { useAuthStore } from "../../../store/useAuthStore";
 
 const EmployeeTasksPage = () => {
@@ -44,7 +51,7 @@ const EmployeeTasksPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-50';
-      case 'in_progress': return 'text-blue-600 bg-blue-50';
+      case 'in_progress': return 'text-secondary-600 bg-blue-50';
       case 'pending': return 'text-gray-600 bg-gray-50';
       default: return 'text-gray-600 bg-gray-50';
     }
@@ -111,7 +118,7 @@ const EmployeeTasksPage = () => {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement de vos tâches...</span>
       </div>
     );
@@ -124,7 +131,7 @@ const EmployeeTasksPage = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Mes Tâches</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Comment ça fonctionne</h3>
               <p className="text-blue-700 text-sm">
@@ -162,7 +169,7 @@ const EmployeeTasksPage = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-600">En cours</p>
+              <p className="text-sm font-medium text-secondary-600">En cours</p>
               <p className="text-2xl font-bold text-blue-900">{inProgressTasks}</p>
             </div>
             <Clock className="w-8 h-8 text-blue-400" />
@@ -272,7 +279,7 @@ const EmployeeTasksPage = () => {
                       <div className="flex items-end">
                         <button
                           onClick={() => submitTaskUpdate(task.id)}
-                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                          className="w-full px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 text-sm font-medium"
                         >
                           Mettre à jour
                         </button>
@@ -282,7 +289,7 @@ const EmployeeTasksPage = () => {
                     {taskUpdate[task.id]?.status === 'completed' && (
                       <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                         <div className="flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                          <AlertCircle className="w-4 h-4 text-primary-600" />
                           <p className="text-sm text-yellow-800">
                             Quand vous marquez une tâche comme terminée, votre manager recevra une notification pour la valider.
                           </p>

@@ -4,7 +4,7 @@ const PieChart = ({ data, title }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
   let cumulativePercentage = 0;
 
-  const colors = ['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500', 'bg-purple-500'];
+  const colors = ['bg-secondary-500', 'bg-green-500', 'bg-primary-500', 'bg-red-500', 'bg-purple-500'];
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border">

@@ -37,7 +37,7 @@ const DocumentComments = ({ shareId, currentEmployeeId, isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <MessageSquare className="w-6 h-6 text-blue-600" />
+            <MessageSquare className="w-6 h-6 text-secondary-600" />
             <div>
               <h3 className="text-lg font-semibold">Commentaires</h3>
               <p className="text-sm text-gray-600">{share.document?.name}</p>
@@ -79,7 +79,7 @@ const DocumentComments = ({ shareId, currentEmployeeId, isOpen, onClose }) => {
                       <div
                         className={`inline-block p-3 rounded-lg max-w-xs lg:max-w-md ${
                           isMyComment
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-secondary-600 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
@@ -111,7 +111,7 @@ const DocumentComments = ({ shareId, currentEmployeeId, isOpen, onClose }) => {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Ajouter un commentaire..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 resize-none"
                 rows={2}
                 maxLength={500}
               />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, TrendingUp, Target, Award } from 'lucide-react';
 import { systemService } from '../../../services';
+import Loader from '../../../components/ui/Loader';
 
 const SuccessionPlanningPage = () => {
   const [successors, setSuccessors] = useState([]);
@@ -36,9 +37,9 @@ const SuccessionPlanningPage = () => {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Chargement...</span>
+      <div className="p-8 flex flex-col items-center justify-center py-12">
+        <Loader size={48} />
+        <span className="mt-4 text-gray-600">Chargement de la planification...</span>
       </div>
     );
   }
@@ -54,9 +55,9 @@ const SuccessionPlanningPage = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-semibold">Postes Critiques</h3>
-            <Users className="w-5 h-5 text-blue-500" />
+            <Users className="w-5 h-5 text-secondary-500" />
           </div>
-          <p className="text-3xl font-bold text-blue-600">{successors.length}</p>
+          <p className="text-3xl font-bold text-secondary-600">{successors.length}</p>
           <p className="text-sm text-gray-500">Identifiés</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -98,7 +99,7 @@ const SuccessionPlanningPage = () => {
                     <h3 className="text-lg font-semibold text-gray-900">{plan.position}</h3>
                     <p className="text-sm text-gray-600">Titulaire actuel: {plan.currentHolder}</p>
                   </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  <span className="px-3 py-1 bg-secondary-100 text-blue-800 rounded-full text-sm font-medium">
                     {plan.successors.length} successeur{plan.successors.length > 1 ? 's' : ''}
                   </span>
                 </div>

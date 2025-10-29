@@ -12,7 +12,7 @@ const LeaveBalance = ({ employeeId }) => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+        <div className="w-10 h-10 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
           <Calendar className="w-5 h-5" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900">Solde de congés</h3>

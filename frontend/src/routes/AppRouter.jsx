@@ -5,6 +5,7 @@ import LandingPage from '../pages/Landing/LandingPage';
 import AuthPage from '../pages/Auth/AuthPage';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import PermissionGuard from '../components/auth/PermissionGuard';
+import Loader from '../components/ui/Loader';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, initializeAuth } = useAuthStore();
@@ -20,8 +21,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="flex flex-col items-center">
+          <Loader size={48} />
+          <p className="mt-4 text-gray-600 font-medium">Initialisation...</p>
+        </div>
       </div>
     );
   }
@@ -47,8 +51,11 @@ const PublicRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="flex flex-col items-center">
+          <Loader size={48} />
+          <p className="mt-4 text-gray-600 font-medium">Chargement...</p>
+        </div>
       </div>
     );
   }

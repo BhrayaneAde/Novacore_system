@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Crown, Check, X, Clock, User, Award } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import Loader from '../../../components/ui/Loader';
 
 const ManagerNominationPage = () => {
   const { currentUser, isEmployer } = useAuthStore();
+  const [loading, setLoading] = useState(true);
   const [nominations, setNominations] = useState([
     {
       id: 1,
@@ -44,6 +46,19 @@ const ManagerNominationPage = () => {
     }
   ]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-96">
+        <Loader />
+      </div>
+    );
+  }
+
   if (!isEmployer()) {
     return (
       <div className="p-6 text-center">
@@ -79,10 +94,10 @@ const ManagerNominationPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-6 h-6 text-yellow-600" />
+            <Clock className="w-6 h-6 text-primary-600" />
             <h3 className="font-semibold text-gray-900">En attente</h3>
           </div>
-          <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
+          <p className="text-2xl font-bold text-primary-600">{pendingCount}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -152,7 +167,7 @@ const ManagerNominationPage = () => {
                 <h4 className="font-semibold text-gray-900 mb-2">Compétences clés</h4>
                 <div className="flex flex-wrap gap-2">
                   {nomination.skills.map((skill, index) => (
-                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                    <span key={index} className="px-2 py-1 bg-secondary-100 text-blue-800 rounded-full text-xs font-medium">
                       {skill}
                     </span>
                   ))}
@@ -202,7 +217,7 @@ const ManagerNominationPage = () => {
       {/* Formation des nouveaux managers */}
       <div className="mt-12 bg-blue-50 rounded-xl p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Award className="w-6 h-6 text-blue-600" />
+          <Award className="w-6 h-6 text-secondary-600" />
           <h2 className="text-xl font-semibold text-blue-900">Formation des Nouveaux Managers</h2>
         </div>
         <p className="text-blue-700 mb-4">

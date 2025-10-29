@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bell, X, Share2, Clock, CheckCircle } from 'lucide-react';
 import { useHRStore } from '../../store/useHRStore';
 import Button from './Button';
+import EmptyState from './EmptyState';
 
 const ShareNotifications = ({ employeeId }) => {
   const { shareNotifications, markNotificationAsRead } = useHRStore();
@@ -17,7 +18,7 @@ const ShareNotifications = ({ employeeId }) => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'document_shared':
-        return <Share2 className="w-4 h-4 text-blue-600" />;
+        return <Share2 className="w-4 h-4 text-secondary-600" />;
       case 'share_expiring':
         return <Clock className="w-4 h-4 text-orange-600" />;
       case 'share_accessed':
@@ -81,9 +82,11 @@ const ShareNotifications = ({ employeeId }) => {
 
             <div className="max-h-96 overflow-y-auto">
               {userNotifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                  <p>Aucune notification</p>
+                <div className="p-4">
+                  <EmptyState
+                    icon={Bell}
+                    heading="Aucune notification"
+                  />
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -111,7 +114,7 @@ const ShareNotifications = ({ employeeId }) => {
                           </p>
                         </div>
                         {!notification.read && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2" />
+                          <div className="w-2 h-2 bg-secondary-600 rounded-full flex-shrink-0 mt-2" />
                         )}
                       </div>
                     </div>

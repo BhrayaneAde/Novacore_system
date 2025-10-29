@@ -39,7 +39,7 @@ const ManagerPlanningPage = () => {
       {/* Actions */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Nouveau créneau
           </button>
@@ -66,8 +66,8 @@ const ManagerPlanningPage = () => {
         {teamMembers.map(member => (
           <div key={member.id} className="grid grid-cols-6 border-t border-gray-100">
             <div className="p-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold text-sm">{member.avatar}</span>
+              <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                <span className="text-secondary-600 font-semibold text-sm">{member.avatar}</span>
               </div>
               <div>
                 <p className="font-medium text-gray-900">{member.name}</p>
@@ -104,10 +104,10 @@ const ManagerPlanningPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div className="bg-white p-6 rounded-xl border border-gray-100">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="w-5 h-5 text-blue-600" />
+            <Clock className="w-5 h-5 text-secondary-600" />
             <h3 className="font-semibold text-gray-900">Heures planifiées</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">120h</p>
+          <p className="text-2xl font-bold text-secondary-600">120h</p>
           <p className="text-sm text-gray-600">Cette semaine</p>
         </div>
         

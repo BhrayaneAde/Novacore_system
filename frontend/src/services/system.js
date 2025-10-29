@@ -1,5 +1,22 @@
 import apiClient from '../api/client';
 
+// Cache simple pour éviter les appels répétés
+let employeesCache = null;
+let cacheTimestamp = null;
+const CACHE_DURATION = 30000; // 30 secondes
+
+const getCachedEmployees = async () => {
+  const now = Date.now();
+  if (employeesCache && cacheTimestamp && (now - cacheTimestamp) < CACHE_DURATION) {
+    return employeesCache;
+  }
+  
+  const response = await apiClient.get('/employees/employees');
+  employeesCache = response;
+  cacheTimestamp = now;
+  return response;
+};
+
 export const systemService = {
   // Notifications
   notifications: {
@@ -32,7 +49,7 @@ export const systemService = {
 
   // Employees service
   employees: {
-    getAll: () => apiClient.get('/employees/test'),
+    getAll: () => getCachedEmployees(),
     getById: (id) => apiClient.get(`/employees/employees/${id}`),
     create: (data) => apiClient.post('/employees/employees', data),
     update: (id, data) => apiClient.put(`/employees/employees/${id}`, data),
@@ -43,7 +60,7 @@ export const systemService = {
   manager: {
     getAll: async () => {
       try {
-        const response = await apiClient.get('/employees/test');
+        const response = await getCachedEmployees();
         const employees = response.data?.employees || response.employees || [];
         // Filter employees with "Manager" in their role
         const managers = employees.filter(emp => emp.role && emp.role.toLowerCase().includes('manager'));

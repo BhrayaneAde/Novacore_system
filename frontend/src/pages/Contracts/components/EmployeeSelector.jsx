@@ -10,7 +10,7 @@ const EmployeeSelector = ({ employees, selectedId, onSelect }) => {
           onClick={() => onSelect(employee)}
           className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
             selectedId === employee.id
-              ? "border-blue-500 bg-blue-50 shadow-md"
+              ? "border-secondary-500 bg-blue-50 shadow-md"
               : "border-gray-200 hover:border-blue-300 hover:shadow-sm"
           }`}
         >
@@ -28,7 +28,7 @@ const EmployeeSelector = ({ employees, selectedId, onSelect }) => {
               )}
             </div>
             {selectedId === employee.id && (
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 bg-secondary-600 rounded-full flex items-center justify-center">
                 <Check className="w-4 h-4 text-white" />
               </div>
             )}

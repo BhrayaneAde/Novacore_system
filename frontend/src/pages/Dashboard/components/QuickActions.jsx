@@ -5,7 +5,7 @@ const actions = [
   {
     icon: UserPlus,
     label: "Ajouter un employé",
-    color: "bg-blue-600 hover:bg-blue-700",
+    color: "bg-secondary-600 hover:bg-secondary-700",
   },
   {
     icon: FileText,

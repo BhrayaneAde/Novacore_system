@@ -5,6 +5,7 @@ import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
 import { Calculator, Download, History, Info, TrendingUp, AlertCircle } from "lucide-react";
+import Loader from '../../components/ui/Loader';
 
 const TaxCalculator = () => {
   const [formData, setFormData] = useState({
@@ -203,7 +204,7 @@ const TaxCalculator = () => {
   const getSalaryBracket = (netSalary) => {
     if (netSalary < 1500) return { label: 'SMIC', color: 'text-red-600' };
     if (netSalary < 2500) return { label: 'Salaire moyen', color: 'text-orange-600' };
-    if (netSalary < 4000) return { label: 'Salaire élevé', color: 'text-blue-600' };
+    if (netSalary < 4000) return { label: 'Salaire élevé', color: 'text-secondary-600' };
     return { label: 'Salaire très élevé', color: 'text-green-600' };
   };
 
@@ -245,7 +246,7 @@ const TaxCalculator = () => {
                     type="number"
                     value={formData.gross_salary}
                     onChange={(e) => setFormData({...formData, gross_salary: parseFloat(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     min="0"
                     step="1000"
                   />
@@ -258,7 +259,7 @@ const TaxCalculator = () => {
                   <select
                     value={formData.employment_type}
                     onChange={(e) => setFormData({...formData, employment_type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="cdi">CDI</option>
                     <option value="cdd">CDD</option>
@@ -274,7 +275,7 @@ const TaxCalculator = () => {
                   <select
                     value={formData.family_situation}
                     onChange={(e) => setFormData({...formData, family_situation: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="single">Célibataire</option>
                     <option value="married">Marié(e)</option>
@@ -291,7 +292,7 @@ const TaxCalculator = () => {
                     type="number"
                     value={formData.dependents}
                     onChange={(e) => setFormData({...formData, dependents: parseInt(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     min="0"
                     max="10"
                   />
@@ -304,7 +305,7 @@ const TaxCalculator = () => {
                   <select
                     value={formData.region}
                     onChange={(e) => setFormData({...formData, region: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="ile_de_france">Île-de-France</option>
                     <option value="province">Province</option>
@@ -326,7 +327,7 @@ const TaxCalculator = () => {
                         type="number"
                         value={benefit.amount}
                         onChange={(e) => handleBenefitChange(index, 'amount', e.target.value)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-secondary-500"
                         min="0"
                         placeholder="0"
                       />
@@ -343,7 +344,9 @@ const TaxCalculator = () => {
             {loading ? (
               <Card>
                 <div className="text-center py-12">
-                  <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <div className="flex flex-col items-center">
+                    <Loader size={32} />
+                  </div>
                   <p>Calcul en cours...</p>
                 </div>
               </Card>
@@ -479,7 +482,7 @@ const TaxCalculator = () => {
                 {/* Informations légales */}
                 <Card>
                   <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
-                    <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <Info className="w-5 h-5 text-secondary-600 mt-0.5" />
                     <div className="text-sm text-blue-800">
                       <p className="font-medium mb-1">Informations importantes</p>
                       <ul className="space-y-1 text-xs">

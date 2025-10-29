@@ -193,7 +193,7 @@ const EmployeeCreate = () => {
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.name ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Jean Dupont"
@@ -211,7 +211,7 @@ const EmployeeCreate = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="jean.dupont@novacore.com"
@@ -229,7 +229,7 @@ const EmployeeCreate = () => {
                   value={formData.role}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.role ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Développeur Full Stack"
@@ -246,7 +246,7 @@ const EmployeeCreate = () => {
                   value={formData.department}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.department ? 'border-red-300' : 'border-gray-300'
                   }`}
                 >
@@ -270,7 +270,7 @@ const EmployeeCreate = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.phone ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="+33 6 12 34 56 78"
@@ -288,7 +288,7 @@ const EmployeeCreate = () => {
                   value={formData.salary}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.salary ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="50000"
@@ -306,7 +306,7 @@ const EmployeeCreate = () => {
                   value={formData.hireDate}
                   onChange={handleChange}
                   required
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.hireDate ? 'border-red-300' : 'border-gray-300'
                   }`}
                 />
@@ -327,7 +327,7 @@ const EmployeeCreate = () => {
                   name="birthDate"
                   value={formData.birthDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 />
               </div>
               
@@ -339,7 +339,7 @@ const EmployeeCreate = () => {
                   name="maritalStatus"
                   value={formData.maritalStatus}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Sélectionner</option>
                   <option value="single">Célibataire</option>
@@ -358,7 +358,7 @@ const EmployeeCreate = () => {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="123 Rue de la Paix"
                 />
               </div>
@@ -372,7 +372,7 @@ const EmployeeCreate = () => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Paris"
                 />
               </div>
@@ -386,7 +386,7 @@ const EmployeeCreate = () => {
                   name="postalCode"
                   value={formData.postalCode}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.postalCode ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="75001"
@@ -403,7 +403,7 @@ const EmployeeCreate = () => {
                   name="socialSecurityNumber"
                   value={formData.socialSecurityNumber}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.socialSecurityNumber ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="1 90 03 75 001 123 45"
@@ -420,7 +420,7 @@ const EmployeeCreate = () => {
                   name="iban"
                   value={formData.iban}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                     errors.iban ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="FR76 1234 5678 9012 3456 7890 123"
@@ -437,7 +437,7 @@ const EmployeeCreate = () => {
                   name="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Marie Dupont"
                 />
               </div>
@@ -451,7 +451,7 @@ const EmployeeCreate = () => {
                   name="emergencyPhone"
                   value={formData.emergencyPhone}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="+33 6 98 76 54 32"
                 />
               </div>

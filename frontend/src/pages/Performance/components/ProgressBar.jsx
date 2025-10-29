@@ -2,7 +2,7 @@ import React from "react";
 
 const ProgressBar = ({ progress = 0, label, showPercentage = true, color = "blue" }) => {
   const colorClasses = {
-    blue: "bg-blue-500",
+    blue: "bg-secondary-500",
     green: "bg-green-500",
     amber: "bg-amber-500",
     red: "bg-red-500",

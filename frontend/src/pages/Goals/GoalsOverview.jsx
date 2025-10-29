@@ -66,7 +66,7 @@ const GoalsOverview = () => {
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return 'bg-green-500';
-    if (progress >= 50) return 'bg-yellow-500';
+    if (progress >= 50) return 'bg-primary-500';
     return 'bg-red-500';
   };
 
@@ -108,7 +108,7 @@ const GoalsOverview = () => {
                 <p className="text-2xl font-bold text-gray-900">{myGoals.filter(g => g.status === 'in_progress').length}</p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Target className="w-6 h-6 text-blue-600" />
+                <Target className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>
@@ -164,7 +164,7 @@ const GoalsOverview = () => {
               onClick={() => setActiveTab('my-goals')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'my-goals'
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-secondary-500 text-secondary-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
@@ -176,7 +176,7 @@ const GoalsOverview = () => {
                 onClick={() => setActiveTab('team-goals')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === 'team-goals'
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-secondary-500 text-secondary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -246,7 +246,7 @@ const GoalsOverview = () => {
                             </div>
                             <div className="w-full h-1 bg-gray-200 rounded-full mt-2">
                               <div 
-                                className="h-1 bg-blue-500 rounded-full"
+                                className="h-1 bg-secondary-500 rounded-full"
                                 style={{ width: `${Math.min((kpi.current / kpi.target) * 100, 100)}%` }}
                               />
                             </div>

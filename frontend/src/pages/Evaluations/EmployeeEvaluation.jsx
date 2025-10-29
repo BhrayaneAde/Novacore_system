@@ -3,6 +3,7 @@ import { Star, TrendingUp, TrendingDown, Target, MessageSquare, Calendar, User, 
 import { evaluationsService } from '../../services/evaluations';
 import { usersService, hrService, systemService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
+import Loader from '../../components/ui/Loader';
 
 const EmployeeEvaluation = () => {
   const { currentUser: user } = useAuthStore();
@@ -133,9 +134,9 @@ const EmployeeEvaluation = () => {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Chargement...</span>
+      <div className="p-6 flex flex-col items-center justify-center py-12">
+        <Loader size={48} />
+        <span className="mt-4 text-gray-600">Chargement des évaluations...</span>
       </div>
     );
   }
@@ -183,14 +184,14 @@ const EmployeeEvaluation = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Score Moyen</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-secondary-600">
                 {filteredEvaluations.length > 0 
                   ? Math.round(filteredEvaluations.reduce((acc, evaluation) => acc + (evaluation.global_score || 0), 0) / filteredEvaluations.length)
                   : 0}%
               </p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Star className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <Star className="w-6 h-6 text-secondary-600" />
             </div>
           </div>
         </div>
@@ -249,7 +250,7 @@ const EmployeeEvaluation = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Score moyen:</span>
-                    <span className="font-medium text-blue-600">{stats.avgScore}%</span>
+                    <span className="font-medium text-secondary-600">{stats.avgScore}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">En progression:</span>
@@ -282,8 +283,8 @@ const EmployeeEvaluation = () => {
             {getTeamMembers().map((employee) => (
               <div key={employee.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-sm font-medium text-blue-600">
+                  <div className="w-10 h-10 rounded-full bg-secondary-100 flex items-center justify-center">
+                    <span className="text-sm font-medium text-secondary-600">
                       {employee.first_name?.[0]}{employee.last_name?.[0]}
                     </span>
                   </div>
@@ -296,7 +297,7 @@ const EmployeeEvaluation = () => {
                 </div>
                 <button
                   onClick={() => handleEvaluate(employee.id)}
-                  className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  className="w-full bg-secondary-600 text-white py-2 rounded-lg hover:bg-secondary-700 transition-colors text-sm"
                 >
                   Évaluer
                 </button>
@@ -321,8 +322,8 @@ const EmployeeEvaluation = () => {
               <div key={evaluation.id} className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-lg font-medium text-blue-600">
+                    <div className="w-12 h-12 rounded-full bg-secondary-100 flex items-center justify-center">
+                      <span className="text-lg font-medium text-secondary-600">
                         {employee?.first_name?.[0]}{employee?.last_name?.[0]}
                       </span>
                     </div>
@@ -507,7 +508,7 @@ const EmployeeEvaluation = () => {
                     <ul className="text-sm text-gray-600 space-y-1">
                       {(evaluation.nextObjectives || []).map((objective, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <Target className="w-4 h-4 text-blue-500" />
+                          <Target className="w-4 h-4 text-secondary-500" />
                           {objective}
                         </li>
                       ))}
@@ -571,7 +572,7 @@ const EmployeeEvaluation = () => {
                 <textarea
                   value={evaluationData.comments}
                   onChange={(e) => setEvaluationData({...evaluationData, comments: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="3"
                   placeholder="Commentaires sur la performance globale..."
                 />
@@ -585,7 +586,7 @@ const EmployeeEvaluation = () => {
                 <textarea
                   value={evaluationData.strengths}
                   onChange={(e) => setEvaluationData({...evaluationData, strengths: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="3"
                   placeholder="Excellente communication&#10;Respect des délais&#10;Esprit d'équipe"
                 />
@@ -599,7 +600,7 @@ const EmployeeEvaluation = () => {
                 <textarea
                   value={evaluationData.improvements}
                   onChange={(e) => setEvaluationData({...evaluationData, improvements: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="3"
                   placeholder="Prise d'initiative&#10;Gestion du temps&#10;Compétences techniques"
                 />
@@ -613,7 +614,7 @@ const EmployeeEvaluation = () => {
                 <textarea
                   value={evaluationData.objectives}
                   onChange={(e) => setEvaluationData({...evaluationData, objectives: e.target.value})}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   rows="3"
                   placeholder="Terminer la formation React&#10;Prendre en charge un projet&#10;Améliorer les présentations"
                 />
@@ -622,7 +623,7 @@ const EmployeeEvaluation = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-secondary-600 text-white py-2 rounded-lg hover:bg-secondary-700 transition-colors"
                 >
                   Enregistrer l'Évaluation
                 </button>

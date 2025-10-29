@@ -101,12 +101,12 @@ const EmployeeTimesheet = () => {
           <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                stat.color === 'blue' ? 'bg-blue-100' :
+                stat.color === 'blue' ? 'bg-secondary-100' :
                 stat.color === 'green' ? 'bg-green-100' :
                 stat.color === 'purple' ? 'bg-purple-100' : 'bg-orange-100'
               }`}>
                 <stat.icon className={`w-6 h-6 ${
-                  stat.color === 'blue' ? 'text-blue-600' :
+                  stat.color === 'blue' ? 'text-secondary-600' :
                   stat.color === 'green' ? 'text-green-600' :
                   stat.color === 'purple' ? 'text-purple-600' : 'text-orange-600'
                 }`} />
@@ -175,7 +175,7 @@ const EmployeeTimesheet = () => {
               <select 
                 value={selectedPeriod} 
                 onChange={(e) => setSelectedPeriod(e.target.value)}
-                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-secondary-500"
               >
                 <option>Cette semaine</option>
                 <option>Semaine dernière</option>
@@ -194,7 +194,7 @@ const EmployeeTimesheet = () => {
                 placeholder="Rechercher..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
               />
             </div>
             <button className="flex items-center space-x-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm">
@@ -249,7 +249,7 @@ const EmployeeTimesheet = () => {
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                       entry.status === 'Validé' ? 'bg-green-100 text-green-800' :
-                      entry.status === 'En cours' ? 'bg-blue-100 text-blue-800' :
+                      entry.status === 'En cours' ? 'bg-secondary-100 text-blue-800' :
                       entry.status === 'Congé' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>

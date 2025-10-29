@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import Loader from '../../components/ui/Loader';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Shield } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { authService } from '../../services';
 
 const ResetPasswordPage = () => {
@@ -150,7 +152,7 @@ const ResetPasswordPage = () => {
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader size={20} className="mr-2" />
                   Réinitialisation...
                 </div>
               ) : (

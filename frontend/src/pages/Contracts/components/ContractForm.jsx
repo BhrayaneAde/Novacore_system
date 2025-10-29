@@ -17,7 +17,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
             type="text"
             value={formData.position}
             onChange={(e) => handleChange("position", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="Ex: Développeur Full Stack"
             required
           />
@@ -29,7 +29,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
           <select
             value={formData.department}
             onChange={(e) => handleChange("department", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
             required
           >
             <option value="">Sélectionner...</option>
@@ -54,7 +54,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
             type="date"
             value={formData.startDate}
             onChange={(e) => handleChange("startDate", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
             required
           />
         </div>
@@ -67,7 +67,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
               type="date"
               value={formData.endDate}
               onChange={(e) => handleChange("endDate", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
               required
             />
           </div>
@@ -85,7 +85,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
             type="number"
             value={formData.salary}
             onChange={(e) => handleChange("salary", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder={contractType === "STAGE" ? "600" : "3000"}
             min="0"
             step="50"
@@ -105,7 +105,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
             type="number"
             value={formData.workingHours}
             onChange={(e) => handleChange("workingHours", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
             min="1"
             max="48"
             required
@@ -125,7 +125,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
           <select
             value={formData.trialPeriod}
             onChange={(e) => handleChange("trialPeriod", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
           >
             <option value="">Aucune</option>
             <option value="1">1 mois</option>
@@ -150,7 +150,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
           type="text"
           value={formData.workplace}
           onChange={(e) => handleChange("workplace", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
           placeholder="Ex: Paris, 75001 ou Télétravail"
           required
         />
@@ -165,7 +165,7 @@ const ContractForm = ({ formData, onChange, contractType }) => {
           value={formData.specificClauses}
           onChange={(e) => handleChange("specificClauses", e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-secondary-500"
           placeholder="Ex: Clause de mobilité, clause de non-concurrence, avantages particuliers..."
         />
       </div>

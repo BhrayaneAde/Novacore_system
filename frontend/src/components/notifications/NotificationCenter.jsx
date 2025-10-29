@@ -202,7 +202,7 @@ const NotificationCenter = () => {
     if (priority === 'medium') return 'text-orange-600 bg-orange-50';
     
     const colors = {
-      leave_request: 'text-blue-600 bg-blue-50',
+      leave_request: 'text-secondary-600 bg-blue-50',
       task_assigned: 'text-purple-600 bg-purple-50',
       payroll: 'text-green-600 bg-green-50',
       system: 'text-gray-600 bg-gray-50',
@@ -337,7 +337,7 @@ const NotificationCenter = () => {
                               )}
                               
                               {notification.action_url && (
-                                <button className="text-xs text-blue-600 hover:text-blue-700">
+                                <button className="text-xs text-secondary-600 hover:text-secondary-700">
                                   Voir détails
                                 </button>
                               )}

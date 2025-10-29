@@ -5,7 +5,7 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import Loader from "../../components/ui/Loader";
 import { useToast } from "../../components/ui/Toast";
 import { Clock, Play, Pause, Coffee, LogOut, LogIn, MapPin, Calendar, AlertCircle, Wifi, WifiOff } from "lucide-react";
 
@@ -363,7 +363,7 @@ const TimeTracking = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 text-yellow-600" />
+                        <MapPin className="w-4 h-4 text-primary-600" />
                         <span>Localisation en cours...</span>
                       </div>
                     )}
@@ -456,13 +456,13 @@ const TimeTracking = () => {
                 </p>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                   <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-secondary-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(workProgress, 100)}%` }}
                   />
                 </div>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-blue-600" />
+                <Clock className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>
@@ -512,14 +512,17 @@ const TimeTracking = () => {
         <Card title="Historique d'aujourd'hui">
           {loading ? (
             <div className="text-center py-8">
-              <LoadingSpinner size="lg" text="Chargement de l'historique..." />
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader size={32} />
+                <p className="mt-3 text-gray-600">Chargement de l'historique...</p>
+              </div>
             </div>
           ) : todayEntries.length === 0 ? (
             <div className="text-center py-8">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Aucun pointage aujourd'hui</p>
               {!isOnline && (
-                <p className="text-sm text-yellow-600 mt-2">Mode hors ligne - Données non synchronisées</p>
+                <p className="text-sm text-primary-600 mt-2">Mode hors ligne - Données non synchronisées</p>
               )}
             </div>
           ) : (
@@ -533,7 +536,7 @@ const TimeTracking = () => {
                       {entry.clock_out ? (
                         <LogOut className="w-5 h-5 text-green-600" />
                       ) : (
-                        <LogIn className="w-5 h-5 text-blue-600" />
+                        <LogIn className="w-5 h-5 text-secondary-600" />
                       )}
                     </div>
                     

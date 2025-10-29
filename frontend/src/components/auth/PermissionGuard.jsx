@@ -53,7 +53,7 @@ const AccessDenied = () => (
       Vous n'avez pas les permissions nécessaires pour accéder à cette section.
     </p>
     <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-2">
-      <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+      <AlertTriangle className="w-4 h-4 text-primary-600 mt-0.5 flex-shrink-0" />
       <p className="text-sm text-yellow-800">
         Contactez votre administrateur pour obtenir les accès nécessaires.
       </p>

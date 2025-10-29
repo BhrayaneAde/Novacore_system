@@ -123,10 +123,10 @@ const NotificationCenter = () => {
                       >
                         <div className="flex items-start gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            notification.color === 'blue' ? 'bg-blue-100' : 'bg-gray-100'
+                            notification.color === 'blue' ? 'bg-secondary-100' : 'bg-gray-100'
                           }`}>
                             <IconComponent className={`w-4 h-4 ${
-                              notification.color === 'blue' ? 'text-blue-600' : 'text-gray-600'
+                              notification.color === 'blue' ? 'text-secondary-600' : 'text-gray-600'
                             }`} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -157,7 +157,7 @@ const NotificationCenter = () => {
 
             {notifications.length > 0 && (
               <div className="p-3 border-t border-gray-200">
-                <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <button className="w-full text-center text-sm text-secondary-600 hover:text-secondary-700 font-medium">
                   Voir toutes les notifications
                 </button>
               </div>

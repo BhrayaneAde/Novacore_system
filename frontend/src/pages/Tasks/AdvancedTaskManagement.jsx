@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Filter, Search, Calendar, Clock, User, AlertCircle, CheckCircle, BarChart3, MessageSquare } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 import { tasksService } from '../../services';
 import { useAuthStore } from '../../store/useAuthStore';
 import TaskCard from './components/TaskCard';
@@ -93,7 +94,7 @@ const AdvancedTaskManagement = () => {
   if (loading && tasks.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement...</span>
       </div>
     );
@@ -148,7 +149,7 @@ const AdvancedTaskManagement = () => {
           {canCreateTasks && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Nouvelle tâche
@@ -180,7 +181,7 @@ const AdvancedTaskManagement = () => {
                   <p className="text-sm text-gray-600">Total</p>
                   <p className="text-2xl font-bold text-gray-900">{tasks.length}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-blue-500" />
+                <CheckCircle className="w-8 h-8 text-secondary-500" />
               </div>
             </div>
             
@@ -188,11 +189,11 @@ const AdvancedTaskManagement = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">En cours</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-2xl font-bold text-secondary-600">
                     {getTasksByStatus('in_progress').length}
                   </p>
                 </div>
-                <Clock className="w-8 h-8 text-blue-500" />
+                <Clock className="w-8 h-8 text-secondary-500" />
               </div>
             </div>
             
@@ -249,7 +250,7 @@ const AdvancedTaskManagement = () => {
                   {canCreateTasks && (
                     <button
                       onClick={() => setShowCreateForm(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="bg-secondary-600 text-white px-4 py-2 rounded-lg hover:bg-secondary-700 transition-colors"
                     >
                       Créer une tâche
                     </button>
@@ -270,7 +271,7 @@ const AdvancedTaskManagement = () => {
                 };
                 const statusColors = {
                   pending: 'bg-yellow-100 text-yellow-800',
-                  in_progress: 'bg-blue-100 text-blue-800',
+                  in_progress: 'bg-secondary-100 text-blue-800',
                   completed: 'bg-green-100 text-green-800',
                   cancelled: 'bg-gray-100 text-gray-800'
                 };

@@ -65,7 +65,7 @@ const JobOpeningCreate = () => {
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Développeur Full Stack Senior"
                 />
               </div>
@@ -79,7 +79,7 @@ const JobOpeningCreate = () => {
                   value={formData.department}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Sélectionner un département</option>
                   <option value="Développement">Développement</option>
@@ -100,7 +100,7 @@ const JobOpeningCreate = () => {
                   value={formData.location}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Paris / Remote"
                 />
               </div>
@@ -114,7 +114,7 @@ const JobOpeningCreate = () => {
                   value={formData.contract_type}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="CDI">CDI</option>
                   <option value="CDD">CDD</option>
@@ -133,7 +133,7 @@ const JobOpeningCreate = () => {
                   onChange={handleChange}
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Décrivez le poste et les responsabilités..."
                 />
               </div>
@@ -147,7 +147,7 @@ const JobOpeningCreate = () => {
                   value={formData.requirements}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Compétences requises, expérience..."
                 />
               </div>
@@ -162,7 +162,7 @@ const JobOpeningCreate = () => {
                     name="salary_min"
                     value={formData.salary_min}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="45000"
                   />
                 </div>
@@ -175,7 +175,7 @@ const JobOpeningCreate = () => {
                     name="salary_max"
                     value={formData.salary_max}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                     placeholder="65000"
                   />
                 </div>

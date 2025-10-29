@@ -27,7 +27,7 @@ const GoalsManagement = () => {
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return "bg-green-500";
-    if (progress >= 50) return "bg-blue-500";
+    if (progress >= 50) return "bg-secondary-500";
     return "bg-amber-500";
   };
 
@@ -50,7 +50,7 @@ const GoalsManagement = () => {
               <div className="space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
                       <Target className="w-5 h-5" />
                     </div>
                     <div>

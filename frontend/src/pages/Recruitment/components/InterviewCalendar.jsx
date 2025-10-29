@@ -39,7 +39,7 @@ const InterviewCalendar = ({ interviews = [] }) => {
             key={interview.id}
             className="flex items-start gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <Calendar className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0">

@@ -17,7 +17,7 @@ const EmployeesOverview = () => {
       title: "Liste des Employés",
       description: "Gérer tous vos employés",
       icon: Users,
-      color: "bg-blue-500",
+      color: "bg-secondary-500",
       path: "/app/employees/list",
       count: `${stats.total} employés`
     },
@@ -88,7 +88,7 @@ const EmployeesOverview = () => {
                 className={`
                   flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors
                   ${activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-secondary-500 text-secondary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }
                 `}
@@ -124,7 +124,7 @@ const EmployeesOverview = () => {
                   onClick={() => navigate('/app/employees/new')}
                   className="p-4 text-left border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <UserPlus className="w-8 h-8 text-blue-600 mb-2" />
+                  <UserPlus className="w-8 h-8 text-secondary-600 mb-2" />
                   <p className="font-medium text-gray-900">Nouvel employé</p>
                   <p className="text-sm text-gray-500">Ajouter un employé</p>
                 </button>
@@ -158,7 +158,7 @@ const EmployeesOverview = () => {
             {/* Section Employés */}
             <div>
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Users className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-secondary-600" />
                 Gestion des Employés
               </h2>
               <div className="grid md:grid-cols-3 gap-6">
@@ -176,7 +176,7 @@ const EmployeesOverview = () => {
                         <h3 className="font-semibold text-gray-900 mb-1">{module.title}</h3>
                         <p className="text-sm text-gray-600 mb-2">{module.description}</p>
                         {module.count && (
-                          <p className="text-xs font-medium text-blue-600">{module.count}</p>
+                          <p className="text-xs font-medium text-secondary-600">{module.count}</p>
                         )}
                       </div>
                     </div>
@@ -233,7 +233,7 @@ const EmployeesOverview = () => {
                     <h3 className="font-semibold text-gray-900 mb-1">{module.title}</h3>
                     <p className="text-sm text-gray-600 mb-2">{module.description}</p>
                     {module.count && (
-                      <p className="text-xs font-medium text-blue-600">{module.count}</p>
+                      <p className="text-xs font-medium text-secondary-600">{module.count}</p>
                     )}
                   </div>
                 </div>

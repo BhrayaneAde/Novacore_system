@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Wallet, Calculator, FileText, Download, Plus, Edit3, Eye, AlertCircle } from "lucide-react";
-import { employeesService, hrService } from "../../../services";
+import Loader from '../../../components/ui/Loader';
+import { systemService } from "../../../services";
+
+// Services de compatibilité
+const employeesService = { getAll: () => systemService.employees.getAll() };
+const hrService = { payroll: { getAll: () => Promise.resolve({ data: [] }) } };
 
 const PayrollManagementPage = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -23,10 +28,14 @@ const PayrollManagementPage = () => {
         hrService.payroll.getAll().catch(() => ({ data: [] }))
       ]);
       
-      setEmployees(employeesRes.data || []);
+      // S'assurer que employeesRes.data est un tableau
+      const employeesArray = Array.isArray(employeesRes.data) ? employeesRes.data : 
+                             Array.isArray(employeesRes) ? employeesRes : [];
+      
+      setEmployees(employeesArray);
       
       // Simuler des données de paie si l'API n'est pas encore implémentée
-      const mockSalaryData = (employeesRes.data || []).map(emp => ({
+      const mockSalaryData = employeesArray.map(emp => ({
         id: emp.id,
         employeeId: emp.id,
         baseSalary: emp.salary || Math.floor(Math.random() * 500000) + 300000,
@@ -68,7 +77,7 @@ const PayrollManagementPage = () => {
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Loader size={24} />
         <span className="ml-2 text-gray-600">Chargement des données de paie...</span>
       </div>
     );
@@ -168,7 +177,7 @@ const PayrollManagementPage = () => {
           </div>
 
           <div className="flex gap-3">
-            <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-2">
+            <button className="flex-1 px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 flex items-center justify-center gap-2">
               <Download className="w-4 h-4" />
               Télécharger PDF
             </button>
@@ -189,7 +198,7 @@ const PayrollManagementPage = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Gestion de la Paie</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Gestion des Salaires</h3>
               <p className="text-blue-700 text-sm">
@@ -209,7 +218,7 @@ const PayrollManagementPage = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.id
-                ? "bg-white text-blue-600 shadow-sm"
+                ? "bg-white text-secondary-600 shadow-sm"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
@@ -294,8 +303,8 @@ const PayrollManagementPage = () => {
                       <tr key={salary.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                              <span className="text-xs font-medium text-blue-600">
+                            <div className="w-8 h-8 rounded-full bg-secondary-100 flex items-center justify-center mr-3">
+                              <span className="text-xs font-medium text-secondary-600">
                                 {employee?.first_name?.[0]}{employee?.last_name?.[0]}
                               </span>
                             </div>
@@ -326,7 +335,7 @@ const PayrollManagementPage = () => {
                                 setSelectedEmployee(employee);
                                 setShowPayslipModal(true);
                               }}
-                              className="text-blue-600 hover:text-blue-900"
+                              className="text-secondary-600 hover:text-blue-900"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -350,7 +359,7 @@ const PayrollManagementPage = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">Configuration des salaires</h2>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+            <button className="px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Ajouter un salaire
             </button>

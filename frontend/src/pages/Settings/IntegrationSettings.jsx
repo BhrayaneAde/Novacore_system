@@ -7,6 +7,7 @@ import IntegrationCard from "./components/IntegrationCard";
 import IntegrationForm from "./components/IntegrationForm";
 import SyncLogs from "./components/SyncLogs";
 import { ArrowLeft, Plug, Plus } from "lucide-react";
+import Loader from '../../components/ui/Loader';
 import { systemService } from "../../services/system";
 
 const IntegrationSettings = () => {
@@ -110,7 +111,7 @@ const IntegrationSettings = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <Loader size={24} />
           <span className="ml-2 text-gray-600">Chargement...</span>
         </div>
       </DashboardLayout>

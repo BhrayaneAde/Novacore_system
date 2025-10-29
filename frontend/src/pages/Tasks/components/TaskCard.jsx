@@ -17,7 +17,7 @@ const TaskCard = ({ task, onUpdate, onDelete, onSelect }) => {
   const getStatusColor = (status) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
-      in_progress: 'bg-blue-100 text-blue-800',
+      in_progress: 'bg-secondary-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-gray-100 text-gray-800'
     };
@@ -55,7 +55,7 @@ const TaskCard = ({ task, onUpdate, onDelete, onSelect }) => {
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h3 
-              className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+              className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-secondary-600"
               onClick={() => onSelect(task)}
             >
               {task.title}
@@ -178,7 +178,7 @@ const TaskCard = ({ task, onUpdate, onDelete, onSelect }) => {
           <select
             value={task.status}
             onChange={(e) => handleStatusChange(e.target.value)}
-            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-secondary-500"
           >
             <option value="pending">En attente</option>
             <option value="in_progress">En cours</option>

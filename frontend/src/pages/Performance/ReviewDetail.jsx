@@ -46,7 +46,7 @@ const ReviewDetail = () => {
 
   const getProgressColor = (progress) => {
     if (progress >= 80) return "bg-green-500";
-    if (progress >= 50) return "bg-blue-500";
+    if (progress >= 50) return "bg-secondary-500";
     return "bg-amber-500";
   };
 
@@ -72,7 +72,7 @@ const ReviewDetail = () => {
                   <p className="text-sm text-gray-600">{review.period}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-yellow-500" />
+                  <Award className="w-5 h-5 text-primary-500" />
                   <span className="text-lg font-semibold text-gray-900">{review.rating}/5</span>
                 </div>
               </div>

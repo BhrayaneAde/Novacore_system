@@ -135,7 +135,7 @@ const OneOnOnePage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'scheduled': return 'bg-secondary-100 text-blue-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -143,7 +143,7 @@ const OneOnOnePage = () => {
 
   const getTypeColor = (type) => {
     switch (type) {
-      case 'regular': return 'bg-blue-100 text-blue-800';
+      case 'regular': return 'bg-secondary-100 text-blue-800';
       case 'performance': return 'bg-purple-100 text-purple-800';
       case 'development': return 'bg-green-100 text-green-800';
       case 'feedback': return 'bg-orange-100 text-orange-800';
@@ -164,7 +164,7 @@ const OneOnOnePage = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Entretiens 1-on-1</h1>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <MessageSquare className="w-5 h-5 text-blue-600 mt-0.5" />
+            <MessageSquare className="w-5 h-5 text-secondary-600 mt-0.5" />
             <div>
               <h3 className="font-medium text-blue-900 mb-1">Entretiens Individuels</h3>
               <p className="text-blue-700 text-sm mb-2">
@@ -184,10 +184,10 @@ const OneOnOnePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Calendar className="w-6 h-6 text-blue-600" />
+            <Calendar className="w-6 h-6 text-secondary-600" />
             <h3 className="font-semibold text-gray-900">À venir</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">{upcomingMeetings}</p>
+          <p className="text-2xl font-bold text-secondary-600">{upcomingMeetings}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -222,7 +222,7 @@ const OneOnOnePage = () => {
         <h2 className="text-xl font-semibold text-gray-900">Entretiens planifiés</h2>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           Planifier un entretien
@@ -235,8 +235,8 @@ const OneOnOnePage = () => {
           <div key={meeting.id} className="bg-white rounded-xl border border-gray-100 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold text-sm">
+                <div className="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center">
+                  <span className="text-secondary-600 font-semibold text-sm">
                     {meeting.employeeName.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
@@ -270,7 +270,7 @@ const OneOnOnePage = () => {
               <ul className="space-y-1">
                 {meeting.agenda.map((item, index) => (
                   <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-secondary-600 rounded-full" />
                     {item}
                   </li>
                 ))}
@@ -340,7 +340,7 @@ const OneOnOnePage = () => {
                   type="text"
                   value={newMeeting.employeeName}
                   onChange={(e) => setNewMeeting({...newMeeting, employeeName: e.target.value})}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   placeholder="Nom de l'employé"
                 />
               </div>
@@ -352,7 +352,7 @@ const OneOnOnePage = () => {
                     type="date"
                     value={newMeeting.date}
                     onChange={(e) => setNewMeeting({...newMeeting, date: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
                 
@@ -362,7 +362,7 @@ const OneOnOnePage = () => {
                     type="time"
                     value={newMeeting.time}
                     onChange={(e) => setNewMeeting({...newMeeting, time: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   />
                 </div>
               </div>
@@ -373,7 +373,7 @@ const OneOnOnePage = () => {
                   <select
                     value={newMeeting.duration}
                     onChange={(e) => setNewMeeting({...newMeeting, duration: parseInt(e.target.value)})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value={30}>30 min</option>
                     <option value={45}>45 min</option>
@@ -386,7 +386,7 @@ const OneOnOnePage = () => {
                   <select
                     value={newMeeting.type}
                     onChange={(e) => setNewMeeting({...newMeeting, type: e.target.value})}
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
                   >
                     <option value="regular">Régulier</option>
                     <option value="performance">Performance</option>
@@ -406,7 +406,7 @@ const OneOnOnePage = () => {
               </button>
               <button
                 onClick={handleCreateMeeting}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700"
               >
                 Planifier
               </button>

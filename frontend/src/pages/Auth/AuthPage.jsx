@@ -78,7 +78,7 @@ const AuthPage = () => {
             
             <div className="space-y-4 pt-8">
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center mt-1">
+                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
                   <Check className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
@@ -87,7 +87,7 @@ const AuthPage = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center mt-1">
+                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
                   <Check className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
@@ -96,7 +96,7 @@ const AuthPage = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-blue-600/20 flex items-center justify-center mt-1">
+                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
                   <Check className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
@@ -198,19 +198,19 @@ const AuthPage = () => {
                   <label className="flex items-center">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 border-slate-300 rounded text-blue-600 focus:ring-2 focus:ring-blue-600"
+                      className="w-4 h-4 border-slate-300 rounded text-secondary-600 focus:ring-2 focus:ring-blue-600"
                       checked={loginData.remember}
                       onChange={(e) => setLoginData({...loginData, remember: e.target.checked})}
                     />
                     <span className="ml-2 text-sm text-slate-600">Se souvenir de moi</span>
                   </label>
-                  <Link to="#" className="text-sm font-medium text-blue-600 hover:text-blue-700">Mot de passe oublié?</Link>
+                  <Link to="#" className="text-sm font-medium text-secondary-600 hover:text-secondary-700">Mot de passe oublié?</Link>
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
+                  className="w-full bg-secondary-600 text-white py-2.5 rounded-lg font-medium hover:bg-secondary-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
                 >
                   <span>{isLoading ? 'Connexion...' : 'Se connecter'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -337,19 +337,19 @@ const AuthPage = () => {
                   <label className="flex items-start">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 border-slate-300 rounded text-blue-600 focus:ring-2 focus:ring-blue-600 mt-0.5"
+                      className="w-4 h-4 border-slate-300 rounded text-secondary-600 focus:ring-2 focus:ring-blue-600 mt-0.5"
                       checked={registerData.terms}
                       onChange={(e) => setRegisterData({...registerData, terms: e.target.checked})}
                     />
                     <span className="ml-2 text-sm text-slate-600">
-                      J'accepte les <Link to="#" className="text-blue-600 hover:text-blue-700 font-medium">conditions d'utilisation</Link> et la <Link to="#" className="text-blue-600 hover:text-blue-700 font-medium">politique de confidentialité</Link>
+                      J'accepte les <Link to="#" className="text-secondary-600 hover:text-secondary-700 font-medium">conditions d'utilisation</Link> et la <Link to="#" className="text-secondary-600 hover:text-secondary-700 font-medium">politique de confidentialité</Link>
                     </span>
                   </label>
                 </div>
 
                 <button 
                   type="submit" 
-                  className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
+                  className="w-full bg-secondary-600 text-white py-2.5 rounded-lg font-medium hover:bg-secondary-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
                 >
                   <span>Créer mon compte</span>
                   <ArrowRight className="w-4 h-4" />
@@ -360,7 +360,7 @@ const AuthPage = () => {
                   <button 
                     type="button" 
                     onClick={() => setActiveTab('login')}
-                    className="text-blue-600 hover:text-blue-700 font-medium ml-1"
+                    className="text-secondary-600 hover:text-secondary-700 font-medium ml-1"
                   >
                     Se connecter
                   </button>

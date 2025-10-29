@@ -13,7 +13,7 @@ const PayslipCard = ({ payslip }) => {
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-blue-50 text-secondary-600 rounded-lg flex items-center justify-center">
             <DollarSign className="w-5 h-5" />
           </div>
           <div>
@@ -35,7 +35,7 @@ const PayslipCard = ({ payslip }) => {
         </div>
         <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
           <span className="font-medium text-gray-900">Net à payer</span>
-          <span className="font-bold text-blue-600">
+          <span className="font-bold text-secondary-600">
             {payslip.netSalary.toLocaleString("fr-FR")} €
           </span>
         </div>

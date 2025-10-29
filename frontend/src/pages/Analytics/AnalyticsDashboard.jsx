@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { BarChart3, TrendingUp, TrendingDown, Users, DollarSign, Clock, Target, Filter, Download, RefreshCw } from 'lucide-react';
+import Loader from '../../components/ui/Loader';
 
 const AnalyticsDashboard = () => {
   const { currentCompany } = useAuthStore();
@@ -231,7 +232,7 @@ const AnalyticsDashboard = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+          <Loader size={32} />
         </div>
       </DashboardLayout>
     );
@@ -250,7 +251,7 @@ const AnalyticsDashboard = () => {
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             >
               <option value="week">Cette semaine</option>
               <option value="month">Ce mois</option>
@@ -272,7 +273,7 @@ const AnalyticsDashboard = () => {
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+                <Users className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
             
@@ -374,7 +375,7 @@ const AnalyticsDashboard = () => {
               {analytics?.headcount?.byDepartment?.map((dept, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full" style={{ backgroundColor: `hsl(${index * 60}, 70%, 50%)` }}></div>
+                    <div className="w-3 h-3 bg-secondary-500 rounded-full" style={{ backgroundColor: `hsl(${index * 60}, 70%, 50%)` }}></div>
                     <span className="font-medium text-gray-900">{dept.name}</span>
                   </div>
                   
@@ -445,7 +446,7 @@ const AnalyticsDashboard = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600">{analytics?.recruitment?.openPositions}</p>
+                  <p className="text-2xl font-bold text-secondary-600">{analytics?.recruitment?.openPositions}</p>
                   <p className="text-sm text-gray-600">Postes ouverts</p>
                 </div>
                 <div className="text-center">

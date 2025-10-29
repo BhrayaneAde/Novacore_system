@@ -80,7 +80,7 @@ const ReviewCreate = () => {
                   value={formData.employee_id}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 >
                   <option value="">Sélectionner un employé</option>
                   {employees.map((emp) => (
@@ -101,7 +101,7 @@ const ReviewCreate = () => {
                   value={formData.period}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Q4 2025"
                 />
               </div>
@@ -119,7 +119,7 @@ const ReviewCreate = () => {
                   value={formData.overall_score}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 />
               </div>
 
@@ -133,7 +133,7 @@ const ReviewCreate = () => {
                   onChange={handleChange}
                   required
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Commentaires généraux sur la performance..."
                 />
               </div>
@@ -147,7 +147,7 @@ const ReviewCreate = () => {
                   value={formData.strengths}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Points forts identifiés..."
                 />
               </div>
@@ -161,7 +161,7 @@ const ReviewCreate = () => {
                   value={formData.areas_for_improvement}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="Domaines à améliorer..."
                 />
               </div>

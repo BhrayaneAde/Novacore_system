@@ -137,7 +137,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                 errors.title ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Entrez le titre de la tâche"
@@ -156,7 +156,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               rows={4}
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 resize-none ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="Décrivez la tâche en détail"
@@ -176,7 +176,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               <select
                 value={formData.assigned_to}
                 onChange={(e) => handleChange('assigned_to', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                   errors.assigned_to ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
@@ -200,7 +200,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               <select
                 value={formData.priority}
                 onChange={(e) => handleChange('priority', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="low">🟢 Basse</option>
                 <option value="normal">🟡 Normale</option>
@@ -219,7 +219,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               <select
                 value={formData.category}
                 onChange={(e) => handleChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
               >
                 <option value="administrative">Administrative</option>
                 <option value="technical">Technique</option>
@@ -241,7 +241,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
                 step="0.5"
                 value={formData.estimated_hours}
                 onChange={(e) => handleChange('estimated_hours', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                   errors.estimated_hours ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder="8"
@@ -262,7 +262,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               type="date"
               value={formData.due_date}
               onChange={(e) => handleChange('due_date', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 ${
                 errors.due_date ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -281,7 +281,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
               type="text"
               value={formData.tags}
               onChange={(e) => handleChange('tags', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
               placeholder="urgent, design, client"
             />
             <p className="mt-1 text-sm text-gray-500">
@@ -308,7 +308,7 @@ const TaskForm = ({ task = null, onSubmit, onCancel }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Sauvegarde...' : (task ? 'Modifier' : 'Créer')}
             </button>

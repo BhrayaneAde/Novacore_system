@@ -35,8 +35,8 @@ const TaskAnalytics = ({ analytics }) => {
               <p className="text-sm text-gray-600">Total des tâches</p>
               <p className="text-3xl font-bold text-gray-900">{analytics.total_tasks}</p>
             </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
+            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-6 h-6 text-secondary-600" />
             </div>
           </div>
         </div>
@@ -89,8 +89,8 @@ const TaskAnalytics = ({ analytics }) => {
           </h3>
           <div className="space-y-4">
             {[
-              { status: 'pending', label: 'En attente', count: analytics.pending_tasks, color: 'bg-yellow-500' },
-              { status: 'in_progress', label: 'En cours', count: analytics.in_progress_tasks, color: 'bg-blue-500' },
+              { status: 'pending', label: 'En attente', count: analytics.pending_tasks, color: 'bg-primary-500' },
+              { status: 'in_progress', label: 'En cours', count: analytics.in_progress_tasks, color: 'bg-secondary-500' },
               { status: 'completed', label: 'Terminées', count: analytics.completed_tasks, color: 'bg-green-500' },
               { status: 'cancelled', label: 'Annulées', count: analytics.cancelled_tasks || 0, color: 'bg-gray-500' }
             ].map(item => {
@@ -122,7 +122,7 @@ const TaskAnalytics = ({ analytics }) => {
             {[
               { priority: 'urgent', label: 'Urgente', count: analytics.urgent_tasks || 0, color: 'bg-red-500' },
               { priority: 'high', label: 'Haute', count: analytics.high_priority_tasks || 0, color: 'bg-orange-500' },
-              { priority: 'normal', label: 'Normale', count: analytics.normal_priority_tasks || 0, color: 'bg-yellow-500' },
+              { priority: 'normal', label: 'Normale', count: analytics.normal_priority_tasks || 0, color: 'bg-primary-500' },
               { priority: 'low', label: 'Basse', count: analytics.low_priority_tasks || 0, color: 'bg-green-500' }
             ].map(item => {
               const percentage = analytics.total_tasks > 0 
@@ -154,11 +154,11 @@ const TaskAnalytics = ({ analytics }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="w-8 h-8 text-blue-600" />
+            <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <TrendingUp className="w-8 h-8 text-secondary-600" />
             </div>
             <h4 className="font-semibold text-gray-900 mb-1">Productivité</h4>
-            <p className="text-2xl font-bold text-blue-600">{completionRate}%</p>
+            <p className="text-2xl font-bold text-secondary-600">{completionRate}%</p>
             <p className="text-sm text-gray-600">Taux de completion</p>
           </div>
           

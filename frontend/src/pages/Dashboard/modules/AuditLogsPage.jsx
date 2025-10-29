@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Shield, Search, Filter, Download, Eye, AlertTriangle, User, Settings } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
+import Loader from '../../../components/ui/Loader';
 
 const AuditLogsPage = () => {
   const { currentUser, isEmployer } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterUser, setFilterUser] = useState('all');
+  const [loading, setLoading] = useState(false);
 
   const [auditLogs] = useState([
     {
@@ -146,7 +148,7 @@ const AuditLogsPage = () => {
       case 'high': return 'bg-red-100 text-red-800';
       case 'medium': return 'bg-yellow-100 text-yellow-800';
       case 'warning': return 'bg-orange-100 text-orange-800';
-      case 'info': return 'bg-blue-100 text-blue-800';
+      case 'info': return 'bg-secondary-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -154,9 +156,9 @@ const AuditLogsPage = () => {
   const getSeverityIcon = (severity) => {
     switch (severity) {
       case 'high': return <AlertTriangle className="w-4 h-4 text-red-600" />;
-      case 'medium': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      case 'medium': return <AlertTriangle className="w-4 h-4 text-primary-600" />;
       case 'warning': return <AlertTriangle className="w-4 h-4 text-orange-600" />;
-      default: return <Eye className="w-4 h-4 text-blue-600" />;
+      default: return <Eye className="w-4 h-4 text-secondary-600" />;
     }
   };
 
@@ -235,18 +237,18 @@ const AuditLogsPage = () => {
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <AlertTriangle className="w-6 h-6 text-yellow-600" />
+            <AlertTriangle className="w-6 h-6 text-primary-600" />
             <h3 className="font-semibold text-gray-900">Moyen</h3>
           </div>
-          <p className="text-2xl font-bold text-yellow-600">{severityCounts.medium}</p>
+          <p className="text-2xl font-bold text-primary-600">{severityCounts.medium}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Eye className="w-6 h-6 text-blue-600" />
+            <Eye className="w-6 h-6 text-secondary-600" />
             <h3 className="font-semibold text-gray-900">Info</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">{severityCounts.info}</p>
+          <p className="text-2xl font-bold text-secondary-600">{severityCounts.info}</p>
         </div>
       </div>
 
@@ -261,14 +263,14 @@ const AuditLogsPage = () => {
                 placeholder="Rechercher dans les logs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500 w-64"
               />
             </div>
             
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
             >
               <option value="all">Toutes catégories</option>
               <option value="security">Sécurité</option>
@@ -281,7 +283,7 @@ const AuditLogsPage = () => {
             <select
               value={filterUser}
               onChange={(e) => setFilterUser(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-secondary-500"
             >
               <option value="all">Tous utilisateurs</option>
               <option value="1">Marie Lefebvre</option>
@@ -293,7 +295,7 @@ const AuditLogsPage = () => {
           
           <button
             onClick={exportLogs}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Exporter
@@ -323,8 +325,8 @@ const AuditLogsPage = () => {
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold text-xs">
+                      <div className="w-8 h-8 bg-secondary-100 rounded-full flex items-center justify-center">
+                        <span className="text-secondary-600 font-semibold text-xs">
                           {log.userName.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>

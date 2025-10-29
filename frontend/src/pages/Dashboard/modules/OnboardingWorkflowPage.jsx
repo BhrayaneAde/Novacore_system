@@ -89,7 +89,7 @@ const OnboardingWorkflowPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-secondary-100 text-blue-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'overdue': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -111,10 +111,10 @@ const OnboardingWorkflowPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-2">
-            <Play className="w-6 h-6 text-blue-600" />
+            <Play className="w-6 h-6 text-secondary-600" />
             <h3 className="font-semibold text-gray-900">En cours</h3>
           </div>
-          <p className="text-2xl font-bold text-blue-600">{activeWorkflows}</p>
+          <p className="text-2xl font-bold text-secondary-600">{activeWorkflows}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-gray-100 p-6">
@@ -152,8 +152,8 @@ const OnboardingWorkflowPage = () => {
           <div key={workflow.id} className="bg-white rounded-xl border border-gray-100 p-6">
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold text-sm">
+                <div className="w-12 h-12 bg-secondary-100 rounded-full flex items-center justify-center">
+                  <span className="text-secondary-600 font-semibold text-sm">
                     {workflow.employeeName.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
@@ -173,7 +173,7 @@ const OnboardingWorkflowPage = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-24 bg-gray-200 rounded-full h-2">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all" 
+                        className="bg-secondary-600 h-2 rounded-full transition-all" 
                         style={{ width: `${workflow.progress}%` }}
                       />
                     </div>
@@ -190,7 +190,7 @@ const OnboardingWorkflowPage = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       step.status === 'completed' ? 'bg-green-600' :
-                      step.status === 'in_progress' ? 'bg-blue-600' :
+                      step.status === 'in_progress' ? 'bg-secondary-600' :
                       'bg-gray-300'
                     }`}>
                       {step.status === 'completed' ? (
@@ -231,7 +231,7 @@ const OnboardingWorkflowPage = () => {
       <div className="bg-white rounded-xl border border-gray-100 p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900">Templates d'intégration</h2>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <button className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700">
             Nouveau template
           </button>
         </div>
@@ -244,7 +244,7 @@ const OnboardingWorkflowPage = () => {
                   <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
                   <p className="text-sm text-gray-600">Durée: {template.duration}</p>
                 </div>
-                <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200">
+                <button className="px-3 py-1 bg-secondary-100 text-blue-800 rounded text-sm hover:bg-blue-200">
                   Utiliser
                 </button>
               </div>
@@ -252,7 +252,7 @@ const OnboardingWorkflowPage = () => {
               <div className="space-y-2">
                 {template.steps.map((step, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+                    <div className="w-1.5 h-1.5 bg-secondary-600 rounded-full" />
                     {step}
                   </div>
                 ))}

@@ -117,7 +117,7 @@ export const taskStatuses = {
   in_progress: { 
     label: "En cours", 
     color: "blue", 
-    bgColor: "bg-blue-100", 
+    bgColor: "bg-secondary-100", 
     textColor: "text-blue-800",
     borderColor: "border-blue-300"
   },
@@ -162,7 +162,7 @@ export const taskPriorities = {
   normal: { 
     label: "Normal", 
     color: "blue", 
-    bgColor: "bg-blue-100", 
+    bgColor: "bg-secondary-100", 
     textColor: "text-blue-800",
     icon: "📋"
   },

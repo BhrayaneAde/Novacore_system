@@ -162,7 +162,7 @@ const TimeTrackingOverview = () => {
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-blue-600" />
+                <Clock className="w-6 h-6 text-secondary-600" />
               </div>
             </div>
           </Card>
@@ -220,7 +220,7 @@ const TimeTrackingOverview = () => {
               <div key={entry.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-blue-600" />
+                    <Clock className="w-5 h-5 text-secondary-600" />
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900">{entry.project}</h4>

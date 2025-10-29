@@ -1,6 +1,6 @@
 import React from "react";
 
-const SettingsCard = ({ icon: Icon, title, description, onClick, color = "bg-blue-50 text-blue-600" }) => {
+const SettingsCard = ({ icon: Icon, title, description, onClick, color = "bg-blue-50 text-secondary-600" }) => {
   return (
     <div
       onClick={onClick}

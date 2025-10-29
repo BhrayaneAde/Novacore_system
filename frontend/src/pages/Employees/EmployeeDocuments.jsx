@@ -26,9 +26,9 @@ const EmployeeDocuments = () => {
     switch (type) {
       case 'pdf': return <FileText className={`${iconClass} text-red-500`} />;
       case 'jpg':
-      case 'png': return <Image className={`${iconClass} text-blue-500`} />;
+      case 'png': return <Image className={`${iconClass} text-secondary-500`} />;
       case 'doc':
-      case 'docx': return <FileText className={`${iconClass} text-blue-600`} />;
+      case 'docx': return <FileText className={`${iconClass} text-secondary-600`} />;
       default: return <File className={`${iconClass} text-gray-500`} />;
     }
   };
@@ -37,7 +37,7 @@ const EmployeeDocuments = () => {
     const configs = {
       'Contrat': { color: 'bg-purple-100 text-purple-800 border-purple-200', icon: '📄' },
       'Paie': { color: 'bg-green-100 text-green-800 border-green-200', icon: '💰' },
-      'Formation': { color: 'bg-blue-100 text-blue-800 border-blue-200', icon: '🎓' },
+      'Formation': { color: 'bg-secondary-100 text-blue-800 border-blue-200', icon: '🎓' },
       'Administratif': { color: 'bg-orange-100 text-orange-800 border-orange-200', icon: '📋' },
       'Personnel': { color: 'bg-gray-100 text-gray-800 border-gray-200', icon: '👤' },
       'Médical': { color: 'bg-red-100 text-red-800 border-red-200', icon: '🏥' }
@@ -99,7 +99,7 @@ const EmployeeDocuments = () => {
                 <Share2 className="w-4 h-4" />
                 Partager
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all">
+              <button className="bg-secondary-600 hover:bg-secondary-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg transition-all">
                 <Upload className="w-5 h-5" />
                 Ajouter un document
               </button>
@@ -148,14 +148,14 @@ const EmployeeDocuments = () => {
                   placeholder="Rechercher un document..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:border-transparent"
                 />
               </div>
               <div className="flex gap-3">
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[160px]"
+                  className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 bg-white min-w-[160px]"
                 >
                   <option value="all">Toutes catégories</option>
                   {categories.map(category => (
@@ -169,7 +169,7 @@ const EmployeeDocuments = () => {
                     setSortBy(sort);
                     setSortOrder(order);
                   }}
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[160px]"
+                  className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary-500 bg-white min-w-[160px]"
                 >
                   <option value="date-desc">Plus récents</option>
                   <option value="date-asc">Plus anciens</option>
@@ -181,13 +181,13 @@ const EmployeeDocuments = () => {
                 <div className="flex border border-gray-200 rounded-xl overflow-hidden">
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-3 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'} transition-colors`}
+                    className={`p-3 ${viewMode === 'list' ? 'bg-secondary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'} transition-colors`}
                   >
                     <List className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-3 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'} transition-colors`}
+                    className={`p-3 ${viewMode === 'grid' ? 'bg-secondary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'} transition-colors`}
                   >
                     <Grid className="w-5 h-5" />
                   </button>
@@ -216,8 +216,8 @@ const EmployeeDocuments = () => {
                             <span className={`px-3 py-1 rounded-full text-xs font-medium border ${categoryConfig.color}`}>
                               {categoryConfig.icon} {doc.category}
                             </span>
-                            {doc.starred && <Star className="w-5 h-5 text-yellow-500 fill-current" />}
-                            {doc.shared && <Share2 className="w-4 h-4 text-blue-500" />}
+                            {doc.starred && <Star className="w-5 h-5 text-primary-500 fill-current" />}
+                            {doc.shared && <Share2 className="w-4 h-4 text-secondary-500" />}
                           </div>
                           <p className="text-gray-600 text-sm mb-2">{doc.description}</p>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -230,7 +230,7 @@ const EmployeeDocuments = () => {
                             onClick={() => toggleStar(doc.id)}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                           >
-                            <Star className={`w-5 h-5 ${doc.starred ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
+                            <Star className={`w-5 h-5 ${doc.starred ? 'text-primary-500 fill-current' : 'text-gray-400'}`} />
                           </button>
                           <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                             <Eye className="w-5 h-5 text-gray-600" />
@@ -257,8 +257,8 @@ const EmployeeDocuments = () => {
                 <div key={doc.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      {doc.starred && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
-                      {doc.shared && <Share2 className="w-4 h-4 text-blue-500" />}
+                      {doc.starred && <Star className="w-4 h-4 text-primary-500 fill-current" />}
+                      {doc.shared && <Share2 className="w-4 h-4 text-secondary-500" />}
                     </div>
                     <button className="p-1 hover:bg-gray-100 rounded transition-colors">
                       <MoreVertical className="w-4 h-4 text-gray-400" />

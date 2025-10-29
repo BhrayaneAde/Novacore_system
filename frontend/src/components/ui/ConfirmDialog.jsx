@@ -23,13 +23,13 @@ const ConfirmDialog = ({
         };
       case 'warning':
         return {
-          icon: <AlertTriangle className="w-6 h-6 text-yellow-600" />,
+          icon: <AlertTriangle className="w-6 h-6 text-primary-600" />,
           confirmButton: "bg-yellow-600 hover:bg-yellow-700 text-white"
         };
       default:
         return {
-          icon: <AlertTriangle className="w-6 h-6 text-blue-600" />,
-          confirmButton: "bg-blue-600 hover:bg-blue-700 text-white"
+          icon: <AlertTriangle className="w-6 h-6 text-secondary-600" />,
+          confirmButton: "bg-secondary-600 hover:bg-secondary-700 text-white"
         };
     }
   };

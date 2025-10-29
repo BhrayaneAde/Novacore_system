@@ -103,7 +103,7 @@ const NotificationSettings = () => {
                             type="checkbox"
                             checked={notifications[channel.key][type.key]}
                             onChange={() => handleToggle(channel.key, type.key)}
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-5 h-5 text-secondary-600 border-gray-300 rounded focus:ring-secondary-500"
                           />
                         </label>
                       </td>

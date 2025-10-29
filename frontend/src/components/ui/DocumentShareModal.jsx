@@ -110,7 +110,7 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Share2 className="w-6 h-6 text-blue-600" />
+            <Share2 className="w-6 h-6 text-secondary-600" />
             <div>
               <h3 className="text-lg font-semibold">Partager le document</h3>
               <p className="text-sm text-gray-600">{document.name}</p>
@@ -131,7 +131,7 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
                 onClick={() => handleGroupSelect(group.id)}
                 className={`p-3 text-left border rounded-lg transition-colors ${
                   selectedGroup === group.id
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-secondary-500 bg-blue-50 text-blue-700'
                     : 'border-gray-200 hover:bg-gray-50'
                 }`}
               >
@@ -160,10 +160,10 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
                   type="checkbox"
                   checked={selectedEmployees.includes(employee.id)}
                   onChange={() => handleEmployeeToggle(employee.id)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-secondary-600 focus:ring-secondary-500"
                 />
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-600">
+                <div className="w-8 h-8 rounded-full bg-secondary-100 flex items-center justify-center">
+                  <span className="text-sm font-medium text-secondary-600">
                     {employee.first_name?.[0]}{employee.last_name?.[0]}
                   </span>
                 </div>
@@ -191,7 +191,7 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
                   value={option.value}
                   checked={permissions === option.value}
                   onChange={(e) => setPermissions(e.target.value)}
-                  className="mt-1 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 text-secondary-600 focus:ring-secondary-500"
                 />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{option.label}</p>
@@ -213,7 +213,7 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ajouter un message..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
               rows={3}
             />
           </div>
@@ -225,7 +225,7 @@ const DocumentShareModal = ({ isOpen, onClose, document, ownerId }) => {
             <select
               value={expiryDays}
               onChange={(e) => setExpiryDays(parseInt(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
             >
               <option value={7}>7 jours</option>
               <option value={30}>30 jours</option>

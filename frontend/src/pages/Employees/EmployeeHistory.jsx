@@ -73,7 +73,7 @@ const EmployeeHistory = () => {
       case "salary_change":
         return <DollarSign className="w-5 h-5 text-green-600" />;
       case "role_change":
-        return <User className="w-5 h-5 text-blue-600" />;
+        return <User className="w-5 h-5 text-secondary-600" />;
       case "department_change":
         return <Building className="w-5 h-5 text-purple-600" />;
       case "hire":
