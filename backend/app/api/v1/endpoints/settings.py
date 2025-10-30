@@ -260,3 +260,48 @@ def update_smtp_config(
 ):
     """Update SMTP configuration"""
     return config
+
+@router.post("/company/logo")
+def update_company_logo(
+    logo_data: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update company logo"""
+    from ....db.models import CompanySettings
+    
+    # Chercher ou créer les paramètres de l'entreprise
+    settings = db.query(CompanySettings).filter(
+        CompanySettings.company_id == current_user.company_id
+    ).first()
+    
+    if not settings:
+        settings = CompanySettings(
+            company_id=current_user.company_id,
+            company_logo=logo_data.get('logo')
+        )
+        db.add(settings)
+    else:
+        settings.company_logo = logo_data.get('logo')
+    
+    db.commit()
+    db.refresh(settings)
+    
+    return {"message": "Logo mis à jour avec succès", "logo_url": settings.company_logo}
+
+@router.get("/company/logo")
+def get_company_logo(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get company logo"""
+    from ....db.models import CompanySettings
+    
+    settings = db.query(CompanySettings).filter(
+        CompanySettings.company_id == current_user.company_id
+    ).first()
+    
+    if settings and settings.company_logo:
+        return {"logo_url": settings.company_logo}
+    
+    return {"logo_url": None}

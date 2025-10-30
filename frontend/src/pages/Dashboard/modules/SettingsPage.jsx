@@ -63,7 +63,27 @@ const SettingsPage = () => {
   useEffect(() => {
     loadSettings();
     loadDepartments();
+    loadCompanyLogo();
   }, []);
+
+  const loadCompanyLogo = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/company/logo`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.logo_url) {
+          setLogoUrl(data.logo_url);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur chargement logo:', error);
+    }
+  };
 
   const loadSettings = async () => {
     setLoading(true);
@@ -125,7 +145,7 @@ const SettingsPage = () => {
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [secondaryColor, setSecondaryColor] = useState('#1E40AF');
   const [companyName, setCompanyName] = useState('NovaCore');
-  const [logoUrl, setLogoUrl] = useState(localStorage.getItem('companyLogo') || '');
+  const [logoUrl, setLogoUrl] = useState('');
   const [fontFamily, setFontFamily] = useState('Inter');
   const updateTheme = () => {};
 
@@ -497,9 +517,26 @@ const SettingsPage = () => {
                   <div className="space-y-2">
                     <img src={logoUrl} alt="Logo" className="h-12 mx-auto" />
                     <button 
-                      onClick={() => {
-                        setLogoUrl('');
-                        localStorage.removeItem('companyLogo');
+                      onClick={async () => {
+                        try {
+                          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/company/logo`, {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                            },
+                            body: JSON.stringify({ logo: null })
+                          });
+                          
+                          if (response.ok) {
+                            setLogoUrl('');
+                            showSuccess('Logo supprimé avec succès');
+                          } else {
+                            showError('Erreur lors de la suppression du logo');
+                          }
+                        } catch (error) {
+                          showError('Erreur lors de la suppression du logo');
+                        }
                       }}
                       className="text-xs text-red-600 hover:text-red-700"
                     >
@@ -515,11 +552,69 @@ const SettingsPage = () => {
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
+                          // Vérifier la taille du fichier (max 500KB)
+                          if (file.size > 500000) {
+                            showError('Image trop volumineuse (max 500KB)');
+                            return;
+                          }
+                          
                           const reader = new FileReader();
                           reader.onload = (e) => {
-                            const logoData = e.target.result;
-                            setLogoUrl(logoData);
-                            localStorage.setItem('companyLogo', logoData);
+                            try {
+                              const logoData = e.target.result;
+                              // Compresser l'image
+                              const img = new Image();
+                              img.onload = async () => {
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                
+                                // Redimensionner à max 200x200
+                                const maxSize = 200;
+                                let { width, height } = img;
+                                
+                                if (width > height) {
+                                  if (width > maxSize) {
+                                    height = (height * maxSize) / width;
+                                    width = maxSize;
+                                  }
+                                } else {
+                                  if (height > maxSize) {
+                                    width = (width * maxSize) / height;
+                                    height = maxSize;
+                                  }
+                                }
+                                
+                                canvas.width = width;
+                                canvas.height = height;
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                const compressedData = canvas.toDataURL('image/jpeg', 0.7);
+                                
+                                try {
+                                  // Sauvegarder via API
+                                  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/company/logo`, {
+                                    method: 'POST',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                                    },
+                                    body: JSON.stringify({ logo: compressedData })
+                                  });
+                                  
+                                  if (response.ok) {
+                                    setLogoUrl(compressedData);
+                                    showSuccess('Logo téléchargé avec succès');
+                                  } else {
+                                    showError('Erreur lors de la sauvegarde du logo');
+                                  }
+                                } catch (error) {
+                                  showError('Erreur lors de la sauvegarde du logo');
+                                }
+                              };
+                              img.src = logoData;
+                            } catch (error) {
+                              showError('Erreur lors du traitement de l\'image');
+                            }
                           };
                           reader.readAsDataURL(file);
                         }
@@ -533,7 +628,7 @@ const SettingsPage = () => {
                     >
                       Télécharger un logo
                     </label>
-                    <p className="text-xs text-gray-500">PNG, JPG jusqu'à 2MB</p>
+                    <p className="text-xs text-gray-500">PNG, JPG jusqu'à 500KB</p>
                   </div>
                 )}
               </div>
