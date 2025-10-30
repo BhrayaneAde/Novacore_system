@@ -70,13 +70,18 @@ async def send_invitation(
         
         # Envoyer l'email
         company = db.query(models.Company).filter(models.Company.id == current_user.company_id).first()
+        company_logo = None
+        if company and company.settings_appearance:
+            company_logo = company.settings_appearance.get('company_logo')
+        
         success = email_service.send_invitation_email(
             to_email=invitation.email,
             first_name=invitation.first_name,
             last_name=invitation.last_name,
             company_name=company.name,
             role=invitation.role,
-            invitation_token=invitation_token
+            invitation_token=invitation_token,
+            company_logo=company_logo
         )
         
         # Mettre à jour le statut email
@@ -131,13 +136,18 @@ async def resend_invitation(
     
     # Renvoyer l'email
     company = db.query(models.Company).filter(models.Company.id == current_user.company_id).first()
+    company_logo = None
+    if company and company.settings_appearance:
+        company_logo = company.settings_appearance.get('company_logo')
+    
     success = email_service.send_invitation_email(
         to_email=invitation.email,
         first_name=invitation.first_name,
         last_name=invitation.last_name,
         company_name=company.name,
         role=invitation.role,
-        invitation_token=invitation.token
+        invitation_token=invitation.token,
+        company_logo=company_logo
     )
     
     if not success:

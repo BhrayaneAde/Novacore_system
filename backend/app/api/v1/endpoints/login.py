@@ -214,8 +214,11 @@ async def reset_password(
     # Trouver l'utilisateur
     user = crud_user.get_user_by_email(db, request.email)
     if not user:
-        # Ne pas révéler si l'email existe ou non
-        return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé"}
+        return {
+            "success": False,
+            "message": "Aucun compte associé à cette adresse email",
+            "email_sent": False
+        }
     
     # Générer un token de réinitialisation
     import secrets
@@ -238,15 +241,26 @@ async def reset_password(
     db.add(password_reset)
     db.commit()
     
+    # Récupérer le logo de l'entreprise
+    company_logo = None
+    if user.company and hasattr(user.company, 'settings_appearance'):
+        appearance = user.company.settings_appearance or {}
+        company_logo = appearance.get('company_logo')
+    
     # Envoyer l'email de réinitialisation
     reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
-    email_service.send_password_reset_email(
+    email_sent = email_service.send_password_reset_email(
         to_email=user.email,
         first_name=user.first_name,
-        reset_link=reset_link
+        reset_link=reset_link,
+        company_logo=company_logo
     )
     
-    return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé"}
+    return {
+        "success": True,
+        "message": "Un lien de réinitialisation a été envoyé à votre adresse email",
+        "email_sent": email_sent
+    }
 
 @router.post("/confirm-reset")
 async def confirm_reset_password(
@@ -273,4 +287,7 @@ async def confirm_reset_password(
     
     db.commit()
     
-    return {"message": "Mot de passe réinitialisé avec succès"}
+    return {
+        "success": True,
+        "message": "Mot de passe réinitialisé avec succès"
+    }

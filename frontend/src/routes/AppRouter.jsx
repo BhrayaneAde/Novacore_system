@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
 import LandingPage from '../pages/Landing/LandingPage';
 import AuthPage from '../pages/Auth/AuthPage';
+import ForgotPasswordPage from '../pages/Auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/Auth/ResetPasswordPage';
 import Dashboard from '../pages/Dashboard/Dashboard';
 import PermissionGuard from '../components/auth/PermissionGuard';
 import Loader from '../components/ui/Loader';
@@ -80,6 +82,16 @@ const AppRouter = () => {
         <Route path="/register" element={
           <PublicRoute>
             <AuthPage />
+          </PublicRoute>
+        } />
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <ForgotPasswordPage />
+          </PublicRoute>
+        } />
+        <Route path="/reset-password" element={
+          <PublicRoute>
+            <ResetPasswordPage />
           </PublicRoute>
         } />
         <Route path="/app/*" element={

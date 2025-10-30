@@ -45,11 +45,13 @@ class EmailService:
             return False
 
     def send_invitation_email(self, to_email: str, first_name: str, last_name: str, 
-                            company_name: str, role: str, invitation_token: str):
+                            company_name: str, role: str, invitation_token: str, company_logo: str = None):
         """Envoie un email d'invitation"""
         invitation_link = f"{self.frontend_url}/accept-invitation?token={invitation_token}"
         
         subject = f"Invitation à rejoindre {company_name} sur NovaCore"
+        
+        logo_section = f'<img src="{company_logo}" alt="Logo {company_name}" style="height: 40px; margin-bottom: 20px;" />' if company_logo else ''
         
         html_content = f"""
         <!DOCTYPE html>
@@ -59,15 +61,16 @@ class EmailService:
             <style>
                 body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .header {{ background: linear-gradient(135deg, #f59e0b 0%, #055169 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
                 .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
-                .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                .button {{ display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #055169 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
                 .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 12px; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
+                    {logo_section}
                     <h1>🎉 Bienvenue sur NovaCore !</h1>
                 </div>
                 <div class="content">
@@ -157,9 +160,11 @@ class EmailService:
         
         return self.send_email(to_email, subject, html_content)
 
-    def send_password_reset_email(self, to_email: str, first_name: str, reset_link: str):
+    def send_password_reset_email(self, to_email: str, first_name: str, reset_link: str, company_logo: str = None):
         """Envoie un email de réinitialisation de mot de passe"""
         subject = "Réinitialisation de votre mot de passe NovaCore"
+        
+        logo_section = f'<img src="{company_logo}" alt="Logo" style="height: 40px; margin-bottom: 20px;" />' if company_logo else ''
         
         html_content = f"""
         <!DOCTYPE html>
@@ -169,15 +174,16 @@ class EmailService:
             <style>
                 body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
                 .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-                .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .header {{ background: linear-gradient(135deg, #f59e0b 0%, #055169 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
                 .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
-                .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                .button {{ display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #055169 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
                 .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }}
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
+                    {logo_section}
                     <h1>🔒 Réinitialisation de mot de passe</h1>
                 </div>
                 <div class="content">

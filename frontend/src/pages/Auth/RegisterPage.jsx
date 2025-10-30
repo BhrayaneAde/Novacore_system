@@ -46,7 +46,7 @@ const RegisterPage = () => {
 
   const getPasswordStrengthColor = () => {
     if (passwordStrength < 50) return 'bg-red-500';
-    if (passwordStrength < 75) return 'bg-primary-500';
+    if (passwordStrength < 75) return 'bg-amber-500';
     return 'bg-green-500';
   };
 
@@ -97,18 +97,18 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-amber-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-lg w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-amber-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">NovaCore</h1>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Créer un compte</h2>
           <p className="text-gray-600">
             Déjà inscrit ?{' '}
-            <Link to="/login" className="font-semibold text-purple-600 hover:text-purple-500 transition-colors">
+            <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
               Se connecter
             </Link>
           </p>
@@ -139,7 +139,7 @@ const RegisterPage = () => {
                     name="firstName"
                     type="text"
                     required
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                     placeholder="Votre prénom"
                     value={formData.firstName}
                     onChange={handleChange}
@@ -155,7 +155,7 @@ const RegisterPage = () => {
                   name="lastName"
                   type="text"
                   required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Votre nom"
                   value={formData.lastName}
                   onChange={handleChange}
@@ -177,7 +177,7 @@ const RegisterPage = () => {
                   name="email"
                   type="email"
                   required
-                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="votre@email.com"
                   value={formData.email}
                   onChange={handleChange}
@@ -199,7 +199,7 @@ const RegisterPage = () => {
                     id="phone"
                     name="phone"
                     type="tel"
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                     placeholder="06 12 34 56 78"
                     value={formData.phone}
                     onChange={handleChange}
@@ -219,7 +219,7 @@ const RegisterPage = () => {
                     name="companyName"
                     type="text"
                     required
-                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                     placeholder="Nom de votre entreprise"
                     value={formData.companyName}
                     onChange={handleChange}
@@ -242,7 +242,7 @@ const RegisterPage = () => {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Créez un mot de passe sécurisé"
                   value={formData.password}
                   onChange={handleChange}
@@ -289,7 +289,7 @@ const RegisterPage = () => {
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Confirmez votre mot de passe"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -330,15 +330,15 @@ const RegisterPage = () => {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-1 transition-colors"
+                className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded mt-1 transition-colors"
               />
               <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
                 J'accepte les{' '}
-                <Link to="/terms" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                <Link to="/terms" className="font-semibold text-amber-600 hover:text-amber-700 transition-colors"
                   conditions d'utilisation
                 </Link>{' '}
                 et la{' '}
-                <Link to="/privacy" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                <Link to="/privacy" className="font-semibold text-amber-600 hover:text-amber-700 transition-colors"
                   politique de confidentialité
                 </Link>
               </label>
@@ -348,7 +348,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              className="w-full bg-gradient-to-r from-amber-600 to-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-amber-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
@@ -363,10 +363,10 @@ const RegisterPage = () => {
         </div>
 
         {/* Security Notice */}
-        <div className="mt-6 bg-secondary-50 rounded-xl p-4 border border-secondary-100">
+        <div className="mt-6 bg-blue-50 rounded-xl p-4 border border-blue-100">
           <div className="flex items-center">
-            <Shield className="w-5 h-5 text-secondary-600 mr-2" />
-            <p className="text-sm text-secondary-800">
+            <Shield className="w-5 h-5 text-blue-600 mr-2" />
+            <p className="text-sm text-blue-800">
               <span className="font-semibold">Sécurité garantie :</span> Vos données sont chiffrées et protégées selon les standards les plus élevés.
             </p>
           </div>

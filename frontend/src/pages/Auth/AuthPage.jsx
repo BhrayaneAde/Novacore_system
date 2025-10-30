@@ -59,8 +59,8 @@ const AuthPage = () => {
     <ThemeProvider>
       <div className="min-h-screen flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{background: 'linear-gradient(135deg, #f59e0b 0%, #055169 100%)'}}>
+        <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           <div>
             <div className="flex items-center space-x-2">
@@ -78,8 +78,8 @@ const AuthPage = () => {
             
             <div className="space-y-4 pt-8">
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
-                  <Check className="w-4 h-4 text-blue-400" />
+                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-1">
+                  <Check className="w-4 h-4 text-amber-300" />
                 </div>
                 <div>
                   <h3 className="text-white font-medium">Gestion des employés</h3>
@@ -87,8 +87,8 @@ const AuthPage = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
-                  <Check className="w-4 h-4 text-blue-400" />
+                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-1">
+                  <Check className="w-4 h-4 text-amber-300" />
                 </div>
                 <div>
                   <h3 className="text-white font-medium">Suivi des présences</h3>
@@ -96,8 +96,8 @@ const AuthPage = () => {
                 </div>
               </div>
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 rounded-full bg-secondary-600/20 flex items-center justify-center mt-1">
-                  <Check className="w-4 h-4 text-blue-400" />
+                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center mt-1">
+                  <Check className="w-4 h-4 text-amber-300" />
                 </div>
                 <div>
                   <h3 className="text-white font-medium">Gestion de la paie</h3>
@@ -171,7 +171,7 @@ const AuthPage = () => {
                     <input 
                       type="email" 
                       placeholder="vous@exemple.com" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                     />
@@ -187,7 +187,7 @@ const AuthPage = () => {
                     <input 
                       type="password" 
                       placeholder="••••••••" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={loginData.password}
                       onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                     />
@@ -198,19 +198,20 @@ const AuthPage = () => {
                   <label className="flex items-center">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 border-slate-300 rounded text-secondary-600 focus:ring-2 focus:ring-blue-600"
+                      className="w-4 h-4 border-slate-300 rounded text-amber-600 focus:ring-2 focus:ring-amber-500"
                       checked={loginData.remember}
                       onChange={(e) => setLoginData({...loginData, remember: e.target.checked})}
                     />
                     <span className="ml-2 text-sm text-slate-600">Se souvenir de moi</span>
                   </label>
-                  <Link to="#" className="text-sm font-medium text-secondary-600 hover:text-secondary-700">Mot de passe oublié?</Link>
+                  <Link to="/forgot-password" className="text-sm font-medium hover:opacity-80" style={{color: '#055169'}}>Mot de passe oublié?</Link>
                 </div>
 
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full bg-secondary-600 text-white py-2.5 rounded-lg font-medium hover:bg-secondary-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
+                  className="w-full text-white py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2 hover:opacity-90"
+                  style={{background: 'linear-gradient(135deg, #f59e0b 0%, #055169 100%)'}}
                 >
                   <span>{isLoading ? 'Connexion...' : 'Se connecter'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -267,7 +268,7 @@ const AuthPage = () => {
                     <input 
                       type="text" 
                       placeholder="Jean" 
-                      className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={registerData.firstName}
                       onChange={(e) => setRegisterData({...registerData, firstName: e.target.value})}
                     />
@@ -277,7 +278,7 @@ const AuthPage = () => {
                     <input 
                       type="text" 
                       placeholder="Dupont" 
-                      className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={registerData.lastName}
                       onChange={(e) => setRegisterData({...registerData, lastName: e.target.value})}
                     />
@@ -293,7 +294,7 @@ const AuthPage = () => {
                     <input 
                       type="text" 
                       placeholder="Nom de votre entreprise" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={registerData.company}
                       onChange={(e) => setRegisterData({...registerData, company: e.target.value})}
                     />
@@ -309,7 +310,7 @@ const AuthPage = () => {
                     <input 
                       type="email" 
                       placeholder="vous@entreprise.com" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={registerData.email}
                       onChange={(e) => setRegisterData({...registerData, email: e.target.value})}
                     />
@@ -325,7 +326,7 @@ const AuthPage = () => {
                     <input 
                       type="password" 
                       placeholder="••••••••" 
-                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
                       value={registerData.password}
                       onChange={(e) => setRegisterData({...registerData, password: e.target.value})}
                     />
@@ -337,19 +338,20 @@ const AuthPage = () => {
                   <label className="flex items-start">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 border-slate-300 rounded text-secondary-600 focus:ring-2 focus:ring-blue-600 mt-0.5"
+                      className="w-4 h-4 border-slate-300 rounded text-amber-600 focus:ring-2 focus:ring-amber-500 mt-0.5"
                       checked={registerData.terms}
                       onChange={(e) => setRegisterData({...registerData, terms: e.target.checked})}
                     />
                     <span className="ml-2 text-sm text-slate-600">
-                      J'accepte les <Link to="#" className="text-secondary-600 hover:text-secondary-700 font-medium">conditions d'utilisation</Link> et la <Link to="#" className="text-secondary-600 hover:text-secondary-700 font-medium">politique de confidentialité</Link>
+                      J'accepte les <Link to="#" className="font-medium hover:opacity-80" style={{color: '#055169'}}>conditions d'utilisation</Link> et la <Link to="#" className="font-medium hover:opacity-80" style={{color: '#055169'}}>politique de confidentialité</Link>
                     </span>
                   </label>
                 </div>
 
                 <button 
                   type="submit" 
-                  className="w-full bg-secondary-600 text-white py-2.5 rounded-lg font-medium hover:bg-secondary-700 transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2"
+                  className="w-full text-white py-2.5 rounded-lg font-medium transition-all shadow-sm hover:shadow flex items-center justify-center space-x-2 hover:opacity-90"
+                  style={{background: 'linear-gradient(135deg, #f59e0b 0%, #055169 100%)'}}
                 >
                   <span>Créer mon compte</span>
                   <ArrowRight className="w-4 h-4" />
@@ -360,7 +362,8 @@ const AuthPage = () => {
                   <button 
                     type="button" 
                     onClick={() => setActiveTab('login')}
-                    className="text-secondary-600 hover:text-secondary-700 font-medium ml-1"
+                    className="font-medium ml-1 hover:opacity-80"
+                    style={{color: '#055169'}}
                   >
                     Se connecter
                   </button>

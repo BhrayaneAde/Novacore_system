@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import Loader from '../../components/ui/Loader';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Shield } from 'lucide-react';
-import Loader from '../../components/ui/Loader';
+import { Lock, Eye, EyeOff, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
 import { authService } from '../../services';
 
 const ResetPasswordPage = () => {
@@ -51,13 +50,14 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4" style={{background: 'linear-gradient(135deg, #dbeafe 0%, #ffffff 50%, #fef3c7 100%)'}}>
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg" style={{background: 'linear-gradient(135deg, #f59e0b 0%, #055169 100%)'}}>
+            <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Nouveau mot de passe</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">NovaCore</h1>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Nouveau mot de passe</h2>
           <p className="text-gray-600">Définissez votre nouveau mot de passe</p>
         </div>
 
@@ -83,7 +83,7 @@ const ResetPasswordPage = () => {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Votre nouveau mot de passe"
                 />
                 <button
@@ -113,7 +113,7 @@ const ResetPasswordPage = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
+                  className="w-full pl-12 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
                   placeholder="Confirmez votre nouveau mot de passe"
                 />
                 <button
@@ -148,7 +148,8 @@ const ResetPasswordPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-700 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full text-white py-3 px-4 rounded-xl font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+              style={{background: 'linear-gradient(135deg, #f59e0b 0%, #055169 100%)'}}
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -161,8 +162,8 @@ const ResetPasswordPage = () => {
             </button>
           </form>
 
-          <div className="mt-6 bg-orange-50 rounded-xl p-4 border border-orange-100">
-            <p className="text-sm text-orange-800">
+          <div className="mt-6 bg-amber-50 rounded-xl p-4 border border-amber-100">
+            <p className="text-sm text-amber-800">
               <strong>🔒 Sécurité :</strong> Après la réinitialisation, vous serez redirigé vers la page de connexion.
             </p>
           </div>
