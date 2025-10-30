@@ -20,11 +20,11 @@ class CompanyBase(BaseModel):
     email: EmailStr
     plan: Optional[str] = None
     max_employees: Optional[int] = -1
-    settings_smtp: Optional[str] = None
-    settings_leave_policy: Optional[str] = None
-    settings_work_schedule: Optional[str] = None
-    settings_security: Optional[str] = None
-    settings_appearance: Optional[str] = None
+    settings_smtp: Optional[Dict[str, Any]] = None
+    settings_leave_policy: Optional[Dict[str, Any]] = None
+    settings_work_schedule: Optional[Dict[str, Any]] = None
+    settings_security: Optional[Dict[str, Any]] = None
+    settings_appearance: Optional[Dict[str, Any]] = None
 
 class CompanyCreate(CompanyBase):
     pass

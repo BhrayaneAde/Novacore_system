@@ -21,21 +21,37 @@ class EmailService:
         """Récupère l'URL du frontend depuis les variables d'environnement"""
         return self.frontend_url
 
-    def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None):
+    def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None, smtp_config: dict = None):
         """Envoie un email via SMTP"""
         try:
+            # Utiliser la config SMTP fournie ou celle par défaut
+            if smtp_config and smtp_config.get('enabled'):
+                host = smtp_config.get('host', self.smtp_host)
+                port = smtp_config.get('port', self.smtp_port)
+                user = smtp_config.get('user', self.smtp_user)
+                password = smtp_config.get('password', self.smtp_password)
+                from_name = smtp_config.get('fromName', self.from_name)
+                from_email = smtp_config.get('fromEmail', user)
+            else:
+                host = self.smtp_host
+                port = self.smtp_port
+                user = self.smtp_user
+                password = self.smtp_password
+                from_name = self.from_name
+                from_email = self.from_email
+            
             msg = MIMEMultipart('alternative')
             msg['Subject'] = subject
-            msg['From'] = f"{self.from_name} <{self.from_email}>"
+            msg['From'] = f"{from_name} <{from_email}>"
             msg['To'] = to_email
 
             if text_content:
                 msg.attach(MIMEText(text_content, 'plain', 'utf-8'))
             msg.attach(MIMEText(html_content, 'html', 'utf-8'))
 
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            with smtplib.SMTP(host, port) as server:
                 server.starttls()
-                server.login(self.smtp_user, self.smtp_password)
+                server.login(user, password)
                 server.send_message(msg)
             
             logger.info(f"Email envoyé à {to_email}")
@@ -45,7 +61,7 @@ class EmailService:
             return False
 
     def send_invitation_email(self, to_email: str, first_name: str, last_name: str, 
-                            company_name: str, role: str, invitation_token: str, company_logo: str = None):
+                            company_name: str, role: str, invitation_token: str, company_logo: str = None, smtp_config: dict = None):
         """Envoie un email d'invitation"""
         invitation_link = f"{self.frontend_url}/accept-invitation?token={invitation_token}"
         
@@ -117,7 +133,7 @@ class EmailService:
         À bientôt sur NovaCore !
         """
         
-        return self.send_email(to_email, subject, html_content, text_content)
+        return self.send_email(to_email, subject, html_content, text_content, smtp_config)
 
     def send_welcome_email(self, to_email: str, first_name: str, company_name: str):
         """Envoie un email de bienvenue après inscription"""
@@ -160,7 +176,7 @@ class EmailService:
         
         return self.send_email(to_email, subject, html_content)
 
-    def send_password_reset_email(self, to_email: str, first_name: str, reset_link: str, company_logo: str = None):
+    def send_password_reset_email(self, to_email: str, first_name: str, reset_link: str, company_logo: str = None, smtp_config: dict = None):
         """Envoie un email de réinitialisation de mot de passe"""
         subject = "Réinitialisation de votre mot de passe NovaCore"
         
@@ -226,7 +242,7 @@ class EmailService:
         Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
         """
         
-        return self.send_email(to_email, subject, html_content, text_content)
+        return self.send_email(to_email, subject, html_content, text_content, smtp_config)
 
 # Instance globale
 email_service = EmailService()

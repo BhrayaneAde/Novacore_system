@@ -15,8 +15,8 @@ const ManagerDocumentsPage = () => {
     const loadData = async () => {
       try {
         const [docsData, teamData] = await Promise.all([
-          hrService.documents.getMyDocuments(),
-          usersService.getTeamMembers()
+          hrService?.documents?.getMyDocuments?.() || Promise.resolve([]),
+          usersService?.getTeamMembers?.() || Promise.resolve([])
         ]);
         setDocuments(docsData || []);
         setTeamMembers(teamData || []);
@@ -33,7 +33,7 @@ const ManagerDocumentsPage = () => {
 
   const handleShare = async (docId, memberIds, message) => {
     try {
-      await hrService.documents.shareDocument(docId, memberIds, message);
+      await hrService?.documents?.shareDocument?.(docId, memberIds, message);
       setDocuments(prev => prev.map(doc => 
         doc.id === docId 
           ? { ...doc, isShared: true, sharedWith: memberIds }

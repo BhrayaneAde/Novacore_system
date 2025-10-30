@@ -4,7 +4,7 @@ from app.api.v1.endpoints import (
     login, users, employees, tasks, leaves, performance, 
     contracts, manager, companies, recruitment, payroll,
     attendance, goals, assets, notifications, websocket, websocket_admin, email,
-    time_tracking, reports, analytics, workflows, integrations
+    time_tracking, reports, analytics, workflows, integrations, departments
 )
 from app.api.v1.endpoints import payroll_config
 from app.api.v1.endpoints import tasks as advanced_tasks
@@ -37,5 +37,6 @@ api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytic
 api_router.include_router(workflows.router, prefix="/workflows", tags=["Workflows"])
 api_router.include_router(advanced_tasks.router, prefix="/advanced-tasks", tags=["Advanced Tasks"])
 api_router.include_router(integrations.router, prefix="/integrations", tags=["Integrations"])
+api_router.include_router(departments.router, prefix="/departments", tags=["Departments"])
 api_router.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 api_router.include_router(websocket_admin.router, prefix="/ws-admin", tags=["WebSocket Admin"])

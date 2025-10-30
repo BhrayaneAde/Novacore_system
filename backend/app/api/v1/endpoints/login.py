@@ -253,7 +253,8 @@ async def reset_password(
         to_email=user.email,
         first_name=user.first_name,
         reset_link=reset_link,
-        company_logo=company_logo
+        company_logo=company_logo,
+        smtp_config=user.company.settings_smtp
     )
     
     return {

@@ -6,8 +6,10 @@ import GoalForm from '../../../components/forms/GoalForm';
 import Loader from '../../../components/ui/Loader';
 
 const GoalSettingPage = () => {
-  const { currentUser, isManager, isSeniorManager, isEmployee } = useAuthStore();
-  const [activeTab, setActiveTab] = useState(isManager() ? 'team-goals' : 'my-goals');
+  const { currentUser } = useAuthStore();
+  const isManagerRole = currentUser?.role === 'manager' || currentUser?.role === 'employer' || currentUser?.role === 'hr_admin';
+  const isEmployeeRole = currentUser?.role === 'employee';
+  const [activeTab, setActiveTab] = useState(isManagerRole ? 'team-goals' : 'my-goals');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState(null);
@@ -153,8 +155,8 @@ const GoalSettingPage = () => {
   };
 
   const myGoals = displayGoals.filter(goal => 
-    isEmployee() ? goal.assignedTo === currentUser?.name : 
-    (isManager() || isSeniorManager()) ? goal.assignedBy === currentUser?.name : true
+    isEmployeeRole ? goal.assignedTo === currentUser?.name : 
+    isManagerRole ? goal.assignedBy === currentUser?.name : true
   );
 
   const teamGoals = displayGoals.filter(goal => goal.type === 'team');
@@ -186,9 +188,9 @@ const GoalSettingPage = () => {
       <div className="mb-8">
         <div className="bg-gray-50 rounded-xl p-2 inline-flex">
           {[
-            ...((isManager() || isSeniorManager()) ? [{ key: 'team-goals', label: 'Objectifs Équipe', icon: Users }] : []),
-            { key: 'my-goals', label: isEmployee() ? 'Mes Objectifs' : 'Mes Objectifs', icon: Target },
-            ...((isManager() || isSeniorManager()) ? [{ key: 'create', label: 'Créer', icon: Plus }] : [])
+            ...(isManagerRole ? [{ key: 'team-goals', label: 'Objectifs Équipe', icon: Users }] : []),
+            { key: 'my-goals', label: isEmployeeRole ? 'Mes Objectifs' : 'Mes Objectifs', icon: Target },
+            ...(isManagerRole ? [{ key: 'create', label: 'Créer', icon: Plus }] : [])
           ].map(({ key, label, icon: Icon }) => (
             <button
               key={key}
@@ -305,7 +307,7 @@ const GoalSettingPage = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between">
-                {(isEmployee() && goal.assignedTo === currentUser?.name) || isManager() ? (
+                {(isEmployeeRole && goal.assignedTo === currentUser?.name) || isManagerRole ? (
                   <div className="flex items-center gap-4 flex-1">
                     <span className="text-sm font-medium text-gray-700">Progression:</span>
                     <input
@@ -320,7 +322,7 @@ const GoalSettingPage = () => {
                   </div>
                 ) : null}
                 
-                {(isManager() || isSeniorManager()) && (
+                {isManagerRole && (
                   <div className="flex items-center gap-2 ml-4">
                     <button
                       onClick={() => {
@@ -348,7 +350,7 @@ const GoalSettingPage = () => {
       )}
 
       {/* Create Goal Tab */}
-      {activeTab === 'create' && (isManager() || isSeniorManager()) && (
+      {activeTab === 'create' && isManagerRole && (
         <div className="bg-white rounded-xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Créer un nouvel objectif</h2>

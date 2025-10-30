@@ -81,7 +81,8 @@ async def send_invitation(
             company_name=company.name,
             role=invitation.role,
             invitation_token=invitation_token,
-            company_logo=company_logo
+            company_logo=company_logo,
+            smtp_config=company.settings_smtp
         )
         
         # Mettre à jour le statut email
@@ -147,7 +148,8 @@ async def resend_invitation(
         company_name=company.name,
         role=invitation.role,
         invitation_token=invitation.token,
-        company_logo=company_logo
+        company_logo=company_logo,
+        smtp_config=company.settings_smtp
     )
     
     if not success:
@@ -216,6 +218,39 @@ async def get_invitation_stats(
     }
     
     return stats
+
+@router.get("/smtp-config")
+async def get_smtp_config(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Récupère la configuration SMTP de l'entreprise"""
+    company = db.query(models.Company).filter(models.Company.id == current_user.company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
+    
+    smtp_config = company.settings_smtp or {}
+    # Ne pas renvoyer le mot de passe pour la sécurité
+    if 'password' in smtp_config:
+        smtp_config['password'] = '***'
+    
+    return smtp_config
+
+@router.post("/smtp-config")
+async def save_smtp_config(
+    config: dict,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Sauvegarde la configuration SMTP"""
+    company = db.query(models.Company).filter(models.Company.id == current_user.company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Entreprise non trouvée")
+    
+    company.settings_smtp = config
+    db.commit()
+    
+    return {"success": True, "message": "Configuration SMTP sauvegardée"}
 
 @router.post("/test-email")
 async def test_email_configuration(request: TestEmailRequest):

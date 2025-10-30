@@ -3,7 +3,8 @@ import { MessageSquare, Calendar, Plus, Clock, User, CheckCircle, AlertCircle } 
 import { useAuthStore } from '../../../store/useAuthStore';
 
 const OneOnOnePage = () => {
-  const { currentUser, isManager, isSeniorManager } = useAuthStore();
+  const { currentUser } = useAuthStore();
+  const isManagerRole = currentUser?.role === 'manager' || currentUser?.role === 'employer' || currentUser?.role === 'hr_admin';
   
   const [meetings, setMeetings] = useState([
     {
@@ -83,7 +84,7 @@ const OneOnOnePage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState(null);
 
-  if (!isManager() && !isSeniorManager()) {
+  if (!isManagerRole) {
     return (
       <div className="p-6 text-center">
         <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />

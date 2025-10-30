@@ -6,34 +6,47 @@ import Loader from '../../components/ui/Loader';
 import Toast from '../../components/ui/Toast';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(localStorage.getItem('rememberedEmail') ? true : false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login, isLoading } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setError('');
     
     if (!email || !password) {
       setError('Veuillez remplir tous les champs');
-      return;
+      return false;
     }
 
     try {
       const result = await login(email, password);
       
       if (result.success) {
+        // Gérer "Se souvenir de moi"
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
         navigate('/app/dashboard');
       } else {
         setError(result.error || 'Email ou mot de passe incorrect');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Email ou mot de passe incorrect');
+      if (error.code === 'NETWORK_ERROR' || error.message?.includes('timeout')) {
+        setError('Erreur de connexion au serveur. Vérifiez votre connexion.');
+      } else {
+        setError('Email ou mot de passe incorrect');
+      }
     }
+    return false;
   };
 
   const demoAccounts = [
@@ -126,6 +139,8 @@ const LoginPage = () => {
                 <input
                   id="remember"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-colors"
                 />
                 <label htmlFor="remember" className="ml-2 text-sm text-gray-700">
@@ -166,7 +181,10 @@ const LoginPage = () => {
               return (
                 <button
                   key={index}
-                  onClick={() => setEmail(account.email)}
+                  onClick={() => {
+                    setEmail(account.email);
+                    setPassword('password123');
+                  }}
                   className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors group"
                 >
                   <div className="flex items-center space-x-3">

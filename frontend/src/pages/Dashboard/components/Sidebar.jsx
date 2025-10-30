@@ -25,37 +25,19 @@ import { useState, useEffect } from "react";
 
 const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollapsed }) => {
   const { logout, currentUser } = useAuthStore();
-  const [userPermissions, setUserPermissions] = useState(null);
-
-  useEffect(() => {
-    loadUserPermissions();
-  }, [currentUser]);
-
-  const loadUserPermissions = async () => {
-    if (!currentUser?.role) return;
-    
-    try {
-      const response = await systemService.settings.getRoles();
-      const userRole = response.data?.find(role => role.name.toLowerCase() === currentUser.role);
-      setUserPermissions(userRole?.permissions || []);
-    } catch (error) {
-      console.error('Error loading permissions:', error);
-    }
-  };
-
   const hasPermission = (module, action = 'read') => {
-    if (!userPermissions || !module) return true;
+    // Permissions simplifiées basées sur le rôle
+    if (!currentUser?.role || !module) return true;
     
-    if (typeof userPermissions === 'object' && !Array.isArray(userPermissions)) {
-      return userPermissions[module]?.[action] || false;
-    }
+    const rolePermissions = {
+      'employer': true, // Accès complet
+      'hr_admin': ['employees', 'tasks', 'performance', 'contracts', 'payroll', 'recruitment', 'reports', 'settings'].includes(module),
+      'hr_user': ['employees', 'tasks'].includes(module),
+      'manager': ['employees', 'tasks', 'performance', 'attendance', 'documents', 'reports'].includes(module),
+      'employee': ['tasks', 'performance', 'payroll', 'attendance', 'documents'].includes(module)
+    };
     
-    if (Array.isArray(userPermissions)) {
-      const modulePermissions = userPermissions.find(p => p.module === module);
-      return modulePermissions?.actions?.[action] || false;
-    }
-    
-    return true;
+    return rolePermissions[currentUser.role] || false;
   };
 
   const allMenuItems = [
@@ -90,9 +72,9 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
 
   const getMenuItems = () => {
     const roleBasedItems = {
-      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management'],
-      'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nomination', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
-      'hr_user': ['dashboard', 'employees'],
+      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management', 'onboarding-workflow', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents'],
+      'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
+      'hr_user': ['dashboard', 'employees', 'task-management'],
       'manager': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'advanced-reports', 'performance'],
       'employee': ['dashboard', 'employee-tasks', 'my-performance', 'goal-setting', 'employee-self-service', 'payslips', 'leaves', 'timesheet', 'documents']
     };
@@ -132,16 +114,25 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
           </button>
           {!collapsed && (
             <>
-              <div 
-                className="h-9 w-9 grid place-items-center rounded font-semibold tracking-tight flex-shrink-0"
-                style={{backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff'}}
-              >
-                {currentUser?.role === 'employer' ? 'CEO' :
-                 currentUser?.role === 'hr_admin' ? 'HR+' :
-                 currentUser?.role === 'hr_user' ? 'HR' :
-                 currentUser?.role === 'manager' ? 'MGR' :
-                 currentUser?.role === 'employee' ? 'EMP' : 'USR'}
-              </div>
+              {localStorage.getItem('companyLogo') ? (
+                <img 
+                  src={localStorage.getItem('companyLogo')} 
+                  alt="Logo" 
+                  className="h-9 w-9 object-contain rounded flex-shrink-0"
+                  style={{backgroundColor: 'rgba(255,255,255,0.1)'}}
+                />
+              ) : (
+                <div 
+                  className="h-9 w-9 grid place-items-center rounded font-semibold tracking-tight flex-shrink-0"
+                  style={{backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff'}}
+                >
+                  {currentUser?.role === 'employer' ? 'CEO' :
+                   currentUser?.role === 'hr_admin' ? 'HR+' :
+                   currentUser?.role === 'hr_user' ? 'HR' :
+                   currentUser?.role === 'manager' ? 'MGR' :
+                   currentUser?.role === 'employee' ? 'EMP' : 'USR'}
+                </div>
+              )}
               <div className="leading-tight">
                 <div className="text-[15px] font-medium tracking-tight">
                   {currentUser?.role === 'employer' ? 'Administration' :

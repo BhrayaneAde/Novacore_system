@@ -3,10 +3,12 @@ import { Calendar, Clock, Users, Plus, Edit, RotateCcw } from 'lucide-react';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 const ManagerPlanningPage = () => {
-  const { currentUser, isManager, isSeniorManager } = useAuthStore();
+  const { currentUser } = useAuthStore();
   const [selectedWeek, setSelectedWeek] = useState(new Date());
 
-  if (!isManager() && !isSeniorManager()) {
+  const isManagerRole = currentUser?.role === 'manager' || currentUser?.role === 'employer' || currentUser?.role === 'hr_admin';
+  
+  if (!isManagerRole) {
     return (
       <div className="p-6 text-center">
         <p className="text-red-600">Accès réservé aux managers</p>

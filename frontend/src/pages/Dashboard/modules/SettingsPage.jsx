@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Moon, Sun, Bell, Lock, User, Building, Save, Shield, Mail, Server, Send, Calendar, Clock, ShieldCheck, Palette, Upload } from "lucide-react";
+import { Bell, User, Building, Save, Shield, Mail, Send, Upload, Edit, Trash2 } from "lucide-react";
 import Loader from '../../../components/ui/Loader';
 import { systemService } from "../../../services";
 import Button from "../../../components/ui/Button";
@@ -9,13 +9,7 @@ import { useToast } from "../../../components/ui/useToast";
 const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const { toast, showSuccess, showError, hideToast } = useToast();
-  const [departments, setDepartments] = useState([
-    { id: 1, name: 'Développement', employees: 12 },
-    { id: 2, name: 'Design', employees: 8 },
-    { id: 3, name: 'Marketing', employees: 6 },
-    { id: 4, name: 'Ventes', employees: 10 },
-    { id: 5, name: 'Support', employees: 5 }
-  ]);
+  const [departments, setDepartments] = useState([]);
   const [showDeptForm, setShowDeptForm] = useState(false);
   const [newDeptName, setNewDeptName] = useState('');
   const [notifications, setNotifications] = useState({
@@ -52,30 +46,7 @@ const SettingsPage = () => {
   
   const [testStatus, setTestStatus] = useState(null);
   
-  const [leave, setLeave] = useState({
-    annualDays: 25,
-    carryOverDays: 5,
-    sickDays: 10,
-    requiresManagerApproval: true,
-    advanceNotice: 15
-  });
-  
-  const [schedule, setSchedule] = useState({
-    hoursPerWeek: 35,
-    flexTimeEnabled: true,
-    coreStart: '10:00',
-    coreEnd: '16:00',
-    remoteEnabled: true,
-    maxRemoteDays: 3
-  });
-  
-  const [security, setSecurity] = useState({
-    minPasswordLength: 8,
-    requireUppercase: true,
-    twoFactorEnabled: false,
-    sessionTimeout: 480,
-    auditLogEnabled: true
-  });
+
 
   // Palettes de couleurs prédéfinies
   const colorPalettes = [
@@ -91,67 +62,61 @@ const SettingsPage = () => {
 
   useEffect(() => {
     loadSettings();
+    loadDepartments();
   }, []);
 
   const loadSettings = async () => {
     setLoading(true);
     try {
-      // Simulation des données par défaut
-      const [smtpRes, leaveRes, scheduleRes, securityRes] = [
-        { data: null },
-        { data: null },
-        { data: null },
-        { data: null }
-      ];
-      
-      if (smtpRes.data) {
-        setSmtp({
-          enabled: smtpRes.data.enabled || false,
-          host: smtpRes.data.host || '',
-          port: smtpRes.data.port || 587,
-          secure: smtpRes.data.secure || false,
-          user: smtpRes.data.auth?.user || '',
-          pass: smtpRes.data.auth?.pass || '',
-          fromName: smtpRes.data.from?.name || 'NovaCore RH',
-          fromEmail: smtpRes.data.from?.email || '',
-          testEmail: smtpRes.data.testEmail || ''
+      // Charger la configuration SMTP
+      try {
+        const smtpResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/email/smtp-config`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
         });
-      }
-      
-      if (leaveRes.data) {
-        setLeave({
-          annualDays: leaveRes.data.annualLeave?.daysPerYear || 25,
-          carryOverDays: leaveRes.data.annualLeave?.carryOverDays || 5,
-          sickDays: leaveRes.data.sickLeave?.daysPerYear || 10,
-          requiresManagerApproval: leaveRes.data.approvalWorkflow?.requiresManagerApproval || true,
-          advanceNotice: leaveRes.data.approvalWorkflow?.advanceNotice || 15
-        });
-      }
-      
-      if (scheduleRes.data) {
-        setSchedule({
-          hoursPerWeek: scheduleRes.data.standardHours?.hoursPerWeek || 35,
-          flexTimeEnabled: scheduleRes.data.flexTime?.enabled || true,
-          coreStart: scheduleRes.data.flexTime?.coreHours?.start || '10:00',
-          coreEnd: scheduleRes.data.flexTime?.coreHours?.end || '16:00',
-          remoteEnabled: scheduleRes.data.remoteWork?.enabled || true,
-          maxRemoteDays: scheduleRes.data.remoteWork?.maxDaysPerWeek || 3
-        });
-      }
-      
-      if (securityRes.data) {
-        setSecurity({
-          minPasswordLength: securityRes.data.passwordPolicy?.minLength || 8,
-          requireUppercase: securityRes.data.passwordPolicy?.requireUppercase || true,
-          twoFactorEnabled: securityRes.data.twoFactorAuth?.enabled || false,
-          sessionTimeout: securityRes.data.sessionManagement?.timeoutMinutes || 480,
-          auditLogEnabled: securityRes.data.auditLog?.enabled || true
-        });
+        
+        if (smtpResponse.ok) {
+          const smtpData = await smtpResponse.json();
+          setSmtp({
+            enabled: smtpData.enabled || false,
+            host: smtpData.host || 'smtp.gmail.com',
+            port: smtpData.port || 587,
+            secure: smtpData.secure || true,
+            user: smtpData.user || '',
+            pass: smtpData.password === '***' ? '' : smtpData.password || '',
+            fromName: smtpData.fromName || 'NovaCore RH',
+            fromEmail: smtpData.fromEmail || '',
+            testEmail: smtpData.testEmail || ''
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement SMTP:', error);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des paramètres:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDepartments = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/departments`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data);
+      } else {
+        showError('Erreur lors du chargement des départements');
+      }
+    } catch (error) {
+      console.error('Erreur chargement départements:', error);
+      showError('Erreur lors du chargement des départements');
     }
   };
   
@@ -160,7 +125,7 @@ const SettingsPage = () => {
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [secondaryColor, setSecondaryColor] = useState('#1E40AF');
   const [companyName, setCompanyName] = useState('NovaCore');
-  const [logoUrl, setLogoUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState(localStorage.getItem('companyLogo') || '');
   const [fontFamily, setFontFamily] = useState('Inter');
   const updateTheme = () => {};
 
@@ -168,43 +133,122 @@ const SettingsPage = () => {
     setNotifications({ ...notifications, [key]: !notifications[key] });
   };
 
-  const handleAddDepartment = () => {
+  const handleAddDepartment = async () => {
     if (newDeptName.trim()) {
-      const newDept = {
-        id: departments.length + 1,
-        name: newDeptName.trim(),
-        employees: 0
-      };
-      setDepartments([...departments, newDept]);
-      setNewDeptName('');
-      setShowDeptForm(false);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/departments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify({ name: newDeptName.trim() })
+        });
+        
+        if (response.ok) {
+          const newDept = await response.json();
+          setDepartments([...departments, newDept]);
+          setNewDeptName('');
+          setShowDeptForm(false);
+          showSuccess('Département ajouté avec succès !');
+        } else {
+          showError('Erreur lors de l\'ajout du département');
+        }
+      } catch (error) {
+        console.error('Erreur ajout département:', error);
+        showError('Erreur lors de l\'ajout du département');
+      }
     }
   };
 
-  const handleEditDepartment = (dept) => {
+  const handleEditDepartment = async (dept) => {
     const newName = prompt('Nouveau nom du département:', dept.name);
     if (newName && newName.trim()) {
-      setDepartments(departments.map(d => 
-        d.id === dept.id ? { ...d, name: newName.trim() } : d
-      ));
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/departments/${dept.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify({ name: newName.trim() })
+        });
+        
+        if (response.ok) {
+          setDepartments(departments.map(d => 
+            d.id === dept.id ? { ...d, name: newName.trim() } : d
+          ));
+          showSuccess('Département modifié avec succès !');
+        } else {
+          showError('Erreur lors de la modification du département');
+        }
+      } catch (error) {
+        console.error('Erreur modification département:', error);
+        showError('Erreur lors de la modification du département');
+      }
     }
   };
 
-  const handleDeleteDepartment = (deptId) => {
+  const handleDeleteDepartment = async (deptId) => {
     if (confirm('Voulez-vous vraiment supprimer ce département ?')) {
-      setDepartments(departments.filter(d => d.id !== deptId));
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/departments/${deptId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (response.ok) {
+          setDepartments(departments.filter(d => d.id !== deptId));
+          showSuccess('Département supprimé avec succès !');
+        } else {
+          showError('Erreur lors de la suppression du département');
+        }
+      } catch (error) {
+        console.error('Erreur suppression département:', error);
+        showError('Erreur lors de la suppression du département');
+      }
+    }
+  };
+
+  const saveSmtpSettings = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/email/smtp-config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          enabled: smtp.enabled,
+          host: smtp.host,
+          port: smtp.port,
+          secure: smtp.secure,
+          user: smtp.user,
+          password: smtp.pass,
+          fromName: smtp.fromName,
+          fromEmail: smtp.fromEmail,
+          testEmail: smtp.testEmail
+        })
+      });
+      
+      if (response.ok) {
+        showSuccess('Configuration email sauvegardée avec succès !');
+        if (smtp.enabled && smtp.host && smtp.user && smtp.pass) {
+          localStorage.setItem('smtpConfigured', 'true');
+        }
+      } else {
+        showError('Erreur lors de la sauvegarde de la configuration email');
+      }
+    } catch (error) {
+      console.error('Erreur sauvegarde SMTP:', error);
+      showError('Erreur lors de la sauvegarde de la configuration email');
     }
   };
 
   const saveSettings = async () => {
     try {
-      // Marquer la configuration SMTP comme faite si elle est activée et configurée
-      if (smtp.enabled && smtp.host && smtp.user && smtp.pass) {
-        localStorage.setItem('smtpConfigured', 'true');
-      } else {
-        localStorage.setItem('smtpConfigured', 'false');
-      }
-      
       updateTheme();
       showSuccess('Paramètres sauvegardés avec succès !');
     } catch (error) {
@@ -223,51 +267,52 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="p-6 mx-auto">
+    <div className="p-4 mx-auto max-w-7xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Paramètres</h1>
-        <p className="text-gray-600">Gérez les préférences de votre application</p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Paramètres</h1>
+        <p className="text-sm text-gray-600">Gérez les préférences de votre application</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Gestion des Départements */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center">
-              <Building className="w-5 h-5 text-secondary-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-secondary-100 rounded-lg flex items-center justify-center">
+              <Building className="w-4 h-4 text-secondary-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Départements</h3>
-              <p className="text-sm text-gray-600">Gérer la structure organisationnelle</p>
+              <h3 className="text-base font-semibold text-gray-900">Départements</h3>
+              <p className="text-xs text-gray-600">Structure organisationnelle</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Départements actifs</span>
-              <span className="text-sm text-gray-500">{departments.length} départements</span>
+              <span className="text-xs font-medium text-gray-700">Actifs: {departments.length}</span>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               {departments.map((dept) => (
-                <div key={dept.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={dept.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
                   <div>
-                    <span className="text-sm font-medium text-gray-900">{dept.name}</span>
-                    <span className="text-xs text-gray-500 ml-2">({dept.employees} employés)</span>
+                    <span className="font-medium text-gray-900">{dept.name}</span>
+                    <span className="text-gray-500 ml-1">({dept.employee_count || 0})</span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <button 
                       onClick={() => handleEditDepartment(dept)}
-                      className="text-xs text-secondary-600 hover:text-secondary-700"
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Modifier"
                     >
-                      Modifier
+                      <Edit className="w-3 h-3" />
                     </button>
                     <button 
                       onClick={() => handleDeleteDepartment(dept.id)}
-                      className="text-xs text-red-600 hover:text-red-700"
+                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Supprimer"
                     >
-                      Supprimer
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -275,100 +320,108 @@ const SettingsPage = () => {
             </div>
             
             {showDeptForm ? (
-              <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
+              <div className="space-y-2 p-3 bg-blue-50 rounded">
                 <input
                   type="text"
                   value={newDeptName}
                   onChange={(e) => setNewDeptName(e.target.value)}
                   placeholder="Nom du département"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500"
+                  className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-secondary-500"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   <button 
                     onClick={handleAddDepartment}
-                    className="px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium"
+                    className="px-2 py-1 text-white rounded text-xs"
+                    style={{
+                      backgroundColor: '#055169',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#023342'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#055169'}
+                    title="Confirmer"
                   >
-                    Ajouter
+                    ✓
                   </button>
                   <button 
                     onClick={() => {
                       setShowDeptForm(false);
                       setNewDeptName('');
                     }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm font-medium"
+                    className="px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-xs"
+                    title="Annuler"
                   >
-                    Annuler
+                    ✗
                   </button>
                 </div>
               </div>
             ) : (
               <button 
                 onClick={() => setShowDeptForm(true)}
-                className="w-full px-4 py-2 bg-secondary-600 text-white rounded-lg hover:bg-secondary-700 text-sm font-medium"
+                className="w-full px-3 py-2 text-white rounded text-xs font-medium"
+                style={{
+                  backgroundColor: '#055169',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#023342'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#055169'}
               >
-                Ajouter un département
+                + Département
               </button>
             )}
           </div>
         </div>
 
         {/* Validation des Nominations */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-orange-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Nominations Managers</h3>
-              <p className="text-sm text-gray-600">Valider les propositions de nomination</p>
+              <h3 className="text-base font-semibold text-gray-900">Nominations</h3>
+              <p className="text-xs text-gray-600">Valider les propositions</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Nominations en attente</span>
-              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">2 en attente</span>
+              <span className="text-xs font-medium text-gray-700">En attente</span>
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">2</span>
             </div>
             
-            <div className="space-y-3">
-              <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-medium text-gray-900">Lucas Bernard → Manager Design</p>
-                    <p className="text-sm text-gray-600">Proposé par: Sophie Martin (HR)</p>
-                    <p className="text-xs text-gray-500">Il y a 2 jours</p>
-                  </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              <div className="p-3 border border-orange-200 rounded bg-orange-50">
+                <div className="mb-2">
+                  <p className="text-xs font-medium text-gray-900">Lucas Bernard → Manager Design</p>
+                  <p className="text-xs text-gray-600">Sophie Martin • 2j</p>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <button className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
-                    Approuver
+                <div className="flex gap-1">
+                  <button className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                    ✓
                   </button>
-                  <button className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                    Rejeter
+                  <button className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                    ✗
                   </button>
-                  <button className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
-                    Voir détails
+                  <button className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                    👁️
                   </button>
                 </div>
               </div>
               
-              <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="font-medium text-gray-900">Camille Durand → Manager Marketing</p>
-                    <p className="text-sm text-gray-600">Proposé par: Emma Rousseau (Senior Manager)</p>
-                    <p className="text-xs text-gray-500">Il y a 1 jour</p>
-                  </div>
+              <div className="p-3 border border-orange-200 rounded bg-orange-50">
+                <div className="mb-2">
+                  <p className="text-xs font-medium text-gray-900">Camille Durand → Manager Marketing</p>
+                  <p className="text-xs text-gray-600">Emma Rousseau • 1j</p>
                 </div>
-                <div className="flex gap-2 mt-3">
-                  <button className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
-                    Approuver
+                <div className="flex gap-1">
+                  <button className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                    ✓
                   </button>
-                  <button className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                    Rejeter
+                  <button className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                    ✗
                   </button>
-                  <button className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
-                    Voir détails
+                  <button className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
+                    👁️
                   </button>
                 </div>
               </div>
@@ -377,339 +430,205 @@ const SettingsPage = () => {
         </div>
 
         {/* Audit Logs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-purple-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <Shield className="w-4 h-4 text-purple-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Audit & Sécurité</h3>
-              <p className="text-sm text-gray-600">Historique des actions critiques</p>
+              <h3 className="text-base font-semibold text-gray-900">Audit</h3>
+              <p className="text-xs text-gray-600">Actions critiques</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Actions récentes</span>
-              <button className="text-sm text-purple-600 hover:text-purple-700">Voir tout l'historique</button>
+              <span className="text-xs font-medium text-gray-700">Récentes</span>
+              <button className="text-xs text-purple-600 hover:text-purple-700">Tout voir</button>
             </div>
             
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               {[
-                { action: 'Création employé', user: 'Sophie Martin', time: 'Il y a 2h', type: 'create' },
-                { action: 'Modification salaire', user: 'Marie Lefebvre', time: 'Il y a 4h', type: 'update' },
-                { action: 'Suppression document', user: 'Thomas Dubois', time: 'Il y a 1j', type: 'delete' },
-                { action: 'Connexion admin', user: 'Marie Lefebvre', time: 'Il y a 1j', type: 'login' },
-                { action: 'Export données', user: 'Sophie Martin', time: 'Il y a 2j', type: 'export' }
+                { action: 'Création employé', user: 'Sophie M.', time: '2h', type: 'create' },
+                { action: 'Modif. salaire', user: 'Marie L.', time: '4h', type: 'update' },
+                { action: 'Suppr. document', user: 'Thomas D.', time: '1j', type: 'delete' },
+                { action: 'Connexion admin', user: 'Marie L.', time: '1j', type: 'login' },
+                { action: 'Export données', user: 'Sophie M.', time: '2j', type: 'export' }
               ].map((log, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${
                       log.type === 'create' ? 'bg-green-500' :
                       log.type === 'update' ? 'bg-secondary-500' :
                       log.type === 'delete' ? 'bg-red-500' :
                       log.type === 'login' ? 'bg-primary-500' : 'bg-purple-500'
                     }`} />
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{log.action}</p>
-                      <p className="text-xs text-gray-500">par {log.user}</p>
+                      <p className="font-medium text-gray-900">{log.action}</p>
+                      <p className="text-gray-500">{log.user}</p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500">{log.time}</span>
+                  <span className="text-gray-500">{log.time}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Backup & Export */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Server className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Sauvegarde & Export</h3>
-              <p className="text-sm text-gray-600">Gérer les données de l'entreprise</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Sauvegarde automatique</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Dernière sauvegarde</span>
-                  <span className="text-sm text-green-600">Aujourd'hui 03:00</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Fréquence</span>
-                  <select className="text-sm border border-gray-200 rounded px-2 py-1">
-                    <option>Quotidienne</option>
-                    <option>Hebdomadaire</option>
-                    <option>Mensuelle</option>
-                  </select>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-700">Rétention</span>
-                  <span className="text-sm text-gray-600">30 jours</span>
-                </div>
-              </div>
-              <button className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
-                Créer sauvegarde manuelle
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Export des données</h4>
-              <div className="space-y-2">
-                <button className="w-full px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm text-left">
-                  📊 Exporter tous les employés (CSV)
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm text-left">
-                  💰 Exporter données paie (Excel)
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm text-left">
-                  📈 Exporter rapports RH (PDF)
-                </button>
-                <button className="w-full px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm text-left">
-                  🔒 Export complet (JSON)
-                </button>
-              </div>
-              <div className="text-xs text-gray-500 p-3 bg-yellow-50 rounded-lg">
-                ⚠️ Les exports contiennent des données sensibles. Assurez-vous de les stocker en sécurité.
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Apparence & Branding */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-              <Palette className="w-5 h-5 text-pink-600" />
+
+        {/* Logo Entreprise */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Upload className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Apparence & Branding</h3>
-              <p className="text-sm text-gray-600">Personnalisez l'interface avec votre identité</p>
+              <h3 className="text-base font-semibold text-gray-900">Logo</h3>
+              <p className="text-xs text-gray-600">Logo de l'entreprise</p>
             </div>
           </div>
           
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                {darkMode ? <Moon className="w-5 h-5 text-gray-600" /> : <Sun className="w-5 h-5 text-gray-600" />}
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Mode sombre</p>
-                  <p className="text-xs text-gray-500">Activer le thème sombre pour l'interface</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  darkMode ? "bg-pink-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    darkMode ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Logo de l'entreprise</label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  {logoUrl ? (
-                    <div className="space-y-3">
-                      <img src={logoUrl} alt="Logo" className="h-12 mx-auto" />
-                      <button className="text-sm text-red-600 hover:text-red-700">Supprimer</button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto" />
-                      <div>
-                        <button className="text-sm text-pink-600 hover:text-pink-700 font-medium">Télécharger un logo</button>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG jusqu'à 2MB</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Nom de l'entreprise</label>
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                />
-              </div>
-            </div>
-            
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-4">Palette de couleurs</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                {colorPalettes.map((palette) => (
-                  <button
-                    key={palette.name}
-                    onClick={() => {
-                      setPrimaryColor(palette.primary);
-                      setSecondaryColor(palette.secondary);
-                    }}
-                    className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
-                      primaryColor === palette.primary
-                        ? "border-pink-500 ring-2 ring-pink-200"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className="w-6 h-6 rounded-full"
-                        style={{ backgroundColor: palette.primary }}
-                      />
-                      <div
-                        className="w-6 h-6 rounded-full"
-                        style={{ backgroundColor: palette.secondary }}
-                      />
-                    </div>
-                    <p className="text-xs font-medium text-gray-700">{palette.name}</p>
-                  </button>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Couleur personnalisée</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="w-12 h-12 border border-gray-200 rounded-lg cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => setPrimaryColor(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                    />
+              <label className="block text-xs font-semibold text-gray-700 mb-2">Logo entreprise</label>
+              <div className="border-2 border-dashed border-gray-300 rounded p-4 text-center">
+                {logoUrl ? (
+                  <div className="space-y-2">
+                    <img src={logoUrl} alt="Logo" className="h-12 mx-auto" />
+                    <button 
+                      onClick={() => {
+                        setLogoUrl('');
+                        localStorage.removeItem('companyLogo');
+                      }}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      Supprimer
+                    </button>
                   </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Police</label>
-                  <select
-                    value={fontFamily}
-                    onChange={(e) => setFontFamily(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  >
-                    <option value="Inter">Inter</option>
-                    <option value="Roboto">Roboto</option>
-                    <option value="Open Sans">Open Sans</option>
-                  </select>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-8 h-8 text-gray-400 mx-auto" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            const logoData = e.target.result;
+                            setLogoUrl(logoData);
+                            localStorage.setItem('companyLogo', logoData);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                      id="logo-upload"
+                    />
+                    <label 
+                      htmlFor="logo-upload"
+                      className="text-xs text-blue-600 hover:text-blue-700 cursor-pointer font-medium"
+                    >
+                      Télécharger un logo
+                    </label>
+                    <p className="text-xs text-gray-500">PNG, JPG jusqu'à 2MB</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Configuration SMTP */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <Mail className="w-5 h-5 text-indigo-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 lg:col-span-3">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <Mail className="w-4 h-4 text-indigo-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Configuration Email</h3>
-              <p className="text-sm text-gray-600">Paramètres SMTP pour les notifications automatiques</p>
+              <h3 className="text-base font-semibold text-gray-900">Email SMTP</h3>
+              <p className="text-xs text-gray-600">Notifications automatiques</p>
             </div>
           </div>
           
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
               <div>
-                <p className="text-sm font-medium text-gray-900">Activer les emails automatiques</p>
-                <p className="text-xs text-gray-500">Notifications, rappels et confirmations</p>
+                <p className="text-xs font-medium text-gray-900">Emails automatiques</p>
               </div>
               <button
                 onClick={() => setSmtp({...smtp, enabled: !smtp.enabled})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                   smtp.enabled ? "bg-indigo-600" : "bg-gray-200"
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    smtp.enabled ? "translate-x-6" : "translate-x-1"
+                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                    smtp.enabled ? "translate-x-5" : "translate-x-1"
                   }`}
                 />
               </button>
             </div>
             
             {smtp.enabled && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Serveur SMTP</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Serveur</label>
                   <input
                     type="text"
                     value={smtp.host}
                     readOnly
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    className="w-full px-2 py-2 border border-gray-200 rounded bg-gray-100 text-gray-600 cursor-not-allowed text-xs"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Configuration automatique Gmail</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Port</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Port</label>
                   <input
                     type="number"
                     value={smtp.port}
                     readOnly
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    className="w-full px-2 py-2 border border-gray-200 rounded bg-gray-100 text-gray-600 cursor-not-allowed text-xs"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Port sécurisé par défaut</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nom d'utilisateur</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
                   <input
                     type="text"
                     value={smtp.user}
                     onChange={(e) => setSmtp({...smtp, user: e.target.value})}
-                    placeholder="votre-email@gmail.com"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="email@gmail.com"
+                    className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <p className="text-xs text-gray-500 mt-1">Votre adresse email Gmail</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Mot de passe d'application</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Mot de passe app</label>
                   <input
                     type="password"
                     value={smtp.pass}
                     onChange={(e) => setSmtp({...smtp, pass: e.target.value})}
                     placeholder="abcd efgh ijkl mnop"
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   />
-                  <div className="text-xs text-amber-600 mt-1 p-2 bg-amber-50 rounded">
-                    ⚠️ <strong>Important</strong> : Utilisez un mot de passe d'application Google (16 caractères), pas votre mot de passe Gmail normal.
-                    <br />📋 <a href="https://myaccount.google.com/apppasswords" target="_blank" className="text-indigo-600 hover:underline">Créer un mot de passe d'application</a>
-                  </div>
+                  <p className="text-xs text-amber-600 mt-1">
+                    ⚠️ <a href="https://myaccount.google.com/apppasswords" target="_blank" className="text-indigo-600 hover:underline">Créer mot de passe app</a>
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Email de test</label>
-                  <div className="flex gap-2">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Test email</label>
+                  <div className="flex gap-1">
                     <input
                       type="email"
                       value={smtp.testEmail}
                       onChange={(e) => setSmtp({...smtp, testEmail: e.target.value})}
                       placeholder="test@exemple.com"
-                      className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="flex-1 px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
                     />
                     <button
                       onClick={async () => {
                         if (!smtp.user || !smtp.pass || !smtp.testEmail) {
-                          showError('Veuillez remplir tous les champs avant de tester');
+                          showError('Remplir tous les champs');
                           return;
                         }
                         
@@ -733,283 +652,76 @@ const SettingsPage = () => {
                             setTestStatus('error');
                           }
                         } catch (error) {
-                          console.error('Erreur test email:', error);
                           setTestStatus('error');
                         }
                       }}
                       disabled={testStatus === 'sending'}
-                      className="px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                      className="px-2 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 text-xs"
                     >
-                      <Send className="w-4 h-4" />
-                      {testStatus === 'sending' ? 'Envoi...' : 'Test'}
+                      {testStatus === 'sending' ? '...' : '📧'}
                     </button>
                   </div>
                   {testStatus === 'success' && (
-                    <p className="text-sm text-green-600 mt-2">✅ Email de test envoyé avec succès</p>
+                    <p className="text-xs text-green-600 mt-1">✅ Test réussi</p>
                   )}
                   {testStatus === 'error' && (
-                    <p className="text-sm text-red-600 mt-2">❌ Erreur lors de l'envoi. Vérifiez vos paramètres.</p>
+                    <p className="text-xs text-red-600 mt-1">❌ Erreur test</p>
                   )}
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Politique de Congés */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-teal-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Politique de Congés</h3>
-              <p className="text-sm text-gray-600">Règles et limites des congés</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Congés annuels (jours)</label>
-              <input
-                type="number"
-                value={leave.annualDays}
-                onChange={(e) => setLeave({...leave, annualDays: parseInt(e.target.value)})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Report maximum (jours)</label>
-              <input
-                type="number"
-                value={leave.carryOverDays}
-                onChange={(e) => setLeave({...leave, carryOverDays: parseInt(e.target.value)})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Congés maladie (jours)</label>
-              <input
-                type="number"
-                value={leave.sickDays}
-                onChange={(e) => setLeave({...leave, sickDays: parseInt(e.target.value)})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Approbation manager requise</p>
-                <p className="text-xs text-gray-500">Les congés doivent être approuvés</p>
-              </div>
-              <button
-                onClick={() => setLeave({...leave, requiresManagerApproval: !leave.requiresManagerApproval})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  leave.requiresManagerApproval ? "bg-teal-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    leave.requiresManagerApproval ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Horaires de Travail */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Horaires de Travail</h3>
-              <p className="text-sm text-gray-600">Configuration des temps de travail</p>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Heures par semaine</label>
-              <input
-                type="number"
-                value={schedule.hoursPerWeek}
-                onChange={(e) => setSchedule({...schedule, hoursPerWeek: parseInt(e.target.value)})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Horaires flexibles</p>
-                <p className="text-xs text-gray-500">Permettre la flexibilité des horaires</p>
-              </div>
-              <button
-                onClick={() => setSchedule({...schedule, flexTimeEnabled: !schedule.flexTimeEnabled})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  schedule.flexTimeEnabled ? "bg-amber-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    schedule.flexTimeEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-            {schedule.flexTimeEnabled && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Début heures fixes</label>
-                  <input
-                    type="time"
-                    value={schedule.coreStart}
-                    onChange={(e) => setSchedule({...schedule, coreStart: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Fin heures fixes</label>
-                  <input
-                    type="time"
-                    value={schedule.coreEnd}
-                    onChange={(e) => setSchedule({...schedule, coreEnd: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  />
-                </div>
+            
+            {smtp.enabled && (
+              <div className="pt-3 border-t border-gray-200">
+                <button
+                  onClick={saveSmtpSettings}
+                  className="w-full px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-xs flex items-center justify-center gap-1"
+                >
+                  <Save className="w-3 h-3" />
+                  Sauvegarder SMTP
+                </button>
               </div>
             )}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Télétravail autorisé</p>
-                <p className="text-xs text-gray-500">Permettre le travail à distance</p>
-              </div>
-              <button
-                onClick={() => setSchedule({...schedule, remoteEnabled: !schedule.remoteEnabled})}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  schedule.remoteEnabled ? "bg-amber-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    schedule.remoteEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Sécurité & Authentification */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Sécurité & Authentification</h3>
-              <p className="text-sm text-gray-600">Politiques de sécurité et accès</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Politique des mots de passe</h4>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Longueur minimale</label>
-                <input
-                  type="number"
-                  value={security.minPasswordLength}
-                  onChange={(e) => setSecurity({...security, minPasswordLength: parseInt(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Majuscules requises</p>
-                  <p className="text-xs text-gray-500">Au moins une majuscule</p>
-                </div>
-                <button
-                  onClick={() => setSecurity({...security, requireUppercase: !security.requireUppercase})}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    security.requireUppercase ? "bg-red-600" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      security.requireUppercase ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Sessions & Accès</h4>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Timeout session (minutes)</label>
-                <input
-                  type="number"
-                  value={security.sessionTimeout}
-                  onChange={(e) => setSecurity({...security, sessionTimeout: parseInt(e.target.value)})}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-              </div>
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Double authentification</p>
-                  <p className="text-xs text-gray-500">Sécurité renforcée</p>
-                </div>
-                <button
-                  onClick={() => setSecurity({...security, twoFactorEnabled: !security.twoFactorEnabled})}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    security.twoFactorEnabled ? "bg-red-600" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      security.twoFactorEnabled ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+
+
+
+
+
 
         {/* Notifications */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Bell className="w-5 h-5 text-primary-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Bell className="w-4 h-4 text-primary-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-              <p className="text-sm text-gray-600">Préférences de notification</p>
+              <h3 className="text-base font-semibold text-gray-900">Notifications</h3>
+              <p className="text-xs text-gray-600">Préférences</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-2">
             {Object.entries({
-              email: 'Notifications par email',
-              push: 'Notifications push',
-              leaveRequests: 'Demandes de congés',
-              newEmployees: 'Nouveaux employés',
-              payroll: 'Paie et salaires'
+              email: 'Email',
+              push: 'Push',
+              leaveRequests: 'Congés',
+              newEmployees: 'Nouveaux',
+              payroll: 'Paie'
             }).map(([key, label]) => (
-              <div key={key} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{label}</p>
-                </div>
+              <div key={key} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                <p className="text-xs font-medium text-gray-900">{label}</p>
                 <button
                   onClick={() => handleNotificationChange(key)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                     notifications[key] ? "bg-yellow-600" : "bg-gray-200"
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notifications[key] ? "translate-x-6" : "translate-x-1"
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      notifications[key] ? "translate-x-5" : "translate-x-1"
                     }`}
                   />
                 </button>
@@ -1019,43 +731,43 @@ const SettingsPage = () => {
         </div>
 
         {/* Profil Utilisateur */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <User className="w-5 h-5 text-gray-600" />
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-gray-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Profil Utilisateur</h3>
-              <p className="text-sm text-gray-600">Informations personnelles</p>
+              <h3 className="text-base font-semibold text-gray-900">Profil</h3>
+              <p className="text-xs text-gray-600">Infos personnelles</p>
             </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Nom complet</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Nom</label>
               <input
                 type="text"
                 value={profile.name}
                 onChange={(e) => setProfile({...profile, name: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Email</label>
               <input
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({...profile, email: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Rôle</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Rôle</label>
               <input
                 type="text"
                 value={profile.role}
                 readOnly
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500"
+                className="w-full px-2 py-2 border border-gray-200 rounded bg-gray-50 text-gray-500 text-xs"
               />
             </div>
           </div>
@@ -1063,13 +775,13 @@ const SettingsPage = () => {
       </div>
 
       {/* Save Button */}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-6 flex justify-end">
         <Button
           onClick={saveSettings}
-          className="px-6 py-3 font-semibold flex items-center space-x-2"
+          className="px-4 py-2 text-sm font-semibold flex items-center space-x-2"
         >
-          <Save className="w-5 h-5" />
-          <span>Sauvegarder les paramètres</span>
+          <Save className="w-4 h-4" />
+          <span>Sauvegarder</span>
         </Button>
       </div>
 
