@@ -281,11 +281,11 @@ class JobOpening(Base):
     candidates = relationship("Candidate", back_populates="job_opening")
 
 class CandidateStatus(str, enum.Enum):
-    NEW = "nouveau"
-    REVIEWING = "en_cours"
-    INTERVIEW = "entretien"
-    ACCEPTED = "accepte"
-    REJECTED = "rejete"
+    nouveau = "nouveau"
+    en_cours = "en_cours"
+    entretien = "entretien"
+    accepte = "accepte"
+    rejete = "rejete"
 
 class Candidate(Base):
     __tablename__ = "candidates"
@@ -304,7 +304,7 @@ class Candidate(Base):
     cv_content = Column(Text, nullable=True)  # Base64 encoded
     
     # Status and tracking
-    status = Column(SAEnum(CandidateStatus), default=CandidateStatus.NEW)
+    status = Column(SAEnum(CandidateStatus), default=CandidateStatus.nouveau)
     notes = Column(Text, nullable=True)
     received_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

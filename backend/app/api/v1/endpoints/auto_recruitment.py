@@ -219,7 +219,7 @@ async def search_candidates(
                         company_id=current_user.company_id,
                         email_subject=subject,
                         email_content=content[:1000],  # Limiter à 1000 caractères
-                        status=CandidateStatus.NEW
+                        status=CandidateStatus.nouveau
                     )
                     
                     db.add(candidate)
@@ -267,7 +267,7 @@ async def get_candidates(
             "email": candidate.email,
             "phone": candidate.phone,
             "position": candidate.position,
-            "status": candidate.status.value if candidate.status else CandidateStatus.NEW.value,
+            "status": candidate.status.value if candidate.status else CandidateStatus.nouveau.value,
             "department_id": candidate.department_id,
             "department": candidate.department.name if candidate.department else None,
             "received_at": candidate.received_at.isoformat() if candidate.received_at else None,
@@ -341,15 +341,15 @@ async def get_recruitment_stats(
     total = db.query(Candidate).filter(Candidate.company_id == current_user.company_id).count()
     new = db.query(Candidate).filter(
         Candidate.company_id == current_user.company_id,
-        Candidate.status == CandidateStatus.NEW
+        Candidate.status == CandidateStatus.nouveau
     ).count()
     in_review = db.query(Candidate).filter(
         Candidate.company_id == current_user.company_id,
-        Candidate.status == CandidateStatus.REVIEWING
+        Candidate.status == CandidateStatus.en_cours
     ).count()
     interview = db.query(Candidate).filter(
         Candidate.company_id == current_user.company_id,
-        Candidate.status == CandidateStatus.INTERVIEW
+        Candidate.status == CandidateStatus.entretien
     ).count()
     
     return {
