@@ -40,6 +40,9 @@ import EmployeeEvaluation from "../Evaluations/EmployeeEvaluation";
 import MyPerformance from "../Evaluations/MyPerformance";
 import ContractEditor from "../Contracts/ContractEditor";
 import HRManagementPage from "./modules/HRManagementPage";
+import HRWorkflows from "./modules/HRWorkflows";
+import HRLeaves from "./modules/HRLeaves";
+import HRAssets from "./modules/HRAssets";
 import ManagerPlanningPage from "./modules/ManagerPlanningPage";
 import EmployeeSelfServicePage from "./modules/EmployeeSelfServicePage";
 import ManagerNominationsPage from "./modules/ManagerNominationPage";
@@ -902,12 +905,48 @@ const Dashboard = () => {
         return <SuccessionPlanningPage />;
       case 'hr-management':
         return <HRManagementPage />;
+      case 'hr-workflows':
+        return <HRWorkflows />;
+      case 'hr-leaves':
+        return <HRLeaves />;
+      case 'hr-payroll':
+        return <div>Paie RH</div>;
+      case 'hr-recruitment':
+        return <div>Recrutement RH</div>;
+      case 'hr-documents':
+        return <div>Documents RH</div>;
+      case 'hr-planning':
+        return <div>Planning RH</div>;
+      case 'hr-reports':
+        return <div>Rapports RH</div>;
+      case 'hr-training':
+        return <div>Formations</div>;
+      case 'hr-emails':
+        return <div>Templates Email</div>;
+      case 'hr-departments':
+        return <div>Départements</div>;
+      case 'hr-assets':
+        return <HRAssets />;
+      case 'hr-alerts':
+        return <div>Alertes RH</div>;
       case 'settings':
         return <SettingsPage />;
       default:
         return (
-          <div className="p-8">
-            <h1 className="text-2xl font-semibold">Page non trouvée</h1>
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
+            <div className="max-w-md w-full text-center">
+              <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+                404
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Module introuvable</h1>
+              <p className="text-gray-600 mb-6">Ce module n'existe pas ou n'est pas accessible.</p>
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all"
+              >
+                Retour au tableau de bord
+              </button>
+            </div>
           </div>
         );
     }

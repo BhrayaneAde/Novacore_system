@@ -124,6 +124,22 @@ async def delete_interview(
     return {"message": "Entretien supprimé"}
 
 # Endpoints pour les offres d'emploi
+@router.get("/departments")
+async def get_departments(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Récupérer les départements de l'entreprise pour le formulaire"""
+    departments = db.query(models.Department).filter(
+        models.Department.company_id == current_user.company_id
+    ).all()
+    
+    return [{
+        "id": dept.id,
+        "name": dept.name,
+        "manager_name": f"{dept.manager.first_name} {dept.manager.last_name}" if dept.manager else None
+    } for dept in departments]
+
 @router.get("/job-openings")
 async def get_job_openings(
     db: Session = Depends(deps.get_db),
@@ -138,14 +154,24 @@ async def create_job_opening(
     db: Session = Depends(deps.get_db),
     current_user: models.User = Depends(deps.get_current_active_hr_admin)
 ):
-    """Créer une offre d'emploi"""
+    """Créer une offre d'emploi avec surveillance email automatique"""
+    from app.services.email_surveillance import email_surveillance_service
+    
     job_data["company_id"] = current_user.company_id
     job_data["created_by_id"] = current_user.id
-    # Utiliser le CRUD existant si disponible, sinon simuler
+    
+    # Créer l'offre d'emploi
     try:
         job_create = recruitment_schema.JobOpeningCreate(**job_data)
-        return crud_recruitment.create_job_opening(db=db, job=job_create)
-    except:
+        new_job = crud_recruitment.create_job_opening(db=db, job=job_create)
+        
+        # Démarrer la surveillance email si activée
+        if job_data.get("auto_screening_enabled", True):
+            email_surveillance_service.start_surveillance_for_job(new_job.id, db)
+        
+        return new_job
+    except Exception as e:
+        # Fallback en cas d'erreur
         job_data["id"] = 999
         return job_data
 
@@ -182,3 +208,25 @@ async def update_job_opening(
     """Mettre à jour une offre d'emploi"""
     job_data["id"] = job_id
     return job_data
+
+@router.get("/surveillance/status")
+async def get_surveillance_status(
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Obtenir le statut de la surveillance email"""
+    from app.services.email_surveillance import email_surveillance_service
+    
+    active_surveillances = email_surveillance_service.get_active_surveillances()
+    
+    # Filtrer par entreprise de l'utilisateur
+    company_surveillances = {
+        job_id: config for job_id, config in active_surveillances.items()
+        if config.get("company_id") == current_user.company_id
+    }
+    
+    return {
+        "active_surveillances": len(company_surveillances),
+        "surveillances": company_surveillances,
+        "status": "active" if company_surveillances else "inactive"
+    }

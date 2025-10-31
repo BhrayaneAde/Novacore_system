@@ -67,7 +67,7 @@ def get_tasks(
     if overdue:
         filters["overdue"] = overdue
     
-    tasks = crud_task.get_tasks(db, skip=skip, limit=limit, filters=filters)
+    tasks = crud_task.get_tasks(db, skip=skip, limit=limit, filters=filters, company_id=current_user.company_id)
     return [_format_task_response(db, task) for task in tasks]
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -77,7 +77,7 @@ def get_task(
     current_user: User = Depends(get_current_user)
 ):
     """Get task by ID"""
-    task = crud_task.get_task(db, task_id)
+    task = crud_task.get_task(db, task_id, company_id=current_user.company_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -92,11 +92,11 @@ def update_task(
     current_user: User = Depends(get_current_user)
 ):
     """Update task"""
-    original_task = crud_task.get_task(db, task_id)
+    original_task = crud_task.get_task(db, task_id, company_id=current_user.company_id)
     if not original_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    updated_task = crud_task.update_task(db, task_id, task_update)
+    updated_task = crud_task.update_task(db, task_id, task_update, company_id=current_user.company_id)
     if not updated_task:
         raise HTTPException(status_code=400, detail="Failed to update task")
     
@@ -135,7 +135,7 @@ def delete_task(
     current_user: User = Depends(get_current_user)
 ):
     """Delete task"""
-    success = crud_task.delete_task(db, task_id)
+    success = crud_task.delete_task(db, task_id, company_id=current_user.company_id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
     

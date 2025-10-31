@@ -4,7 +4,7 @@ from app.api.v1.endpoints import (
     login, users, employees, tasks, leaves, performance, 
     contracts, manager, companies, recruitment, payroll,
     attendance, goals, assets, notifications, websocket, websocket_admin, email,
-    time_tracking, reports, analytics, workflows, integrations, departments
+    time_tracking, reports, analytics, workflows, integrations, departments, google_drive, auto_recruitment
 )
 from app.api.v1.endpoints import payroll_config
 from app.api.v1.endpoints import tasks as advanced_tasks
@@ -28,6 +28,8 @@ api_router.include_router(payroll_config.router, prefix="/payroll-config", tags=
 api_router.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 api_router.include_router(goals.router, prefix="/goals", tags=["Goals"])
 api_router.include_router(assets.router, prefix="/assets", tags=["Assets"])
+from app.api.v1 import assets as new_assets
+api_router.include_router(new_assets.router, prefix="/hr-assets", tags=["HR Assets"])
 api_router.include_router(advanced_settings.router, prefix="/settings", tags=["Settings"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(email.router, prefix="/email", tags=["Email"])
@@ -38,5 +40,7 @@ api_router.include_router(workflows.router, prefix="/workflows", tags=["Workflow
 api_router.include_router(advanced_tasks.router, prefix="/advanced-tasks", tags=["Advanced Tasks"])
 api_router.include_router(integrations.router, prefix="/integrations", tags=["Integrations"])
 api_router.include_router(departments.router, prefix="/departments", tags=["Departments"])
+api_router.include_router(google_drive.router, prefix="/google-drive", tags=["Google Drive"])
+api_router.include_router(auto_recruitment.router, prefix="/auto-recruitment", tags=["Auto Recruitment"])
 api_router.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 api_router.include_router(websocket_admin.router, prefix="/ws-admin", tags=["WebSocket Admin"])

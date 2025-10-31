@@ -60,10 +60,14 @@ class Company(Base):
     settings_security = Column(JSON)
     settings_appearance = Column(JSON)
     
+    # Google Drive configuration per company
+    google_drive_config = Column(JSON)  # {"credentials": {...}, "folder_id": "...", "is_active": true}
+    
     users = relationship("User", back_populates="company")
     employees = relationship("Employee", back_populates="company")
     departments = relationship("Department", back_populates="company")
     invitations = relationship("Invitation", back_populates="company")
+    candidates = relationship("Candidate", back_populates="company")
 
 class User(Base):
     __tablename__ = "users"
@@ -101,6 +105,7 @@ class Department(Base):
     company = relationship("Company", back_populates="departments")
     manager = relationship("User", back_populates="managed_departments")
     employees = relationship("Employee", back_populates="department")
+    candidates = relationship("Candidate", back_populates="department")
 
 class Employee(Base):
     __tablename__ = "employees"
@@ -137,6 +142,7 @@ class Employee(Base):
     leave_requests = relationship("LeaveRequest", back_populates="employee")
     evaluations = relationship("Evaluation", back_populates="employee")
     generated_contracts = relationship("GeneratedContract", back_populates="employee")
+    assigned_assets = relationship("Asset", back_populates="assigned_to")
 
 class EmployeeDocument(Base):
     __tablename__ = "employee_documents"
@@ -259,27 +265,60 @@ class JobOpening(Base):
     requirements = Column(Text)
     posted_date = Column(Date, default=datetime.utcnow)
     
+    # Surveillance email automatique
+    email_keywords = Column(JSON)  # ["candidature RH", "poste ressources humaines"]
+    auto_screening_enabled = Column(Boolean, default=True)
+    screening_criteria = Column(JSON)  # Critères de tri automatique
+    candidates_count = Column(Integer, default=0)  # Compteur de candidatures
+    
     company_id = Column(Integer, ForeignKey("companies.id"))
     created_by_id = Column(Integer, ForeignKey("users.id"))
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     
     company = relationship("Company")
     created_by = relationship("User")
+    department_obj = relationship("Department")
     candidates = relationship("Candidate", back_populates="job_opening")
+
+class CandidateStatus(str, enum.Enum):
+    NEW = "nouveau"
+    REVIEWING = "en_cours"
+    INTERVIEW = "entretien"
+    ACCEPTED = "accepte"
+    REJECTED = "rejete"
 
 class Candidate(Base):
     __tablename__ = "candidates"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    email = Column(String(100), nullable=False)
-    phone = Column(String(50))
-    status = Column(String(50), default="applied")  # applied, screening, interview, offer, hired, rejected
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(50), nullable=True)
+    position = Column(String(255), nullable=False)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    
+    # Email data
+    email_subject = Column(String(500), nullable=False)
+    email_content = Column(Text, nullable=True)
+    cv_filename = Column(String(255), nullable=True)
+    cv_content = Column(Text, nullable=True)  # Base64 encoded
+    
+    # Status and tracking
+    status = Column(SAEnum(CandidateStatus), default=CandidateStatus.NEW)
+    notes = Column(Text, nullable=True)
+    received_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Legacy fields for compatibility
     applied_date = Column(Date, default=datetime.utcnow)
     experience = Column(String(100))
     avatar = Column(String(255))
     cv_url = Column(String(255))
+    job_opening_id = Column(Integer, ForeignKey("job_openings.id"), nullable=True)
     
-    job_opening_id = Column(Integer, ForeignKey("job_openings.id"))
-    
+    # Relations
+    department = relationship("Department")
+    company = relationship("Company")
     job_opening = relationship("JobOpening", back_populates="candidates")
 
 class PayrollRecord(Base):
@@ -364,6 +403,78 @@ class Notification(Base):
     
     user = relationship("User", foreign_keys=[user_id])
     created_by = relationship("User", foreign_keys=[created_by_id])
+
+class AssetStatus(str, enum.Enum):
+    AVAILABLE = "Disponible"
+    ASSIGNED = "Assigné"
+    MAINTENANCE = "Maintenance"
+    OUT_OF_SERVICE = "Hors service"
+
+class AssetCondition(str, enum.Enum):
+    EXCELLENT = "Excellent"
+    GOOD = "Bon"
+    AVERAGE = "Moyen"
+    REPAIR = "Réparation"
+
+class AssetCategory(str, enum.Enum):
+    COMPUTER = "Ordinateur"
+    PHONE = "Téléphone"
+    PRINTER = "Imprimante"
+    MONITOR = "Moniteur"
+    FURNITURE = "Mobilier"
+    ACCESSORY = "Accessoire"
+
+class Asset(Base):
+    __tablename__ = "assets"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    asset_id = Column(String(50), unique=True, index=True)
+    name = Column(String(200), nullable=False)
+    category = Column(SAEnum(AssetCategory), nullable=False)
+    brand = Column(String(100))
+    model = Column(String(100))
+    serial_number = Column(String(100), unique=True)
+    purchase_date = Column(Date)
+    warranty_end = Column(Date)
+    status = Column(SAEnum(AssetStatus), default=AssetStatus.AVAILABLE)
+    condition = Column(SAEnum(AssetCondition), default=AssetCondition.EXCELLENT)
+    location = Column(String(200))
+    value = Column(Float)
+    description = Column(Text)
+    
+    company_id = Column(Integer, ForeignKey("companies.id"))
+    assigned_to_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
+    
+    company = relationship("Company")
+    assigned_to = relationship("Employee", back_populates="assigned_assets")
+    asset_history = relationship("AssetHistory", back_populates="asset", cascade="all, delete-orphan")
+    tags = relationship("AssetTag", back_populates="asset", cascade="all, delete-orphan")
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class AssetHistory(Base):
+    __tablename__ = "asset_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    asset_id = Column(Integer, ForeignKey("assets.id"))
+    action = Column(String(100))
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
+    location = Column(String(200))
+    notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    asset = relationship("Asset", back_populates="asset_history")
+    employee = relationship("Employee")
+
+class AssetTag(Base):
+    __tablename__ = "asset_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    asset_id = Column(Integer, ForeignKey("assets.id"))
+    tag_name = Column(String(50))
+    
+    asset = relationship("Asset", back_populates="tags")
 
 class CompanyAsset(Base):
     __tablename__ = "company_assets"

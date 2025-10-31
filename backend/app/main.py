@@ -1,8 +1,10 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import logging
 import jwt
 from typing import Optional
+import traceback
 
 from app.db.database import Base, engine
 from app.api.v1.api import api_router
@@ -51,17 +53,37 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configuration CORS
-# Autorise le frontend React (ex: http://localhost:5173)
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-]
+# 5. Initialiser la surveillance email au démarrage
+logger.info("🔍 Initialisation de la surveillance email...")
+try:
+    from app.services.email_surveillance import email_surveillance_service
+    email_surveillance_service.load_all_active_jobs()
+except Exception as e:
+    logger.warning(f"⚠️ Erreur lors de l'initialisation de la surveillance email: {e}")
 
+# Middleware pour capturer les erreurs
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.error(f"Erreur non gérée: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Erreur interne du serveur"},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
+
+# Configuration CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

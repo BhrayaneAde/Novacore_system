@@ -3,7 +3,8 @@ from typing import List
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.db.models import Department, Employee
+from app.db.models import Department, Employee, User
+from app.core.auth import get_current_user
 from sqlalchemy import func
 
 router = APIRouter()
@@ -17,11 +18,15 @@ class DepartmentResponse(BaseModel):
     employee_count: int = 0
 
 @router.get("/", response_model=List[DepartmentResponse])
-async def get_departments(db: Session = Depends(get_db)):
+async def get_departments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     departments = db.query(
         Department.id,
         Department.name,
         func.count(Employee.id).label('employee_count')
+    ).filter(Department.company_id == current_user.company_id
     ).outerjoin(Employee).group_by(Department.id, Department.name).all()
     
     return [
@@ -36,9 +41,13 @@ async def get_departments(db: Session = Depends(get_db)):
 @router.post("/", response_model=DepartmentResponse)
 async def create_department(
     department: DepartmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    new_dept = Department(name=department.name)
+    new_dept = Department(
+        name=department.name,
+        company_id=current_user.company_id
+    )
     db.add(new_dept)
     db.commit()
     db.refresh(new_dept)
@@ -53,9 +62,13 @@ async def create_department(
 async def update_department(
     department_id: int,
     department: DepartmentCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    dept = db.query(Department).filter(Department.id == department_id).first()
+    dept = db.query(Department).filter(
+        Department.id == department_id,
+        Department.company_id == current_user.company_id
+    ).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
     
@@ -74,9 +87,13 @@ async def update_department(
 @router.delete("/{department_id}")
 async def delete_department(
     department_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    dept = db.query(Department).filter(Department.id == department_id).first()
+    dept = db.query(Department).filter(
+        Department.id == department_id,
+        Department.company_id == current_user.company_id
+    ).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found")
     

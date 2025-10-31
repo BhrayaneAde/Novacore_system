@@ -33,19 +33,30 @@ class CRUDTask:
         
         return db_task
     
-    def get_task(self, db: Session, task_id: int) -> Optional[AdvancedTask]:
+    def get_task(self, db: Session, task_id: int, company_id: Optional[int] = None) -> Optional[AdvancedTask]:
         """Get task by ID with relationships"""
-        return db.query(AdvancedTask).filter(AdvancedTask.id == task_id).first()
+        query = db.query(AdvancedTask).filter(AdvancedTask.id == task_id)
+        
+        # SÉCURITÉ: Filtrer par entreprise
+        if company_id:
+            query = query.join(Employee, AdvancedTask.assigned_to == Employee.id).filter(Employee.company_id == company_id)
+        
+        return query.first()
     
     def get_tasks(
         self, 
         db: Session, 
         skip: int = 0, 
         limit: int = 100,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
+        company_id: Optional[int] = None
     ) -> List[AdvancedTask]:
         """Get tasks with filters"""
         query = db.query(AdvancedTask)
+        
+        # SÉCURITÉ: Filtrer par entreprise
+        if company_id:
+            query = query.join(Employee, AdvancedTask.assigned_to == Employee.id).filter(Employee.company_id == company_id)
         
         if filters:
             if filters.get("status"):
@@ -72,9 +83,9 @@ class CRUDTask:
         
         return query.offset(skip).limit(limit).all()
     
-    def update_task(self, db: Session, task_id: int, task_update: TaskUpdate) -> Optional[AdvancedTask]:
+    def update_task(self, db: Session, task_id: int, task_update: TaskUpdate, company_id: Optional[int] = None) -> Optional[AdvancedTask]:
         """Update task"""
-        db_task = self.get_task(db, task_id)
+        db_task = self.get_task(db, task_id, company_id)
         if not db_task:
             return None
         
@@ -107,9 +118,9 @@ class CRUDTask:
         db.refresh(db_task)
         return db_task
     
-    def delete_task(self, db: Session, task_id: int) -> bool:
+    def delete_task(self, db: Session, task_id: int, company_id: Optional[int] = None) -> bool:
         """Delete task"""
-        db_task = self.get_task(db, task_id)
+        db_task = self.get_task(db, task_id, company_id)
         if not db_task:
             return False
         

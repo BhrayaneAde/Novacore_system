@@ -40,39 +40,103 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
     return rolePermissions[currentUser.role] || false;
   };
 
-  const allMenuItems = [
-    { icon: LayoutDashboard, label: "Accueil", tab: "dashboard", module: null },
-    { icon: Users, label: "Employés", tab: "employees", module: "employees" },
-    { icon: CheckSquare, label: "Tâches", tab: "task-management", module: "tasks" },
-    { icon: Target, label: "Évaluations", tab: "employee-evaluation", module: "performance" },
-    { icon: UserPlus, label: "Managers", tab: "managers-list", module: "employees" },
-    { icon: Target, label: "Nominations", tab: "manager-nominations", module: "employees" },
-    { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor", module: "contracts" },
-    { icon: Wallet, label: "Paie & Avantages", tab: "payroll", module: "payroll" },
-    { icon: Target, label: "Performance", tab: "performance", module: "performance" },
-    { icon: UserPlus, label: "Recrutement", tab: "recruitment", module: "recruitment" },
-    { icon: BarChart3, label: "Rapports", tab: "advanced-reports", module: "reports" },
-    { icon: Shield, label: "Audit Logs", tab: "audit-logs", module: "settings" },
-    { icon: Crown, label: "Succession", tab: "succession-planning", module: "employees" },
-    { icon: Settings, label: "Paramètres", tab: "settings", module: "settings" },
-    { icon: Calendar, label: "Planning Équipe", tab: "manager-planning", module: "attendance" },
-    { icon: Target, label: "Objectifs", tab: "goal-setting", module: "performance" },
-    { icon: MessageSquare, label: "1-on-1", tab: "one-on-one", module: "performance" },
-    { icon: FileText, label: "Documents", tab: "manager-documents", module: "documents" },
-    { icon: FileText, label: "Gestion RH", tab: "hr-management", module: "employees" },
-    { icon: UserPlus, label: "Onboarding", tab: "onboarding-workflow", module: "employees" },
-    { icon: CheckSquare, label: "Mes Tâches", tab: "employee-tasks", module: "tasks" },
-    { icon: Target, label: "Ma Performance", tab: "my-performance", module: "performance" },
-    { icon: User, label: "Mon Profil & Espace", tab: "employee-self-service", module: null },
-    { icon: Wallet, label: "Mes Fiches de Paie", tab: "payslips", module: "payroll" },
-    { icon: Calendar, label: "Mes Congés", tab: "leaves", module: "attendance" },
-    { icon: Clock, label: "Mes Heures", tab: "timesheet", module: "attendance" },
-    { icon: FileText, label: "Mes Documents", tab: "documents", module: "documents" }
+  const menuGroups = [
+    {
+      title: "Tableau de bord",
+      items: [
+        { icon: LayoutDashboard, label: "Accueil", tab: "dashboard", module: null }
+      ]
+    },
+    {
+      title: "Gestion Employés",
+      items: [
+        { icon: Users, label: "Employés", tab: "employees", module: "employees" },
+        { icon: UserPlus, label: "Managers", tab: "managers-list", module: "employees" },
+        { icon: Target, label: "Nominations", tab: "manager-nominations", module: "employees" },
+        { icon: Users, label: "Processus RH", tab: "hr-workflows", module: "employees" },
+        { icon: Calendar, label: "Gestion Congés", tab: "hr-leaves", module: "attendance" },
+        
+         { icon: Users, label: "Formations", tab: "hr-training", module: "employees" },
+        { icon: FileText, label: "Templates Email", tab: "hr-emails", module: "employees" },
+        { icon: Users, label: "Départements", tab: "hr-departments", module: "employees" },
+        { icon: Users, label: "Équipements", tab: "hr-assets", module: "employees" },
+        { icon: Users, label: "Alertes RH", tab: "hr-alerts", module: "employees" },
+        { icon: UserPlus, label: "Intégration", tab: "onboarding-workflow", module: "employees" },
+        { icon: Crown, label: "Succession", tab: "succession-planning", module: "employees" }
+      ]
+    },
+    {
+      title: "Temps & Présence",
+      items: [
+        { icon: Calendar, label: "Planning Équipe", tab: "manager-planning", module: "attendance" },
+        { icon: Calendar, label: "Mes Congés", tab: "leaves", module: "attendance" },
+        { icon: Clock, label: "Mes Heures", tab: "timesheet", module: "attendance" }
+      ]
+    },
+    {
+      title: "Paie & Contrats",
+      items: [
+        { icon: Wallet, label: "Paie & Avantages", tab: "payroll", module: "payroll" },
+        { icon: Wallet, label: "Mes Fiches de Paie", tab: "payslips", module: "payroll" },
+        { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor", module: "contracts" }
+      ]
+    },
+    {
+      title: "Performance",
+      items: [
+        { icon: Target, label: "Évaluations", tab: "employee-evaluation", module: "performance" },
+        { icon: Target, label: "Performance", tab: "performance", module: "performance" },
+        { icon: Target, label: "Ma Performance", tab: "my-performance", module: "performance" },
+        { icon: Target, label: "Objectifs", tab: "goal-setting", module: "performance" },
+        { icon: MessageSquare, label: "1-on-1", tab: "one-on-one", module: "performance" }
+      ]
+    },
+    {
+      title: "Tâches & Projets",
+      items: [
+        { icon: CheckSquare, label: "Tâches", tab: "task-management", module: "tasks" },
+        { icon: CheckSquare, label: "Mes Tâches", tab: "employee-tasks", module: "tasks" }
+      ]
+    },
+    {
+      title: "Recrutement",
+      items: [
+        { icon: UserPlus, label: "Recrutement", tab: "recruitment", module: "recruitment" }
+      ]
+    },
+    {
+      title: "Documents",
+      items: [
+        { icon: FileText, label: "Documents", tab: "manager-documents", module: "documents" },
+        { icon: FileText, label: "Mes Documents", tab: "documents", module: "documents" }
+      ]
+    },
+    {
+      title: "Rapports & Analytics",
+      items: [
+        { icon: BarChart3, label: "Rapports", tab: "advanced-reports", module: "reports" }
+      ]
+    },
+    {
+      title: "Administration",
+      items: [
+        { icon: Settings, label: "Paramètres", tab: "settings", module: "settings" },
+        { icon: Shield, label: "Audit Logs", tab: "audit-logs", module: "settings" }
+      ]
+    },
+    {
+      title: "Mon Espace",
+      items: [
+        { icon: User, label: "Mon Profil & Espace", tab: "employee-self-service", module: null }
+      ]
+    }
   ];
+
+  const allMenuItems = menuGroups.flatMap(group => group.items);
 
   const getMenuItems = () => {
     const roleBasedItems = {
-      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management', 'onboarding-workflow', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents'],
+      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management', 'onboarding-workflow', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'hr-workflows', 'hr-leaves', 'hr-training', 'hr-emails', 'hr-departments', 'hr-assets', 'hr-alerts'],
       'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
       'hr_user': ['dashboard', 'employees', 'task-management'],
       'manager': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'advanced-reports', 'performance'],
@@ -148,32 +212,50 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
         </div>
 
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          {menuItems.map((item, i) => {
-            const isActive = activeTab === item.tab;
+          {menuGroups.map((group, groupIndex) => {
+            const groupItems = group.items.filter(item => {
+              const allowedTabs = getMenuItems().map(mi => mi.tab);
+              return allowedTabs.includes(item.tab);
+            });
+            
+            if (groupItems.length === 0) return null;
+            
             return (
-              <button
-                key={i}
-                onClick={() => setActiveTab(item.tab)}
-                className="group flex items-center gap-3 rounded-md px-3 py-2 text-sm w-full text-left mb-1"
-                style={{
-                  backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.8)',
-                  border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.target.style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <item.icon className="size-4 flex-shrink-0" />
-                {!collapsed && <span className="truncate">{item.label}</span>}
-              </button>
+              <div key={groupIndex} className="mb-4">
+                {!collapsed && (
+                  <div className="px-3 py-1 text-xs font-medium" style={{color: 'rgba(255,255,255,0.5)'}}>
+                    {group.title}
+                  </div>
+                )}
+                {groupItems.map((item, i) => {
+                  const isActive = activeTab === item.tab;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActiveTab(item.tab)}
+                      className="group flex items-center gap-3 rounded-md px-3 py-2 text-sm w-full text-left mb-1"
+                      style={{
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                        color: isActive ? '#ffffff' : 'rgba(255,255,255,0.8)',
+                        border: isActive ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) {
+                          e.target.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) {
+                          e.target.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      <item.icon className="size-4 flex-shrink-0" />
+                      {!collapsed && <span className="truncate">{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>

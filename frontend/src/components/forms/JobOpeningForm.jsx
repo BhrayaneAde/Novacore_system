@@ -1,40 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Briefcase, MapPin, Calendar, FileText } from 'lucide-react';
+import { X, Save, Briefcase, MapPin, Calendar, FileText, Mail, Tag, Plus } from 'lucide-react';
+import apiClient from '../../api/client';
 
 const JobOpeningForm = ({ isOpen, onClose, onSave, jobOpening = null }) => {
   const [formData, setFormData] = useState({
     title: '',
-    department: '',
+    department_id: '',
     location: '',
     type: 'CDI',
     status: 'open',
     description: '',
-    requirements: ''
+    requirements: '',
+    email_keywords: [],
+    auto_screening_enabled: true,
+    screening_criteria: {
+      required_skills: [],
+      experience_min: 0
+    }
   });
+  
+  const [departments, setDepartments] = useState([]);
+  const [newKeyword, setNewKeyword] = useState('');
+  const [newSkill, setNewSkill] = useState('');
 
   useEffect(() => {
+    loadDepartments();
+    
     if (jobOpening) {
       setFormData({
         title: jobOpening.title || '',
-        department: jobOpening.department || '',
+        department_id: jobOpening.department_id || '',
         location: jobOpening.location || '',
         type: jobOpening.type || 'CDI',
         status: jobOpening.status || 'open',
         description: jobOpening.description || '',
-        requirements: jobOpening.requirements || ''
+        requirements: jobOpening.requirements || '',
+        email_keywords: jobOpening.email_keywords || [],
+        auto_screening_enabled: jobOpening.auto_screening_enabled ?? true,
+        screening_criteria: jobOpening.screening_criteria || {
+          required_skills: [],
+          experience_min: 0
+        }
       });
     } else {
       setFormData({
         title: '',
-        department: '',
+        department_id: '',
         location: '',
         type: 'CDI',
         status: 'open',
         description: '',
-        requirements: ''
+        requirements: '',
+        email_keywords: [],
+        auto_screening_enabled: true,
+        screening_criteria: {
+          required_skills: [],
+          experience_min: 0
+        }
       });
     }
   }, [jobOpening, isOpen]);
+  
+  const loadDepartments = async () => {
+    try {
+      const response = await apiClient.get('/recruitment/departments');
+      setDepartments(response.data);
+    } catch (error) {
+      console.error('Erreur chargement départements:', error);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -83,19 +117,18 @@ const JobOpeningForm = ({ isOpen, onClose, onSave, jobOpening = null }) => {
                 Département
               </label>
               <select
-                name="department"
-                value={formData.department}
+                name="department_id"
+                value={formData.department_id}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Sélectionner un département</option>
-                <option value="IT">IT</option>
-                <option value="Design">Design</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Ventes">Ventes</option>
-                <option value="RH">RH</option>
-                <option value="Finance">Finance</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name} {dept.manager_name && `(${dept.manager_name})`}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -177,6 +210,196 @@ const JobOpeningForm = ({ isOpen, onClose, onSave, jobOpening = null }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Listez les compétences requises, expérience, diplômes..."
             />
+          </div>
+
+          {/* Section Surveillance Email */}
+          <div className="border-t pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Mail className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-medium text-gray-900">Surveillance Email Automatique</h3>
+            </div>
+            
+            <div className="mb-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.auto_screening_enabled}
+                  onChange={(e) => setFormData(prev => ({ ...prev, auto_screening_enabled: e.target.checked }))}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Activer la surveillance automatique des candidatures par email</span>
+              </label>
+            </div>
+
+            {formData.auto_screening_enabled && (
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Tag className="w-4 h-4 inline mr-2" />
+                    Mots-clés de surveillance
+                  </label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      placeholder="Ex: candidature RH, poste ressources humaines"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newKeyword.trim()) {
+                            setFormData(prev => ({
+                              ...prev,
+                              email_keywords: [...prev.email_keywords, newKeyword.trim()]
+                            }));
+                            setNewKeyword('');
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (newKeyword.trim()) {
+                          setFormData(prev => ({
+                            ...prev,
+                            email_keywords: [...prev.email_keywords, newKeyword.trim()]
+                          }));
+                          setNewKeyword('');
+                        }
+                      }}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {formData.email_keywords.map((keyword, index) => (
+                      <div key={index} className="flex items-center gap-3 p-2 bg-white border border-gray-200 rounded-lg">
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          readOnly
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="flex-1 text-sm text-gray-700">{keyword}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              email_keywords: prev.email_keywords.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {formData.email_keywords.length === 0 && (
+                      <p className="text-sm text-gray-500 italic">Aucun mot-clé ajouté</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Compétences requises
+                    </label>
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        placeholder="Ex: recrutement, entretiens"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (newSkill.trim()) {
+                              setFormData(prev => ({
+                                ...prev,
+                                screening_criteria: {
+                                  ...prev.screening_criteria,
+                                  required_skills: [...prev.screening_criteria.required_skills, newSkill.trim()]
+                                }
+                              }));
+                              setNewSkill('');
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (newSkill.trim()) {
+                            setFormData(prev => ({
+                              ...prev,
+                              screening_criteria: {
+                                ...prev.screening_criteria,
+                                required_skills: [...prev.screening_criteria.required_skills, newSkill.trim()]
+                              }
+                            }));
+                            setNewSkill('');
+                          }
+                        }}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.screening_criteria.required_skills.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                screening_criteria: {
+                                  ...prev.screening_criteria,
+                                  required_skills: prev.screening_criteria.required_skills.filter((_, i) => i !== index)
+                                }
+                              }));
+                            }}
+                            className="ml-1 text-green-600 hover:text-green-800"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Expérience minimale (années)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={formData.screening_criteria.experience_min}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        screening_criteria: {
+                          ...prev.screening_criteria,
+                          experience_min: parseInt(e.target.value) || 0
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">

@@ -16,6 +16,32 @@ async def read_users_me(
     """Récupère l'utilisateur actuellement connecté."""
     return current_user
 
+@router.put("/me", response_model=user_schema.User)
+async def update_users_me(
+    user_update: dict,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user),
+):
+    """Met à jour le profil de l'utilisateur connecté."""
+    # Mettre à jour les champs autorisés
+    if 'first_name' in user_update:
+        current_user.first_name = user_update['first_name']
+    if 'last_name' in user_update:
+        current_user.last_name = user_update['last_name']
+    if 'email' in user_update:
+        # Vérifier que l'email n'est pas déjà utilisé
+        existing_user = crud_user.get_user_by_email(db, user_update['email'])
+        if existing_user and existing_user.id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cet email est déjà utilisé."
+            )
+        current_user.email = user_update['email']
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 @router.post("/", response_model=user_schema.User, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: user_schema.UserCreate,

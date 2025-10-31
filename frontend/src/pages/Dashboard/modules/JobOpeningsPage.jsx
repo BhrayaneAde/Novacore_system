@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Briefcase, Plus, Edit, Trash2, Eye } from 'lucide-react';
-import { recruitmentService } from '../../../services';
+import { recruitmentService } from '../../../services/recruitment';
 import JobOpeningForm from '../../../components/forms/JobOpeningForm';
 import Loader from '../../../components/ui/Loader';
+import SurveillanceStatus from '../../../components/recruitment/SurveillanceStatus';
 
 const JobOpeningsPage = () => {
   const [jobOpenings, setJobOpenings] = useState([]);
@@ -17,7 +18,7 @@ const JobOpeningsPage = () => {
   const loadJobOpenings = async () => {
     try {
       setLoading(true);
-      const response = await recruitmentService.jobOpenings.getAll();
+      const response = await recruitmentService.getJobOpenings();
       setJobOpenings(response.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des offres:', error);
@@ -30,9 +31,9 @@ const JobOpeningsPage = () => {
   const handleSave = async (formData) => {
     try {
       if (selectedJob) {
-        await recruitmentService.jobOpenings.update(selectedJob.id, formData);
+        await recruitmentService.updateJobOpening(selectedJob.id, formData);
       } else {
-        await recruitmentService.jobOpenings.create(formData);
+        await recruitmentService.createJobOpening(formData);
       }
       await loadJobOpenings();
       setShowForm(false);
@@ -88,16 +89,19 @@ const JobOpeningsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900">Offres d'Emploi</h1>
           <p className="text-gray-600">{jobOpenings.length} offres au total</p>
         </div>
-        <button
-          onClick={() => {
-            setSelectedJob(null);
-            setShowForm(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Nouvelle offre
-        </button>
+        <div className="flex items-center gap-4">
+          <SurveillanceStatus />
+          <button
+            onClick={() => {
+              setSelectedJob(null);
+              setShowForm(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Nouvelle offre
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

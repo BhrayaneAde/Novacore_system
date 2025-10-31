@@ -6,6 +6,10 @@ import AuthPage from '../pages/Auth/AuthPage';
 import ForgotPasswordPage from '../pages/Auth/ForgotPasswordPage';
 import ResetPasswordPage from '../pages/Auth/ResetPasswordPage';
 import Dashboard from '../pages/Dashboard/Dashboard';
+import NotFound from '../pages/NotFound';
+import GoogleDrive from '../pages/GoogleDrive';
+import GoogleDriveConfig from '../pages/GoogleDriveConfig';
+import AutoRecruitment from '../pages/AutoRecruitment';
 import PermissionGuard from '../components/auth/PermissionGuard';
 import Loader from '../components/ui/Loader';
 
@@ -99,7 +103,22 @@ const AppRouter = () => {
             <Dashboard />
           </ProtectedRoute>
         } />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/google-drive" element={
+          <ProtectedRoute>
+            <GoogleDrive />
+          </ProtectedRoute>
+        } />
+        <Route path="/google-drive/config" element={
+          <ProtectedRoute>
+            <GoogleDriveConfig />
+          </ProtectedRoute>
+        } />
+        <Route path="/auto-recruitment" element={
+          <ProtectedRoute>
+            <AutoRecruitment />
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

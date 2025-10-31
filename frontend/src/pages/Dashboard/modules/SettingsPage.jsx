@@ -21,15 +21,15 @@ const SettingsPage = () => {
   });
   
   const [profile, setProfile] = useState({
-    name: 'Marie Dubois',
-    email: 'marie.dubois@techcorp.com',
-    role: 'RH Manager'
+    name: '',
+    email: '',
+    role: ''
   });
   
   const [company, setCompany] = useState({
-    name: 'TechCorp',
-    sector: 'Technologie',
-    employees: 247
+    name: '',
+    sector: '',
+    employees: 0
   });
   
   const [smtp, setSmtp] = useState({
@@ -45,6 +45,8 @@ const SettingsPage = () => {
   });
   
   const [testStatus, setTestStatus] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [nominations, setNominations] = useState([]);
   
 
 
@@ -88,6 +90,105 @@ const SettingsPage = () => {
   const loadSettings = async () => {
     setLoading(true);
     try {
+      // Charger les notifications
+      try {
+        const notifResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/notifications`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (notifResponse.ok) {
+          const notifData = await notifResponse.json();
+          setNotifications({
+            email: notifData.email_notifications || true,
+            push: notifData.push_notifications || false,
+            leaveRequests: notifData.notification_types?.leave_requests || true,
+            newEmployees: notifData.notification_types?.new_employees || true,
+            payroll: notifData.notification_types?.payroll || false
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement notifications:', error);
+      }
+      
+      // Charger le profil utilisateur
+      try {
+        const profileResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setProfile({
+            name: `${profileData.first_name} ${profileData.last_name}`,
+            email: profileData.email,
+            role: profileData.role
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement profil:', error);
+      }
+      
+      // Charger les paramètres entreprise
+      try {
+        const companyResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/company`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (companyResponse.ok) {
+          const companyData = await companyResponse.json();
+          setCompany({
+            name: companyData.company_name || '',
+            sector: companyData.industry || '',
+            employees: companyData.employee_count || 0
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement entreprise:', error);
+      }
+      
+      // Charger les logs d'audit
+      try {
+        const auditResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/audit-logs`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (auditResponse.ok) {
+          const auditData = await auditResponse.json();
+          setAuditLogs(auditData);
+        }
+      } catch (error) {
+        console.error('Erreur chargement audit:', error);
+        setAuditLogs([
+          { action: 'Création employé', user: 'Sophie M.', time: '2h', type: 'create' },
+          { action: 'Modif. salaire', user: 'Marie L.', time: '4h', type: 'update' }
+        ]);
+      }
+      
+      // Charger les nominations
+      try {
+        const nominationsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/nominations`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          }
+        });
+        
+        if (nominationsResponse.ok) {
+          const nominationsData = await nominationsResponse.json();
+          setNominations(nominationsData);
+        }
+      } catch (error) {
+        console.error('Erreur chargement nominations:', error);
+        setNominations([]);
+      }
+      
       // Charger la configuration SMTP
       try {
         const smtpResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/email/smtp-config`, {
@@ -149,8 +250,36 @@ const SettingsPage = () => {
   const [fontFamily, setFontFamily] = useState('Inter');
   const updateTheme = () => {};
 
-  const handleNotificationChange = (key) => {
-    setNotifications({ ...notifications, [key]: !notifications[key] });
+  const handleNotificationChange = async (key) => {
+    const newNotifications = { ...notifications, [key]: !notifications[key] };
+    setNotifications(newNotifications);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/notifications`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          email_notifications: newNotifications.email,
+          push_notifications: newNotifications.push,
+          notification_types: {
+            leave_requests: newNotifications.leaveRequests,
+            new_employees: newNotifications.newEmployees,
+            payroll: newNotifications.payroll
+          }
+        })
+      });
+      
+      if (response.ok) {
+        showSuccess('Préférences de notification sauvegardées');
+      } else {
+        showError('Erreur lors de la sauvegarde');
+      }
+    } catch (error) {
+      showError('Erreur lors de la sauvegarde');
+    }
   };
 
   const handleAddDepartment = async () => {
@@ -264,6 +393,79 @@ const SettingsPage = () => {
     } catch (error) {
       console.error('Erreur sauvegarde SMTP:', error);
       showError('Erreur lors de la sauvegarde de la configuration email');
+    }
+  };
+
+  const handleNomination = async (nominationId, action) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/nominations/${nominationId}/${action}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        setNominations(nominations.filter(n => n.id !== nominationId));
+        showSuccess(`Nomination ${action === 'approve' ? 'approuvée' : 'rejetée'}`);
+      } else {
+        showError('Erreur lors du traitement');
+      }
+    } catch (error) {
+      showError('Erreur lors du traitement');
+    }
+  };
+
+  const saveCompanySettings = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/settings/company`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          company_name: company.name,
+          industry: company.sector,
+          employee_count: company.employees
+        })
+      });
+      
+      if (response.ok) {
+        showSuccess('Paramètres entreprise mis à jour !');
+      } else {
+        showError('Erreur lors de la mise à jour');
+      }
+    } catch (error) {
+      showError('Erreur lors de la mise à jour');
+    }
+  };
+
+  const saveProfile = async () => {
+    try {
+      const [firstName, ...lastNameParts] = profile.name.split(' ');
+      const lastName = lastNameParts.join(' ');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: profile.email
+        })
+      });
+      
+      if (response.ok) {
+        showSuccess('Profil mis à jour avec succès !');
+      } else {
+        showError('Erreur lors de la mise à jour du profil');
+      }
+    } catch (error) {
+      showError('Erreur lors de la mise à jour du profil');
     }
   };
 
@@ -406,45 +608,34 @@ const SettingsPage = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xs font-medium text-gray-700">En attente</span>
-              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">2</span>
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">{nominations.length}</span>
             </div>
             
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              <div className="p-3 border border-orange-200 rounded bg-orange-50">
-                <div className="mb-2">
-                  <p className="text-xs font-medium text-gray-900">Lucas Bernard → Manager Design</p>
-                  <p className="text-xs text-gray-600">Sophie Martin • 2j</p>
+              {nominations.length > 0 ? nominations.map((nomination, index) => (
+                <div key={index} className="p-3 border border-orange-200 rounded bg-orange-50">
+                  <div className="mb-2">
+                    <p className="text-xs font-medium text-gray-900">{nomination.employee_name} → {nomination.position}</p>
+                    <p className="text-xs text-gray-600">{nomination.proposed_by} • {nomination.time_ago}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => handleNomination(nomination.id, 'approve')}
+                      className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                    >
+                      ✓
+                    </button>
+                    <button 
+                      onClick={() => handleNomination(nomination.id, 'reject')}
+                      className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                    >
+                      ✗
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <button className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
-                    ✓
-                  </button>
-                  <button className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                    ✗
-                  </button>
-                  <button className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
-                    👁️
-                  </button>
-                </div>
-              </div>
-              
-              <div className="p-3 border border-orange-200 rounded bg-orange-50">
-                <div className="mb-2">
-                  <p className="text-xs font-medium text-gray-900">Camille Durand → Manager Marketing</p>
-                  <p className="text-xs text-gray-600">Emma Rousseau • 1j</p>
-                </div>
-                <div className="flex gap-1">
-                  <button className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
-                    ✓
-                  </button>
-                  <button className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                    ✗
-                  </button>
-                  <button className="px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">
-                    👁️
-                  </button>
-                </div>
-              </div>
+              )) : (
+                <p className="text-xs text-gray-500 text-center py-4">Aucune nomination en attente</p>
+              )}
             </div>
           </div>
         </div>
@@ -468,13 +659,7 @@ const SettingsPage = () => {
             </div>
             
             <div className="space-y-1 max-h-32 overflow-y-auto">
-              {[
-                { action: 'Création employé', user: 'Sophie M.', time: '2h', type: 'create' },
-                { action: 'Modif. salaire', user: 'Marie L.', time: '4h', type: 'update' },
-                { action: 'Suppr. document', user: 'Thomas D.', time: '1j', type: 'delete' },
-                { action: 'Connexion admin', user: 'Marie L.', time: '1j', type: 'login' },
-                { action: 'Export données', user: 'Sophie M.', time: '2j', type: 'export' }
-              ].map((log, index) => (
+              {auditLogs.map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
                   <div className="flex items-center gap-2">
                     <div className={`w-1.5 h-1.5 rounded-full ${
@@ -636,8 +821,62 @@ const SettingsPage = () => {
           </div>
         </div>
 
+        {/* Intégrations Sociales */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Intégrations</h3>
+              <p className="text-xs text-gray-600">LinkedIn & Google</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="p-3 border border-blue-200 rounded bg-blue-50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">in</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">LinkedIn</span>
+                </div>
+                <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
+                  Connecter
+                </button>
+              </div>
+              <p className="text-xs text-gray-600">• Import automatique des profils candidats</p>
+              <p className="text-xs text-gray-600">• Recherche de talents par compétences</p>
+              <p className="text-xs text-gray-600">• Publication d'offres d'emploi</p>
+            </div>
+            
+
+            
+            <div className="p-3 border border-red-200 rounded bg-red-50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-red-500 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">G</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">Google Drive</span>
+                </div>
+                <button 
+                  onClick={() => window.open('/google-drive', '_blank')}
+                  className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                >
+                  Ouvrir Drive
+                </button>
+              </div>
+              <p className="text-xs text-gray-600">• Stockage documents RH (2.1 GB utilisés)</p>
+              <p className="text-xs text-gray-600">• Sauvegarde automatique contrats</p>
+              <p className="text-xs text-gray-600">• Partage sécurisé avec équipes</p>
+            </div>
+          </div>
+        </div>
+
         {/* Configuration SMTP */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 lg:col-span-3">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 lg:col-span-2">
           <div className="flex items-center space-x-2 mb-4">
             <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
               <Mail className="w-4 h-4 text-indigo-600" />
@@ -825,6 +1064,55 @@ const SettingsPage = () => {
           </div>
         </div>
 
+        {/* Paramètres Entreprise */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+              <Building className="w-4 h-4 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Entreprise</h3>
+              <p className="text-xs text-gray-600">Informations générales</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Nom entreprise</label>
+              <input
+                type="text"
+                value={company.name}
+                onChange={(e) => setCompany({...company, name: e.target.value})}
+                className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Secteur</label>
+              <input
+                type="text"
+                value={company.sector}
+                onChange={(e) => setCompany({...company, sector: e.target.value})}
+                className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Nombre d'employés</label>
+              <input
+                type="number"
+                value={company.employees}
+                onChange={(e) => setCompany({...company, employees: parseInt(e.target.value)})}
+                className="w-full px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+            <button
+              onClick={saveCompanySettings}
+              className="w-full mt-3 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-xs"
+            >
+              Sauvegarder entreprise
+            </button>
+          </div>
+        </div>
+
         {/* Profil Utilisateur */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <div className="flex items-center space-x-2 mb-4">
@@ -865,6 +1153,12 @@ const SettingsPage = () => {
                 className="w-full px-2 py-2 border border-gray-200 rounded bg-gray-50 text-gray-500 text-xs"
               />
             </div>
+            <button
+              onClick={saveProfile}
+              className="w-full mt-3 px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs"
+            >
+              Sauvegarder profil
+            </button>
           </div>
         </div>
       </div>

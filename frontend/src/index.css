@@ -58,20 +58,88 @@ textarea:-ms-input-placeholder {
   background-color: var(--primary-color) !important;
 }
 
+.bg-primary-50 {
+  background-color: var(--primary-50) !important;
+}
+
+.bg-primary-100 {
+  background-color: var(--primary-100) !important;
+}
+
+.bg-primary-500 {
+  background-color: var(--primary-500) !important;
+}
+
+.bg-primary-600 {
+  background-color: var(--primary-600) !important;
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color) !important;
+}
+
+.bg-secondary-50 {
+  background-color: var(--secondary-50) !important;
+}
+
+.bg-secondary-100 {
+  background-color: var(--secondary-100) !important;
+}
+
+.bg-secondary-500 {
+  background-color: var(--secondary-500) !important;
+}
+
+.bg-secondary-600 {
+  background-color: var(--secondary-600) !important;
+}
+
 .text-primary {
   color: var(--primary-color) !important;
+}
+
+.text-primary-600 {
+  color: var(--primary-600) !important;
+}
+
+.text-secondary {
+  color: var(--secondary-color) !important;
+}
+
+.text-secondary-600 {
+  color: var(--secondary-600) !important;
 }
 
 .border-primary {
   border-color: var(--primary-color) !important;
 }
 
+.border-secondary {
+  border-color: var(--secondary-color) !important;
+}
+
+.border-secondary-600 {
+  border-color: var(--secondary-600) !important;
+}
+
 .hover\:bg-primary:hover {
   background-color: var(--primary-color) !important;
 }
 
+.hover\:bg-secondary:hover {
+  background-color: var(--secondary-color) !important;
+}
+
 .focus\:ring-primary:focus {
   --tw-ring-color: var(--primary-color) !important;
+}
+
+.focus\:ring-secondary:focus {
+  --tw-ring-color: var(--secondary-color) !important;
+}
+
+.focus\:ring-secondary-500:focus {
+  --tw-ring-color: var(--secondary-500) !important;
 }
 
 /* Mode sombre */
