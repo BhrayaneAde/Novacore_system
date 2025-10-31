@@ -20,8 +20,8 @@ def get_candidate(db: Session, candidate_id: int) -> Optional[models.Candidate]:
     return db.query(models.Candidate).filter(models.Candidate.id == candidate_id).first()
 
 def get_candidates(db: Session, company_id: int, skip: int = 0, limit: int = 100) -> List[models.Candidate]:
-    return db.query(models.Candidate).join(models.JobOpening).filter(
-        models.JobOpening.company_id == company_id
+    return db.query(models.Candidate).filter(
+        models.Candidate.company_id == company_id
     ).offset(skip).limit(limit).all()
 
 def create_candidate(db: Session, candidate: recruitment_schema.CandidateCreate) -> models.Candidate:

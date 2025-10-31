@@ -36,17 +36,17 @@ const JobOpeningForm = ({ isOpen, onClose, onSave, jobOpening = null }) => {
     if (jobOpening) {
       setFormData({
         title: jobOpening.title || '',
-        department_id: jobOpening.department_id || '',
+        department_id: String(jobOpening.department_id || ''),
         location: jobOpening.location || '',
         type: jobOpening.type || 'CDI',
         status: jobOpening.status || 'open',
         description: jobOpening.description || '',
         requirements: jobOpening.requirements || '',
-        email_keywords: jobOpening.email_keywords || [],
+        email_keywords: Array.isArray(jobOpening.email_keywords) ? jobOpening.email_keywords : [],
         auto_screening_enabled: jobOpening.auto_screening_enabled ?? true,
-        screening_criteria: jobOpening.screening_criteria || {
-          required_skills: [],
-          experience_min: 0
+        screening_criteria: {
+          required_skills: Array.isArray(jobOpening.screening_criteria?.required_skills) ? jobOpening.screening_criteria.required_skills : [],
+          experience_min: jobOpening.screening_criteria?.experience_min || 0
         }
       });
     } else {
@@ -88,13 +88,15 @@ const JobOpeningForm = ({ isOpen, onClose, onSave, jobOpening = null }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const nextStep = () => {
+  const nextStep = (e) => {
+    e.preventDefault();
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
   };
   
-  const prevStep = () => {
+  const prevStep = (e) => {
+    e.preventDefault();
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }

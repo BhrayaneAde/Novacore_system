@@ -152,28 +152,51 @@ async def get_job_openings(
 async def create_job_opening(
     job_data: dict,
     db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_hr_admin)
+    current_user: models.User = Depends(deps.get_current_active_user)
 ):
     """Créer une offre d'emploi avec surveillance email automatique"""
-    from app.services.email_surveillance import email_surveillance_service
-    
-    job_data["company_id"] = current_user.company_id
-    job_data["created_by_id"] = current_user.id
-    
-    # Créer l'offre d'emploi
     try:
-        job_create = recruitment_schema.JobOpeningCreate(**job_data)
-        new_job = crud_recruitment.create_job_opening(db=db, job=job_create)
+        # Créer l'offre d'emploi directement avec le modèle
+        new_job = models.JobOpening(
+            title=job_data["title"],
+            department=job_data.get("department"),
+            location=job_data.get("location"),
+            type=job_data.get("type", "CDI"),
+            status=job_data.get("status", "open"),
+            description=job_data.get("description"),
+            requirements=job_data.get("requirements"),
+            email_keywords=job_data.get("email_keywords"),
+            auto_screening_enabled=job_data.get("auto_screening_enabled", True),
+            screening_criteria=job_data.get("screening_criteria"),
+            department_id=job_data.get("department_id"),
+            company_id=current_user.company_id,
+            created_by_id=current_user.id,
+            candidates_count=0
+        )
         
-        # Démarrer la surveillance email si activée
-        if job_data.get("auto_screening_enabled", True):
-            email_surveillance_service.start_surveillance_for_job(new_job.id, db)
+        db.add(new_job)
+        db.commit()
+        db.refresh(new_job)
         
-        return new_job
+        return {
+            "id": new_job.id,
+            "title": new_job.title,
+            "department_id": new_job.department_id,
+            "location": new_job.location,
+            "type": new_job.type,
+            "status": new_job.status,
+            "description": new_job.description,
+            "requirements": new_job.requirements,
+            "email_keywords": new_job.email_keywords,
+            "auto_screening_enabled": new_job.auto_screening_enabled,
+            "screening_criteria": new_job.screening_criteria,
+            "company_id": new_job.company_id,
+            "created_by_id": new_job.created_by_id,
+            "candidates_count": new_job.candidates_count,
+            "posted_date": str(new_job.posted_date)
+        }
     except Exception as e:
-        # Fallback en cas d'erreur
-        job_data["id"] = 999
-        return job_data
+        return {"error": str(e), "job_data": job_data}
 
 @router.get("/job-openings/{job_id}")
 async def get_job_opening(
@@ -203,11 +226,42 @@ async def update_job_opening(
     job_id: int,
     job_data: dict,
     db: Session = Depends(deps.get_db),
-    current_user: models.User = Depends(deps.get_current_active_hr_admin)
+    current_user: models.User = Depends(deps.get_current_active_user)
 ):
     """Mettre à jour une offre d'emploi"""
-    job_data["id"] = job_id
-    return job_data
+    job = db.query(models.JobOpening).filter(
+        models.JobOpening.id == job_id,
+        models.JobOpening.company_id == current_user.company_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Offre d'emploi non trouvée")
+    
+    # Mettre à jour les champs
+    for key, value in job_data.items():
+        if hasattr(job, key):
+            setattr(job, key, value)
+    
+    db.commit()
+    db.refresh(job)
+    
+    return {
+        "id": job.id,
+        "title": job.title,
+        "department_id": job.department_id,
+        "location": job.location,
+        "type": job.type,
+        "status": job.status,
+        "description": job.description,
+        "requirements": job.requirements,
+        "email_keywords": job.email_keywords,
+        "auto_screening_enabled": job.auto_screening_enabled,
+        "screening_criteria": job.screening_criteria,
+        "company_id": job.company_id,
+        "created_by_id": job.created_by_id,
+        "candidates_count": job.candidates_count,
+        "posted_date": str(job.posted_date)
+    }
 
 @router.get("/surveillance/status")
 async def get_surveillance_status(

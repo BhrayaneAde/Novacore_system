@@ -10,10 +10,25 @@ export const recruitmentService = {
   getJobOpening: (id) => apiClient.get(`/recruitment/job-openings/${id}`),
   updateJobOpening: (id, jobData) => apiClient.put(`/recruitment/job-openings/${id}`, jobData),
   
+  // Structure pour compatibilité avec RecruitmentPage
+  jobOpenings: {
+    getAll: () => apiClient.get('/recruitment/job-openings'),
+    create: (jobData) => apiClient.post('/recruitment/job-openings', jobData),
+    update: (id, jobData) => apiClient.put(`/recruitment/job-openings/${id}`, jobData),
+    delete: (id) => apiClient.delete(`/recruitment/job-openings/${id}`)
+  },
+  
+  candidates: {
+    getAll: () => apiClient.get('/recruitment/candidates'),
+    create: (candidateData) => apiClient.post('/recruitment/candidates', candidateData),
+    update: (id, candidateData) => apiClient.put(`/recruitment/candidates/${id}`, candidateData),
+    delete: (id) => apiClient.delete(`/recruitment/candidates/${id}`)
+  },
+  
   // Surveillance email
   getSurveillanceStatus: () => apiClient.get('/recruitment/surveillance/status'),
   
-  // Candidats
+  // Candidats auto
   getCandidates: (params = {}) => apiClient.get('/auto-recruitment/candidates', { params }),
   updateCandidateStatus: (candidateId, status, notes) => 
     apiClient.put(`/auto-recruitment/candidates/${candidateId}/status`, { status, notes }),

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { UserPlus, Briefcase, Users, Search, Filter, MapPin, Clock, Plus, Edit, Trash2, Mail, RefreshCw, Settings, Download } from "lucide-react";
-import { recruitmentService } from '../../../services';
+import { recruitmentService } from '../../../services/recruitment';
 import JobOpeningForm from '../../../components/forms/JobOpeningForm';
 import CandidateForm from '../../../components/forms/CandidateForm';
+import EmailConfigModal from '../../../components/modals/EmailConfigModal';
 import Loader from "../../../components/ui/Loader";
 import { useToast } from '../../../components/ui/useToast';
 import Toast from '../../../components/ui/Toast';
@@ -20,6 +21,7 @@ const RecruitmentPage = () => {
   const [showEmailConfig, setShowEmailConfig] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [departments, setDepartments] = useState([]);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const { toast, showSuccess, showError, hideToast } = useToast();
 
   useEffect(() => {
@@ -56,14 +58,15 @@ const RecruitmentPage = () => {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
         });
         if (autoResponse.ok) {
-          autoCandidates = await autoResponse.json();
+          const autoData = await autoResponse.json();
+          autoCandidates = autoData.candidates || [];
         }
       } catch (error) {
         console.error('Erreur chargement candidats auto:', error);
       }
       
       // Transformer les candidats automatiques au format attendu
-      const transformedAutoCandidates = autoCandidates.map(candidate => ({
+      const transformedAutoCandidates = (autoCandidates || []).map(candidate => ({
         id: `auto_${candidate.id}`,
         name: candidate.name,
         email: candidate.email,
@@ -164,28 +167,6 @@ const RecruitmentPage = () => {
     }
   };
   
-  const syncEmails = async () => {
-    setSyncing(true);
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/sync-emails`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        showSuccess(`${result.processed} nouvelles candidatures traitées`);
-        await loadData();
-      } else {
-        showError('Erreur lors de la synchronisation');
-      }
-    } catch (error) {
-      showError('Erreur lors de la synchronisation');
-    } finally {
-      setSyncing(false);
-    }
-  };
-  
   const updateCandidateStatus = async (candidateId, newStatus) => {
     if (candidateId.toString().startsWith('auto_')) {
       const realId = candidateId.replace('auto_', '');
@@ -232,6 +213,33 @@ const RecruitmentPage = () => {
       }
     }
   };
+  
+  const handleSmartSearch = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/search-candidates`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        showSuccess(result.message);
+        await loadData();
+      } else {
+        const error = await response.json();
+        showError(`Erreur: ${error.detail}`);
+      }
+    } catch (error) {
+      showError('Erreur lors de la recherche');
+    } finally {
+      setSyncing(false);
+    }
+  };
+  
+
 
   if (loading) {
     return (
@@ -254,8 +262,8 @@ const RecruitmentPage = () => {
     job.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openJobs = jobOpenings.filter((job) => job.status === "open").length;
-  const totalApplicants = jobOpenings.reduce((sum, job) => sum + job.applicants, 0);
+  const openJobs = jobOpenings.filter((job) => job.status === "open").length || 0;
+  const totalApplicants = jobOpenings.reduce((sum, job) => sum + (job.candidates_count || job.applicants || 0), 0);
 
   return (
     <div className="p-6  mx-auto">
@@ -303,7 +311,7 @@ const RecruitmentPage = () => {
               <Clock className="w-6 h-6 text-orange-600" />
             </div>
             <span className="text-2xl font-bold text-orange-600">
-              {candidates.filter(c => c.status === 'interview').length}
+              {candidates.filter(c => c.status === 'interview').length || 0}
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Entretiens</h3>
@@ -339,13 +347,11 @@ const RecruitmentPage = () => {
                 <Plus className="w-4 h-4" />
                 <span>Nouvelle offre</span>
               </button>
+
               <button 
-                onClick={() => {
-                  setSelectedCandidate(null);
-                  setShowCandidateForm(true);
-                }}
+                onClick={() => setShowEmailModal(true)}
                 style={{
-                  backgroundColor: '#16a34a',
+                  backgroundColor: '#2563eb',
                   color: 'white',
                   padding: '8px 16px',
                   borderRadius: '8px',
@@ -356,37 +362,17 @@ const RecruitmentPage = () => {
                   cursor: 'pointer',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#15803d'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#16a34a'}
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Nouveau candidat</span>
-              </button>
-              <button 
-                onClick={() => setShowEmailConfig(!showEmailConfig)}
-                style={{
-                  backgroundColor: '#6b7280',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
               >
                 <Settings className="w-4 h-4" />
-                <span>Config Email</span>
+                <span>Configuration Email</span>
               </button>
               <button 
-                onClick={syncEmails}
+                onClick={handleSmartSearch}
                 disabled={syncing}
                 style={{
-                  backgroundColor: syncing ? '#9ca3af' : '#2563eb',
+                  backgroundColor: '#059669',
                   color: 'white',
                   padding: '8px 16px',
                   borderRadius: '8px',
@@ -395,13 +381,14 @@ const RecruitmentPage = () => {
                   gap: '8px',
                   border: 'none',
                   cursor: syncing ? 'not-allowed' : 'pointer',
+                  opacity: syncing ? 0.7 : 1,
                   transition: 'background-color 0.2s'
                 }}
-                onMouseEnter={(e) => !syncing && (e.target.style.backgroundColor = '#1d4ed8')}
-                onMouseLeave={(e) => !syncing && (e.target.style.backgroundColor = '#2563eb')}
+                onMouseEnter={(e) => !syncing && (e.target.style.backgroundColor = '#047857')}
+                onMouseLeave={(e) => !syncing && (e.target.style.backgroundColor = '#059669')}
               >
                 <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
-                <span>{syncing ? 'Sync...' : 'Sync Email'}</span>
+                <span>{syncing ? 'Recherche...' : 'Recherche Intelligente'}</span>
               </button>
             </div>
           </div>
@@ -442,59 +429,7 @@ const RecruitmentPage = () => {
         </div>
       </div>
 
-      {/* Email Configuration Panel */}
-      {showEmailConfig && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Mail className="w-5 h-5" />
-            Configuration Email Automatique
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email RH</label>
-              <input
-                type="email"
-                placeholder="rh@entreprise.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-              <input
-                type="password"
-                placeholder="Mot de passe email"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Classification automatique</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p>• <strong>Informatique:</strong> développeur, dev, tech, backend, frontend</p>
-              <p>• <strong>Marketing:</strong> marketing, digital, seo, content</p>
-              <p>• <strong>Commercial:</strong> commercial, vente, sales, client</p>
-              <p>• <strong>RH:</strong> rh, ressources humaines, recrutement</p>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button 
-              style={{
-                backgroundColor: '#2563eb',
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
-            >
-              Sauvegarder Configuration
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Content Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -624,13 +559,13 @@ const RecruitmentPage = () => {
                     <td className="py-4 px-6 font-medium text-gray-900">{job.title}</td>
                     <td className="py-4 px-6">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        {job.department}
+                        {job.department || departments.find(d => d.id == job.department_id)?.name || 'Non défini'}
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-1">
                         <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600">{job.location}</span>
+                        <span className="text-gray-600">{job.location || 'Non défini'}</span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -638,7 +573,7 @@ const RecruitmentPage = () => {
                         {job.type}
                       </span>
                     </td>
-                    <td className="py-4 px-6 font-medium text-gray-900">{job.applicants}</td>
+                    <td className="py-4 px-6 font-medium text-gray-900">{job.candidates_count || job.applicants || 0}</td>
                     <td className="py-4 px-6">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                         job.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
@@ -694,6 +629,15 @@ const RecruitmentPage = () => {
         onSave={handleCandidateSave}
         candidate={selectedCandidate}
         jobOpenings={jobOpenings}
+      />
+      
+      <EmailConfigModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSuccess={(message) => {
+          showSuccess(message);
+          loadData();
+        }}
       />
       
       <Toast

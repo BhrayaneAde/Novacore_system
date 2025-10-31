@@ -5,6 +5,7 @@ import imaplib
 import email
 import base64
 import re
+import smtplib
 from datetime import datetime
 
 from app.db.database import get_db
@@ -24,50 +25,58 @@ DEPARTMENT_KEYWORDS = {
     "juridique": ["juridique", "legal", "droit", "avocat", "compliance"]
 }
 
-def classify_department(subject: str, content: str, departments: List[Department]) -> Optional[int]:
-    """Classifier automatiquement le département basé sur le contenu"""
-    text = f"{subject} {content}".lower()
-    
-    # Scores par département
-    dept_scores = {}
-    for dept in departments:
-        dept_name = dept.name.lower()
-        score = 0
-        
-        # Score basé sur le nom du département
-        if dept_name in text:
-            score += 10
-            
-        # Score basé sur les mots-clés
-        for keyword_dept, keywords in DEPARTMENT_KEYWORDS.items():
-            if keyword_dept in dept_name or dept_name in keyword_dept:
-                for keyword in keywords:
-                    if keyword in text:
-                        score += 1
-        
-        if score > 0:
-            dept_scores[dept.id] = score
-    
-    # Retourner le département avec le meilleur score
-    if dept_scores:
-        return max(dept_scores.items(), key=lambda x: x[1])[0]
-    
-    # Par défaut, retourner le premier département
-    return departments[0].id if departments else None
 
-def extract_candidate_info(email_content: str, subject: str) -> dict:
-    """Extraire les informations du candidat depuis l'email"""
-    # Extraction basique du nom et téléphone
-    name_match = re.search(r'(?:je suis|nom|name|candidat|candidate)[\s:]*([A-Za-zÀ-ÿ\s]+)', email_content, re.IGNORECASE)
-    phone_match = re.search(r'(?:téléphone|phone|tel|mobile)[\s:]*([0-9\s\-\+\.]{10,})', email_content, re.IGNORECASE)
+
+@router.post("/test-email")
+async def test_email(
+    email_address: str = "awarrisw@gmail.com",
+    password: str = "zjcuqitovwjpfuqb",
+    imap_server: str = "imap.gmail.com",
+    imap_port: int = 993
+):
+    """Test endpoint pour envoyer un email d'exemple sans authentification"""
+    # Test de connexion IMAP
+    try:
+        mail = imaplib.IMAP4_SSL(imap_server, imap_port)
+        mail.login(email_address, password)
+        mail.logout()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Connexion IMAP échouée: {str(e)}")
     
-    # Extraction du poste depuis le sujet
-    position_match = re.search(r'(?:candidature|poste|position)[\s\-:]*(.+?)(?:\s|$)', subject, re.IGNORECASE)
+    # Envoyer un email d'exemple de candidature pour tester
+    try:
+        smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
+        smtp_server.starttls()
+        smtp_server.login(email_address, password)
+        
+        # Email d'exemple de candidature
+        subject = "Candidature - Poste de Designer UI/UX"
+        body = f"""Bonjour,
+
+Je me permets de vous adresser ma candidature pour le poste de Designer UI/UX au sein de votre entreprise.
+
+Nom: Marie Dubois
+Téléphone: 06 12 34 56 78
+Expérience: 3 ans en design d'interfaces
+
+Passionnée par le design centré utilisateur, j'aimerais contribuer à vos projets créatifs.
+
+Cordialement,
+Marie Dubois
+marie.dubois@example.com"""
+        
+        msg = f"Subject: {subject}\r\n\r\n{body}"
+        smtp_server.sendmail(email_address, email_address, msg.encode('utf-8'))
+        smtp_server.quit()
+        
+        print(f"Email d'exemple envoyé à {email_address}")
+    except Exception as e:
+        print(f"Erreur envoi email d'exemple: {e}")
     
     return {
-        "name": name_match.group(1).strip() if name_match else "Candidat Inconnu",
-        "phone": phone_match.group(1).strip() if phone_match else None,
-        "position": position_match.group(1).strip() if position_match else "Poste non spécifié"
+        "status": "success",
+        "email": email_address,
+        "message": "Email d'exemple de candidature envoyé avec succès !"
     }
 
 @router.post("/configure-email")
@@ -79,105 +88,159 @@ async def configure_email(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Configurer l'email de recrutement"""
+    """Configurer et tester la connexion email"""
+    
     # Test de connexion IMAP
     try:
         mail = imaplib.IMAP4_SSL(imap_server, imap_port)
         mail.login(email_address, password)
         mail.logout()
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Connexion email échouée: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Connexion IMAP échouée: {str(e)}")
     
-    # Sauvegarder la configuration (en production, chiffrer le mot de passe)
-    # Pour la démo, on simule la sauvegarde
+    # Envoyer un email d'exemple de candidature pour tester
+    try:
+        smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
+        smtp_server.starttls()
+        smtp_server.login(email_address, password)
+        
+        # Email d'exemple de candidature
+        subject = "Candidature - Poste de Designer UI/UX"
+        body = f"""Bonjour,
+
+Je me permets de vous adresser ma candidature pour le poste de Designer UI/UX au sein de votre entreprise.
+
+Nom: Marie Dubois
+Téléphone: 06 12 34 56 78
+Expérience: 3 ans en design d'interfaces
+
+Passionnée par le design centré utilisateur, j'aimerais contribuer à vos projets créatifs.
+
+Cordialement,
+Marie Dubois
+marie.dubois@example.com"""
+        
+        msg = f"Subject: {subject}\r\n\r\n{body}"
+        smtp_server.sendmail(email_address, email_address, msg.encode('utf-8'))
+        smtp_server.quit()
+        
+        print(f"Email d'exemple envoyé à {email_address}")
+    except Exception as e:
+        print(f"Erreur envoi email d'exemple: {e}")
+    
     return {
         "status": "configured",
         "email": email_address,
         "server": imap_server,
-        "message": "Configuration email sauvegardée avec succès"
+        "message": "Configuration réussie ! Email d'exemple de candidature envoyé pour test."
     }
 
-@router.post("/sync-emails")
-async def sync_emails(
+@router.post("/search-candidates")
+async def search_candidates(
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Synchroniser les emails et traiter les candidatures"""
-    from app.services.email_surveillance import email_surveillance_service
-    
-    # Simulation de la synchronisation
-    departments = db.query(Department).filter(Department.company_id == current_user.company_id).all()
-    
-    # Candidatures simulées reçues par email
-    simulated_emails = [
-        {
-            "subject": "Candidature - Développeur Backend Python",
-            "from": "jean.dupont@email.com",
-            "content": "Bonjour, je suis Jean Dupont, développeur Python avec 3 ans d'expérience. Téléphone: 06.12.34.56.78",
-            "attachments": [{"filename": "CV_Jean_Dupont.pdf", "content": "base64_cv_content"}]
-        },
-        {
-            "subject": "Candidature Marketing Digital",
-            "from": "marie.martin@email.com", 
-            "content": "Bonjour, je candidate pour le poste de Marketing Digital. Je suis Marie Martin, spécialisée en SEO.",
-            "attachments": [{"filename": "CV_Marie_Martin.pdf", "content": "base64_cv_content"}]
+    """Recherche intelligente des candidatures dans les emails"""
+    try:
+        # Récupérer la configuration email (pour l'instant en dur)
+        email_config = {
+            "email": "yenfreudel01@gmail.com",
+            "password": "booo sbej vykx lliq",
+            "server": "imap.gmail.com",
+            "port": 993
         }
-    ]
-    
-    processed_count = 0
-    for email_data in simulated_emails:
-        # Vérifier si l'email correspond à une offre d'emploi surveillée
-        matching_jobs = email_surveillance_service.check_email_matches_job(
-            email_data["subject"], email_data["content"]
-        )
         
-        # Extraire les infos candidat
-        candidate_info = extract_candidate_info(email_data["content"], email_data["subject"])
+        # Connexion IMAP
+        mail = imaplib.IMAP4_SSL(email_config["server"], email_config["port"])
+        mail.login(email_config["email"], email_config["password"])
+        mail.select('inbox')
         
-        # Classifier le département
-        dept_id = classify_department(email_data["subject"], email_data["content"], departments)
+        # Rechercher les emails avec "candidature" dans le sujet
+        status, messages = mail.search(None, 'SUBJECT "candidature"')
+        email_ids = messages[0].split()
         
-        # Vérifier si le candidat existe déjà
-        existing = db.query(Candidate).filter(
-            Candidate.email == email_data["from"],
-            Candidate.company_id == current_user.company_id
-        ).first()
+        processed_count = 0
+        departments = db.query(Department).filter(Department.company_id == current_user.company_id).all()
         
-        if not existing:
-            # Associer à la première offre d'emploi correspondante
-            job_opening_id = matching_jobs[0] if matching_jobs else None
-            
-            # Créer nouveau candidat
-            candidate = Candidate(
-                name=candidate_info["name"],
-                email=email_data["from"],
-                phone=candidate_info["phone"],
-                position=candidate_info["position"],
-                department_id=dept_id,
-                company_id=current_user.company_id,
-                email_subject=email_data["subject"],
-                email_content=email_data["content"],
-                cv_filename=email_data["attachments"][0]["filename"] if email_data["attachments"] else None,
-                cv_content=email_data["attachments"][0]["content"] if email_data["attachments"] else None,
-                status=CandidateStatus.NEW,
-                job_opening_id=job_opening_id
-            )
-            
-            db.add(candidate)
-            processed_count += 1
-            
-            # Incrémenter le compteur de candidatures pour chaque offre correspondante
-            for job_id in matching_jobs:
-                email_surveillance_service.increment_candidates_count(job_id, db)
-    
-    db.commit()
-    
-    return {
-        "status": "completed",
-        "processed": processed_count,
-        "message": f"{processed_count} nouvelles candidatures traitées"
-    }
+        if not departments:
+            mail.logout()
+            return {
+                "status": "error",
+                "processed": 0,
+                "message": "Aucun département trouvé. Créez d'abord des départements."
+            }
+        
+        # Traiter les 5 derniers emails
+        for email_id in email_ids[-5:]:
+            try:
+                status, msg_data = mail.fetch(email_id, '(RFC822)')
+                email_body = msg_data[0][1]
+                email_message = email.message_from_bytes(email_body)
+                
+                subject = email_message['subject'] or ""
+                from_email = email_message['from'] or ""
+                
+                # Extraire l'adresse email
+                email_match = re.search(r'<(.+?)>', from_email)
+                sender_email = email_match.group(1) if email_match else from_email
+                
+                # Extraire le contenu
+                content = ""
+                if email_message.is_multipart():
+                    for part in email_message.walk():
+                        if part.get_content_type() == "text/plain":
+                            content = part.get_payload(decode=True).decode('utf-8', errors='ignore')
+                            break
+                else:
+                    content = email_message.get_payload(decode=True).decode('utf-8', errors='ignore')
+                
+                # Vérifier si le candidat existe déjà
+                existing = db.query(Candidate).filter(
+                    Candidate.email == sender_email,
+                    Candidate.company_id == current_user.company_id
+                ).first()
+                
+                if not existing:
+                    # Extraire les infos candidat
+                    name_match = re.search(r'(?:je suis|nom|name)[\s:]*([A-Za-zÀ-ÿ\s]+)', content, re.IGNORECASE)
+                    phone_match = re.search(r'(?:téléphone|phone|tel|mobile)[\s:]*([0-9\s\-\+\.]{10,})', content, re.IGNORECASE)
+                    
+                    candidate_name = name_match.group(1).strip() if name_match else sender_email.split('@')[0]
+                    candidate_phone = phone_match.group(1).strip() if phone_match else None
+                    
+                    # Créer le candidat
+                    candidate = Candidate(
+                        name=candidate_name,
+                        email=sender_email,
+                        phone=candidate_phone,
+                        position="Candidature par email",
+                        department_id=departments[0].id,
+                        company_id=current_user.company_id,
+                        email_subject=subject,
+                        email_content=content[:1000],  # Limiter à 1000 caractères
+                        status=CandidateStatus.NEW
+                    )
+                    
+                    db.add(candidate)
+                    processed_count += 1
+                    
+            except Exception as e:
+                print(f"Erreur traitement email: {e}")
+                continue
+        
+        mail.logout()
+        db.commit()
+        
+        return {
+            "status": "completed",
+            "processed": processed_count,
+            "message": f"{processed_count} nouvelles candidatures trouvées et ajoutées"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erreur synchronisation: {str(e)}")
 
 @router.get("/candidates")
 async def get_candidates(
@@ -204,15 +267,16 @@ async def get_candidates(
             "email": candidate.email,
             "phone": candidate.phone,
             "position": candidate.position,
+            "status": candidate.status.value if candidate.status else CandidateStatus.NEW.value,
+            "department_id": candidate.department_id,
             "department": candidate.department.name if candidate.department else None,
-            "status": candidate.status.value,
-            "received_at": candidate.received_at.isoformat(),
+            "received_at": candidate.received_at.isoformat() if candidate.received_at else None,
             "email_subject": candidate.email_subject,
             "cv_filename": candidate.cv_filename,
             "notes": candidate.notes
         })
     
-    return result
+    return {"candidates": result}
 
 @router.put("/candidates/{candidate_id}/status")
 async def update_candidate_status(
