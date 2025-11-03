@@ -4,6 +4,7 @@ import { recruitmentService } from '../../../services/recruitment';
 import JobOpeningForm from '../../../components/forms/JobOpeningForm';
 import CandidateForm from '../../../components/forms/CandidateForm';
 import EmailConfigModal from '../../../components/modals/EmailConfigModal';
+import CandidateFilesModal from '../../../components/modals/CandidateFilesModal';
 import Loader from "../../../components/ui/Loader";
 import { useToast } from '../../../components/ui/useToast';
 import Toast from '../../../components/ui/Toast';
@@ -22,6 +23,8 @@ const RecruitmentPage = () => {
   const [syncing, setSyncing] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showFilesModal, setShowFilesModal] = useState(false);
+  const [selectedCandidateForFiles, setSelectedCandidateForFiles] = useState(null);
   const { toast, showSuccess, showError, hideToast } = useToast();
 
   useEffect(() => {
@@ -42,16 +45,7 @@ const RecruitmentPage = () => {
       }
       setJobOpenings(jobsData);
       
-      // Charger les candidats manuels
-      let manualCandidates = [];
-      try {
-        const candidatesResponse = await recruitmentService.candidates.getAll();
-        manualCandidates = candidatesResponse.data || [];
-      } catch (error) {
-        console.error('Erreur chargement candidats manuels:', error);
-      }
-      
-      // Charger les candidats automatiques
+      // Charger UNIQUEMENT les candidats automatiques (plus de doublons)
       let autoCandidates = [];
       try {
         const autoResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates`, {
@@ -73,7 +67,7 @@ const RecruitmentPage = () => {
         position: candidate.position || 'Poste non spécifié',
         experience: "Email",
         status: candidate.status === 'nouveau' ? 'screening' : 
-                candidate.status === 'en_cours' ? 'interview' :
+                candidate.status === 'en_cours' ? 'screening' :  // en_cours → screening aussi
                 candidate.status === 'entretien' ? 'interview' :
                 candidate.status === 'accepte' ? 'offer' : 'rejected',
         appliedDate: candidate.received_at,
@@ -84,7 +78,7 @@ const RecruitmentPage = () => {
         notes: candidate.notes
       }));
       
-      setCandidates([...manualCandidates, ...transformedAutoCandidates]);
+      setCandidates(transformedAutoCandidates);
       
       // Charger les départements
       try {
@@ -149,17 +143,12 @@ const RecruitmentPage = () => {
   const handleCandidateDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce candidat ?')) {
       try {
-        if (id.toString().startsWith('auto_')) {
-          // Candidat automatique
-          const realId = id.replace('auto_', '');
-          await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
-          });
-        } else {
-          // Candidat manuel
-          await recruitmentService.candidates.delete(id);
-        }
+        // Tous les candidats sont automatiques maintenant
+        const realId = id.replace('auto_', '');
+        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+        });
         await loadData();
       } catch (error) {
         console.error('Erreur lors de la suppression:', error);
@@ -168,49 +157,49 @@ const RecruitmentPage = () => {
   };
   
   const updateCandidateStatus = async (candidateId, newStatus) => {
-    if (candidateId.toString().startsWith('auto_')) {
-      const realId = candidateId.replace('auto_', '');
-      const statusMap = {
-        'screening': 'en_cours',
-        'interview': 'entretien', 
-        'offer': 'accepte',
-        'rejected': 'rejete'
-      };
+    const realId = candidateId.replace('auto_', '');
+    const statusMap = {
+      'screening': 'nouveau',     // Présélection → nouveau
+      'interview': 'entretien',   // Entretien → entretien  
+      'offer': 'accepte',         // Offre → accepte
+      'rejected': 'rejete'        // Rejeté → rejete
+    };
+    
+    const backendStatus = statusMap[newStatus] || newStatus;
+    console.log(`🔄 Changement statut: ${newStatus} → ${backendStatus}`);
+    
+    try {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ status: backendStatus })
+      });
       
-      try {
-        await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}/status`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-          },
-          body: JSON.stringify({ status: statusMap[newStatus] || newStatus })
-        });
-        
-        showSuccess('Statut mis à jour');
-        await loadData();
-      } catch (error) {
-        showError('Erreur lors de la mise à jour');
-      }
+      showSuccess('Statut mis à jour');
+      await loadData();
+    } catch (error) {
+      console.error('Erreur mise à jour statut:', error);
+      showError('Erreur lors de la mise à jour');
     }
   };
   
   const downloadCV = async (candidateId, filename) => {
-    if (candidateId.toString().startsWith('auto_')) {
-      const realId = candidateId.replace('auto_', '');
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}/cv`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
-        });
-        
-        if (response.ok) {
-          showSuccess(`CV ${filename} téléchargé`);
-        } else {
-          showError('CV non disponible');
-        }
-      } catch (error) {
-        showError('Erreur lors du téléchargement');
+    const realId = candidateId.replace('auto_', '');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/candidates/${realId}/cv`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+      });
+      
+      if (response.ok) {
+        showSuccess(`CV ${filename} téléchargé`);
+      } else {
+        showError('CV non disponible');
       }
+    } catch (error) {
+      showError('Erreur lors du téléchargement');
     }
   };
   
@@ -226,7 +215,11 @@ const RecruitmentPage = () => {
       
       if (response.ok) {
         const result = await response.json();
+        console.log('🎯 RÉSULTAT SYNCHRONISATION:', result);
         showSuccess(result.message);
+        if (result.matches && result.matches.length > 0) {
+          console.log('📊 CORRESPONDANCES TROUVÉES:', result.matches);
+        }
         await loadData();
       } else {
         const error = await response.json();
@@ -254,8 +247,8 @@ const RecruitmentPage = () => {
     candidate.position.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
-  const emailCandidates = candidates.filter(c => c.source === 'email').length;
-  const manualCandidates = candidates.filter(c => c.source !== 'email').length;
+  const emailCandidates = candidates.length;
+  const manualCandidates = 0; // Plus de candidats manuels
   
   const filteredJobs = jobOpenings.filter(job => 
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -390,6 +383,40 @@ const RecruitmentPage = () => {
                 <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                 <span>{syncing ? 'Recherche...' : 'Recherche Intelligente'}</span>
               </button>
+              
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/${import.meta.env.VITE_API_VERSION}/auto-recruitment/test-email-with-cv`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
+                    });
+                    if (response.ok) {
+                      const data = await response.json();
+                      showSuccess('Email avec CV envoyé ! Lancez la synchronisation.');
+                    }
+                  } catch (error) {
+                    showError('Erreur envoi email');
+                  }
+                }}
+                style={{
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#4b5563'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#6b7280'}
+              >
+                <Mail className="w-4 h-4" />
+                <span>Test Email+CV</span>
+              </button>
             </div>
           </div>
           
@@ -460,6 +487,11 @@ const RecruitmentPage = () => {
                           <p className="font-medium text-gray-900 flex items-center gap-2">
                             {candidate.name}
                             {candidate.source === 'email' && <Mail className="w-4 h-4 text-blue-500" title="Reçu par email" />}
+                            {candidate.attachments_count > 0 && (
+                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                {candidate.attachments_count} fichier{candidate.attachments_count > 1 ? 's' : ''}
+                              </span>
+                            )}
                           </p>
                           <p className="text-sm text-gray-500">{candidate.email}</p>
                           {candidate.department && (
@@ -491,42 +523,26 @@ const RecruitmentPage = () => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                        {candidate.source === 'email' ? (
-                          <>
-                            {candidate.cv_filename && (
-                              <button 
-                                onClick={() => downloadCV(candidate.id, candidate.cv_filename)}
-                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                                title="Télécharger CV"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                            )}
-                            <select
-                              value={candidate.status}
-                              onChange={(e) => updateCandidateStatus(candidate.id, e.target.value)}
-                              className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="screening">Présélection</option>
-                              <option value="interview">Entretien</option>
-                              <option value="offer">Offre</option>
-                              <option value="rejected">Rejeté</option>
-                            </select>
-                          </>
-                        ) : (
-                          <>
-                            <button 
-                              onClick={() => {
-                                setSelectedCandidate(candidate);
-                                setShowCandidateForm(true);
-                              }}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                              title="Modifier"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                        <button 
+                          onClick={() => {
+                            setSelectedCandidateForFiles(candidate);
+                            setShowFilesModal(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          title="Voir fichiers"
+                        >
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <select
+                          value={candidate.status}
+                          onChange={(e) => updateCandidateStatus(candidate.id, e.target.value)}
+                          className="px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="screening">Présélection</option>
+                          <option value="interview">Entretien</option>
+                          <option value="offer">Offre</option>
+                          <option value="rejected">Rejeté</option>
+                        </select>
                         <button 
                           onClick={() => handleCandidateDelete(candidate.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
@@ -638,6 +654,15 @@ const RecruitmentPage = () => {
           showSuccess(message);
           loadData();
         }}
+      />
+      
+      <CandidateFilesModal
+        isOpen={showFilesModal}
+        onClose={() => {
+          setShowFilesModal(false);
+          setSelectedCandidateForFiles(null);
+        }}
+        candidate={selectedCandidateForFiles}
       />
       
       <Toast

@@ -56,6 +56,26 @@ async def update_candidate(
         raise HTTPException(status_code=404, detail="Candidat non trouvé")
     return crud_recruitment.update_candidate(db=db, db_candidate=db_candidate, candidate_in=candidate_in)
 
+@router.delete("/candidates/{candidate_id}")
+async def delete_candidate(
+    candidate_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Supprimer un candidat manuel"""
+    candidate = db.query(models.Candidate).filter(
+        models.Candidate.id == candidate_id,
+        models.Candidate.company_id == current_user.company_id
+    ).first()
+    
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidat non trouvé")
+    
+    db.delete(candidate)
+    db.commit()
+    
+    return {"message": "Candidat supprimé avec succès"}
+
 # Endpoints pour les entretiens
 @router.get("/interviews")
 async def get_interviews(
@@ -220,6 +240,26 @@ async def get_job_opening(
             "salary_max": 65000,
             "status": "active"
         }
+
+@router.delete("/job-openings/{job_id}")
+async def delete_job_opening(
+    job_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_user)
+):
+    """Supprimer une offre d'emploi"""
+    job = db.query(models.JobOpening).filter(
+        models.JobOpening.id == job_id,
+        models.JobOpening.company_id == current_user.company_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Offre d'emploi non trouvée")
+    
+    db.delete(job)
+    db.commit()
+    
+    return {"message": "Offre d'emploi supprimée avec succès"}
 
 @router.put("/job-openings/{job_id}")
 async def update_job_opening(

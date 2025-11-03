@@ -320,6 +320,19 @@ class Candidate(Base):
     department = relationship("Department")
     company = relationship("Company")
     job_opening = relationship("JobOpening", back_populates="candidates")
+    attachments = relationship("CandidateAttachment", back_populates="candidate")
+
+class CandidateAttachment(Base):
+    __tablename__ = "candidate_attachments"
+    id = Column(Integer, primary_key=True, index=True)
+    candidate_id = Column(Integer, ForeignKey("candidates.id"), nullable=False)
+    filename = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)  # Base64 encoded
+    file_type = Column(String(50), nullable=True)
+    file_size = Column(Integer, nullable=True)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    
+    candidate = relationship("Candidate", back_populates="attachments")
 
 class PayrollRecord(Base):
     __tablename__ = "payroll_records"
