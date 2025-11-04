@@ -1,0 +1,68 @@
+{
+  "benin": {
+    "country_name": "Bénin",
+    "currency": "XOF",
+    "cnss": {
+      "employee_rate": 3.6,
+      "employer_rate": 16.5,
+      "ceiling": 1800000,
+      "minimum_base": 40000
+    },
+    "irpp": {
+      "method": "progressive",
+      "brackets": [
+        {
+          "min": 0,
+          "max": 130000,
+          "rate": 0,
+          "description": "Tranche exonérée"
+        },
+        {
+          "min": 130001,
+          "max": 170000,
+          "rate": 5,
+          "description": "Première tranche"
+        },
+        {
+          "min": 170001,
+          "max": 220000,
+          "rate": 10,
+          "description": "Deuxième tranche"
+        },
+        {
+          "min": 220001,
+          "max": 920000,
+          "rate": 15,
+          "description": "Troisième tranche"
+        },
+        {
+          "min": 920001,
+          "max": 1500000,
+          "rate": 20,
+          "description": "Quatrième tranche"
+        },
+        {
+          "min": 1500001,
+          "max": null,
+          "rate": 25,
+          "description": "Cinquième tranche"
+        }
+      ],
+      "deductions": {
+        "personal_allowance": 5000,
+        "spouse_allowance": 2500,
+        "child_allowance": 1000,
+        "max_children": 4
+      }
+    },
+    "working_time": {
+      "hours_per_week": 40,
+      "hours_per_month": 173.33,
+      "overtime_rates": {
+        "25_percent": 1.25,
+        "50_percent": 1.5,
+        "100_percent": 2.0
+      }
+    }
+  }
+}

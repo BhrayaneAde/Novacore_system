@@ -9,6 +9,7 @@ from app.api.v1.endpoints import (
 from app.api.v1.endpoints import payroll_config
 from app.api.v1.endpoints import tasks as advanced_tasks
 from app.api.v1.endpoints import settings as advanced_settings
+from app.db import models
 
 api_router = APIRouter()
 
@@ -44,3 +45,37 @@ api_router.include_router(google_drive.router, prefix="/google-drive", tags=["Go
 api_router.include_router(auto_recruitment.router, prefix="/auto-recruitment", tags=["Auto Recruitment"])
 api_router.include_router(websocket.router, prefix="/ws", tags=["WebSocket"])
 api_router.include_router(websocket_admin.router, prefix="/ws-admin", tags=["WebSocket Admin"])
+
+# Endpoints racine pour compatibilité frontend
+from fastapi import Depends
+from app.core.auth import get_current_user
+from app.db.database import get_db
+from sqlalchemy.orm import Session
+
+@api_router.get("/candidates")
+async def get_all_candidates(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Endpoint racine pour récupérer tous les candidats (manuel + auto)"""
+    # Récupérer les candidats manuels
+    manual_candidates = db.query(models.Candidate).filter(
+        models.Candidate.company_id == current_user.company_id
+    ).all()
+    
+    result = []
+    for candidate in manual_candidates:
+        result.append({
+            "id": candidate.id,
+            "name": candidate.name,
+            "email": candidate.email,
+            "phone": candidate.phone,
+            "position": candidate.position,
+            "status": candidate.status.value if candidate.status else "nouveau",
+            "department_id": candidate.department_id,
+            "department": candidate.department.name if candidate.department else None,
+            "received_at": candidate.received_at.isoformat() if candidate.received_at else None,
+            "source": "auto" if candidate.email_subject else "manual"
+        })
+    
+    return {"candidates": result}

@@ -4,7 +4,10 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.db import models
 from app.schemas import payroll as payroll_schema
+from app.schemas import payroll_config as config_schema
 from app.crud import crud_payroll, crud_employee
+from app.core.payroll_engine import PayrollCalculationEngine
+from app.core.auth import get_current_user
 
 router = APIRouter()
 
@@ -139,6 +142,137 @@ async def generate_payslip(
     )
     
     return crud_payroll.create_payroll_record(db=db, payroll=payroll_record)
+
+@router.post("/calculate", response_model=config_schema.PayrollCalculationResult)
+async def calculate_employee_payroll(
+    calculation_request: config_schema.PayrollCalculationRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Calculer la paie d'un employé avec le moteur dynamique"""
+    
+    # Vérifier que l'employé appartient à l'entreprise
+    employee = db.query(models.Employee).filter(
+        models.Employee.id == calculation_request.employee_id,
+        models.Employee.company_id == current_user.company_id
+    ).first()
+    
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employé non trouvé")
+    
+    # Initialiser le moteur de calcul
+    engine = PayrollCalculationEngine(db, current_user.company_id)
+    
+    # Valider les entrées
+    validation_errors = engine.validate_calculation_inputs(calculation_request.variable_values)
+    if validation_errors:
+        raise HTTPException(status_code=400, detail={"errors": validation_errors})
+    
+    # Calculer la paie
+    try:
+        result = engine.calculate_payroll(
+            calculation_request.employee_id,
+            calculation_request.period,
+            calculation_request.variable_values
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur de calcul: {str(e)}")
+
+@router.post("/calculate/batch")
+async def calculate_batch_payroll(
+    employee_ids: List[int],
+    period: str,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Calculer la paie pour plusieurs employés"""
+    
+    engine = PayrollCalculationEngine(db, current_user.company_id)
+    results = []
+    errors = []
+    
+    for employee_id in employee_ids:
+        try:
+            # Récupérer les valeurs par défaut de l'employé
+            employee_data = db.query(models.EmployeePayrollData).filter(
+                models.EmployeePayrollData.employee_id == employee_id,
+                models.EmployeePayrollData.period == period
+            ).all()
+            
+            variable_values = {data.variable_code: data.value for data in employee_data}
+            
+            # Ajouter le salaire de base depuis l'employé
+            employee = db.query(models.Employee).filter(
+                models.Employee.id == employee_id
+            ).first()
+            
+            if employee and employee.salary:
+                variable_values["SB"] = employee.salary
+            
+            result = engine.calculate_payroll(employee_id, period, variable_values)
+            results.append(result)
+            
+        except Exception as e:
+            errors.append({"employee_id": employee_id, "error": str(e)})
+    
+    return {
+        "period": period,
+        "successful_calculations": len(results),
+        "errors": len(errors),
+        "results": results,
+        "error_details": errors
+    }
+
+@router.post("/save-calculation", response_model=payroll_schema.PayrollRecord)
+async def save_payroll_calculation(
+    calculation_result: config_schema.PayrollCalculationResult,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Sauvegarder un calcul de paie en base"""
+    
+    # Vérifier si un enregistrement existe déjà
+    existing = db.query(models.PayrollRecord).filter(
+        models.PayrollRecord.employee_id == calculation_result.employee_id,
+        models.PayrollRecord.period == calculation_result.period
+    ).first()
+    
+    if existing:
+        # Mettre à jour
+        existing.gross_salary = calculation_result.gross_salary
+        existing.total_allowances = calculation_result.total_allowances
+        existing.total_deductions = calculation_result.total_deductions
+        existing.taxable_income = calculation_result.taxable_income
+        existing.tax_amount = calculation_result.tax_amount
+        existing.social_contributions = calculation_result.social_contributions
+        existing.net_salary = calculation_result.net_salary
+        existing.salary_breakdown = calculation_result.salary_breakdown
+        existing.processed_by_id = current_user.id
+        
+        db.commit()
+        db.refresh(existing)
+        return existing
+    else:
+        # Créer nouveau
+        new_record = models.PayrollRecord(
+            employee_id=calculation_result.employee_id,
+            period=calculation_result.period,
+            gross_salary=calculation_result.gross_salary,
+            total_allowances=calculation_result.total_allowances,
+            total_deductions=calculation_result.total_deductions,
+            taxable_income=calculation_result.taxable_income,
+            tax_amount=calculation_result.tax_amount,
+            social_contributions=calculation_result.social_contributions,
+            net_salary=calculation_result.net_salary,
+            salary_breakdown=calculation_result.salary_breakdown,
+            processed_by_id=current_user.id
+        )
+        
+        db.add(new_record)
+        db.commit()
+        db.refresh(new_record)
+        return new_record
 
 @router.post("/finalize")
 async def finalize_payroll(

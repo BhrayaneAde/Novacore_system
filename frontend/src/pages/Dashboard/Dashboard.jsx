@@ -55,6 +55,7 @@ import SuccessionPlanningPage from "./modules/SuccessionPlanningPage";
 import EmployeeTasksPage from "./modules/EmployeeTasksPage";
 import PayrollManagementPage from "./modules/PayrollManagementPage";
 import ManagerDocumentsPage from "./modules/ManagerDocumentsPage";
+import PayrollConfigPage from "../Settings/PayrollConfigPage";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -862,13 +863,13 @@ const Dashboard = () => {
       case 'documents':
         return <EmployeeDocuments />;
       case 'employees':
-        return <EmployeesPage />;
+        return <EmployeesPage setActiveTab={setActiveTab} />;
       case 'payroll':
-        return <PayrollManagementPage />;
+        return <PayrollPage setActiveTab={setActiveTab} />;
       case 'performance':
-        return <PerformancePage />;
+        return <PerformancePage setActiveTab={setActiveTab} />;
       case 'recruitment':
-        return <RecruitmentPage />;
+        return <RecruitmentPage setActiveTab={setActiveTab} />;
       case 'manager-nomination':
         return <ManagerNomination />;
       case 'managers-list':
@@ -930,7 +931,9 @@ const Dashboard = () => {
       case 'hr-alerts':
         return <div>Alertes RH</div>;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage setActiveTab={setActiveTab} />;
+      case 'payroll-config':
+        return <PayrollConfigPage setActiveTab={setActiveTab} />;
       default:
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">

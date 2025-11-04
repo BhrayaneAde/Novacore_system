@@ -337,19 +337,36 @@ class CandidateAttachment(Base):
 class PayrollRecord(Base):
     __tablename__ = "payroll_records"
     id = Column(Integer, primary_key=True, index=True)
-    month = Column(String(50), nullable=False)
-    base_salary = Column(Float)
-    bonus = Column(Float, default=0)
-    deductions = Column(Float, default=0)
-    net_salary = Column(Float)
-    status = Column(String(50), default="pending")
-    processed_date = Column(Date)
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    period = Column(String(7), nullable=False)  # YYYY-MM
+    
+    # Calculs détaillés
+    gross_salary = Column(Float, nullable=False)
+    total_allowances = Column(Float, default=0)  # Total primes et indemnités
+    total_deductions = Column(Float, default=0)  # Total retenues
+    taxable_income = Column(Float, nullable=False)
+    tax_amount = Column(Float, default=0)
+    social_contributions = Column(Float, default=0)
+    net_salary = Column(Float, nullable=False)
+    
+    # Détail des variables (JSON)
+    salary_breakdown = Column(JSON)  # Détail de chaque variable
+    
+    status = Column(String(50), default="draft")  # draft, validated, paid
+    processed_date = Column(DateTime)
+    validated_date = Column(DateTime)
     
     employee_id = Column(Integer, ForeignKey("employees.id"))
     processed_by_id = Column(Integer, ForeignKey("users.id"))
+    validated_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
     employee = relationship("Employee")
-    processed_by = relationship("User")
+    processed_by = relationship("User", foreign_keys=[processed_by_id])
+    validated_by = relationship("User", foreign_keys=[validated_by_id])
 
 class AttendanceRecord(Base):
     __tablename__ = "attendance_records"
@@ -799,38 +816,35 @@ class UserNotificationSettings(Base):
     user = relationship("User")
 
 # Payroll Configuration Models
+class CompanyTypeEnum(str, enum.Enum):
+    PME = "PME"
+    GRANDE_ENTREPRISE = "Grande Entreprise"
+    SECTEUR_PUBLIC = "Secteur Public"
+    ONG = "ONG"
+    BTP_INDUSTRIE = "BTP/Industrie"
+    BANQUE_ASSURANCE = "Banque/Assurance"
+
+class VariableTypeEnum(str, enum.Enum):
+    FIXE = "FIXE"
+    PRIME = "PRIME"
+    INDEMNITE = "INDEMNITE"
+    RETENUE = "RETENUE"
+    COTISATION = "COTISATION"
+    IMPOT = "IMPOT"
+
 class PayrollConfig(Base):
     __tablename__ = "payroll_configs"
     
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
-    country_code = Column(String(3), nullable=False)
-    country_name = Column(String(100), nullable=False)
-    currency_code = Column(String(3), nullable=False)
-    currency_symbol = Column(String(5), nullable=False)
+    company_type = Column(SAEnum(CompanyTypeEnum), nullable=False)
+    country_code = Column(String(3), default="BJ")
+    currency_code = Column(String(3), default="XOF")
     
-    # Payroll Settings
-    payroll_frequency = Column(String(20), default="monthly")
-    minimum_wage = Column(Float)
-    working_hours_per_week = Column(Float, default=40.0)
-    working_days_per_week = Column(Integer, default=5)
-    
-    # Tax Settings
-    tax_calculation_method = Column(String(20), default="progressive")
-    tax_year_start_month = Column(Integer, default=1)
-    
-    # Compliance Flags
-    requires_social_security = Column(Boolean, default=True)
-    requires_income_tax = Column(Boolean, default=True)
-    requires_pension = Column(Boolean, default=True)
-    
-    # Formatting
-    date_format = Column(String(20), default="DD/MM/YYYY")
-    decimal_places = Column(Integer, default=2)
-    
-    # Configuration Data
-    social_contributions = Column(JSON)
-    income_tax_rules = Column(JSON)
+    # Configuration des variables de paie personnalisées
+    payroll_variables = Column(JSON)  # Variables configurées pour cette entreprise
+    tax_rates = Column(JSON)  # Barèmes IRPP, CNSS personnalisés
+    formulas = Column(JSON)  # Formules de calcul personnalisées
     
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -838,6 +852,61 @@ class PayrollConfig(Base):
     
     # Relationships
     company = relationship("Company")
+
+class PayrollVariable(Base):
+    __tablename__ = "payroll_variables"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    code = Column(String(20), nullable=False)  # SB, CNSS, IRPP, etc.
+    name = Column(String(100), nullable=False)
+    variable_type = Column(SAEnum(VariableTypeEnum), nullable=False)
+    is_mandatory = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    
+    # Configuration du calcul
+    calculation_method = Column(String(20))  # "fixed", "percentage", "formula"
+    fixed_amount = Column(Float, nullable=True)
+    percentage_rate = Column(Float, nullable=True)
+    formula = Column(String(500), nullable=True)
+    
+    # Métadonnées
+    description = Column(Text)
+    display_order = Column(Integer, default=0)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    company = relationship("Company")
+
+class PayrollTemplate(Base):
+    __tablename__ = "payroll_templates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_type = Column(SAEnum(CompanyTypeEnum), nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(Text)
+    
+    # Variables par défaut pour ce type d'entreprise
+    default_variables = Column(JSON)
+    
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+class EmployeePayrollData(Base):
+    __tablename__ = "employee_payroll_data"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(Integer, ForeignKey("employees.id"), nullable=False)
+    variable_code = Column(String(10), nullable=False)
+    value = Column(Float, nullable=False)
+    period = Column(String(7), nullable=False)  # YYYY-MM
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    employee = relationship("Employee")
 
 # External Integrations Models
 class ExternalIntegration(Base):

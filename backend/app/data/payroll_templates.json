@@ -1,0 +1,227 @@
+{
+  "PME": {
+    "name": "Petite et Moyenne Entreprise",
+    "description": "Modèle simplifié pour PME avec variables essentielles",
+    "variables": [
+      {
+        "code": "SB",
+        "name": "Salaire de base",
+        "type": "fixe",
+        "mandatory": true,
+        "calculation_method": "fixed",
+        "display_order": 1
+      },
+      {
+        "code": "PT",
+        "name": "Prime de transport",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 2
+      },
+      {
+        "code": "PA",
+        "name": "Prime d'assiduité",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 3
+      },
+      {
+        "code": "HS25",
+        "name": "Heures supplémentaires 25%",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "formula",
+        "formula": "heures_sup_25 * (salaire_base / 173.33) * 1.25",
+        "display_order": 4
+      },
+      {
+        "code": "CNSS",
+        "name": "Cotisation CNSS salariale",
+        "type": "cotisation",
+        "mandatory": true,
+        "calculation_method": "percentage",
+        "percentage_rate": 3.6,
+        "display_order": 10
+      },
+      {
+        "code": "IRPP",
+        "name": "Impôt sur le revenu",
+        "type": "impot",
+        "mandatory": true,
+        "calculation_method": "progressive",
+        "display_order": 11
+      }
+    ]
+  },
+  "Grande Entreprise": {
+    "name": "Grande Entreprise",
+    "description": "Modèle complet avec avantages étendus",
+    "variables": [
+      {
+        "code": "SB",
+        "name": "Salaire de base",
+        "type": "fixe",
+        "mandatory": true,
+        "calculation_method": "fixed",
+        "display_order": 1
+      },
+      {
+        "code": "PF",
+        "name": "Prime de fonction",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 2
+      },
+      {
+        "code": "PA",
+        "name": "Prime d'ancienneté",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "percentage",
+        "percentage_rate": 2.0,
+        "display_order": 3
+      },
+      {
+        "code": "PR",
+        "name": "Prime de rendement",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 4
+      },
+      {
+        "code": "IT",
+        "name": "Indemnité de transport",
+        "type": "indemnite",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 5
+      },
+      {
+        "code": "IL",
+        "name": "Indemnité de logement",
+        "type": "indemnite",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 6
+      },
+      {
+        "code": "VS",
+        "name": "Véhicule de service",
+        "type": "indemnite",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 7
+      },
+      {
+        "code": "13M",
+        "name": "13ème mois",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "formula",
+        "formula": "salaire_base / 12",
+        "display_order": 8
+      },
+      {
+        "code": "CNSS",
+        "name": "Cotisation CNSS salariale",
+        "type": "cotisation",
+        "mandatory": true,
+        "calculation_method": "percentage",
+        "percentage_rate": 3.6,
+        "display_order": 10
+      },
+      {
+        "code": "CNSSP",
+        "name": "Cotisation CNSS patronale",
+        "type": "cotisation",
+        "mandatory": true,
+        "calculation_method": "percentage",
+        "percentage_rate": 16.5,
+        "display_order": 11
+      },
+      {
+        "code": "MUT",
+        "name": "Mutuelle d'entreprise",
+        "type": "retenue",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 12
+      },
+      {
+        "code": "IRPP",
+        "name": "Impôt sur le revenu",
+        "type": "impot",
+        "mandatory": true,
+        "calculation_method": "progressive",
+        "display_order": 13
+      }
+    ]
+  },
+  "ONG": {
+    "name": "Organisation Non Gouvernementale",
+    "description": "Modèle adapté aux ONG avec allocations spécifiques",
+    "variables": [
+      {
+        "code": "SB",
+        "name": "Salaire de base",
+        "type": "fixe",
+        "mandatory": true,
+        "calculation_method": "fixed",
+        "display_order": 1
+      },
+      {
+        "code": "AA",
+        "name": "Allocation alimentaire",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 2
+      },
+      {
+        "code": "AL",
+        "name": "Allocation logement",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 3
+      },
+      {
+        "code": "PM",
+        "name": "Prime de mission",
+        "type": "prime",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 4
+      },
+      {
+        "code": "PD",
+        "name": "Per diem",
+        "type": "indemnite",
+        "mandatory": false,
+        "calculation_method": "fixed",
+        "display_order": 5
+      },
+      {
+        "code": "CNSS",
+        "name": "Cotisation CNSS",
+        "type": "cotisation",
+        "mandatory": true,
+        "calculation_method": "percentage",
+        "percentage_rate": 3.6,
+        "display_order": 10
+      },
+      {
+        "code": "IRPP",
+        "name": "Impôt sur le revenu",
+        "type": "impot",
+        "mandatory": true,
+        "calculation_method": "progressive",
+        "display_order": 11
+      }
+    ]
+  }
+}
