@@ -84,7 +84,13 @@ const CompanyInfoStep = ({ data = {}, onChange, onValidate }) => {
                 <SelectContent>
                   {Object.entries(COMPANY_TYPES).map(([key, type]) => (
                     <SelectItem key={key} value={key}>
-                      {type.label}
+                      <div className="flex items-center gap-2">
+                        <span>{type.icon}</span>
+                        <div>
+                          <div className="font-medium">{type.label}</div>
+                          <div className="text-xs text-gray-500">{type.description}</div>
+                        </div>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

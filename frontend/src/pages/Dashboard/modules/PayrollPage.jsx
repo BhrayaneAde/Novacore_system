@@ -1,76 +1,146 @@
-import React, { useState, useEffect } from "react";
-import { DollarSign, Download, Send, Search, Filter, Calendar, Settings, Calculator, Users } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { DollarSign, Users, TrendingUp, Calendar, Settings, Calculator, FileText, AlertCircle, UserCog, Download, Send, Search } from 'lucide-react';
 import { usePayrollConfig } from '../../../hooks/usePayrollConfig';
+import EmployeePayrollSetup from '../../../components/payroll/EmployeePayrollSetup';
+import SmartEmployeeSetup from '../../../components/payroll/SmartEmployeeSetup';
+import SmartPayrollTable from '../../../components/payroll/SmartPayrollTable';
 import PayrollCalculator from '../../../components/payroll/PayrollCalculator';
+import AdvancedEmployeeSetup from '../../../components/payroll/AdvancedEmployeeSetup';
+import MonthlyProcessing from '../../../components/payroll/MonthlyProcessing';
+import PayrollReports from '../../../components/payroll/PayrollReports';
+import PayrollHistory from '../../../components/payroll/PayrollHistory';
+import api from '../../../services/api';
 
 const PayrollPage = ({ setActiveTab }) => {
   const { config, loadConfig } = usePayrollConfig();
+  const [activeView, setActiveView] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('2024-01');
-  const [activeView, setActiveView] = useState('dashboard');
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployeeForSetup, setSelectedEmployeeForSetup] = useState(null);
+  const [payrollStats, setPayrollStats] = useState({
+    totalPayroll: 0,
+    employeeCount: 0,
+    averageSalary: 0,
+    processedCount: 0,
+    pendingCount: 0
+  });
+  const [payrollRecords, setPayrollRecords] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
 
   useEffect(() => {
-    // Only try to load config, don't fail if it doesn't exist
     loadConfig().catch(() => {
       // Ignore 404 errors - config doesn't exist yet
     });
-  }, []);
-  
-  const payrollRecords = [
-    {
-      id: 1,
-      employeeName: "Marie Dubois",
-      month: "Janvier 2024",
-      baseSalary: 5417,
-      bonus: 500,
-      deductions: 1250,
-      netSalary: 4667,
-      status: "processed"
-    },
-    {
-      id: 2,
-      employeeName: "Thomas Martin",
-      month: "Janvier 2024",
-      baseSalary: 6250,
-      bonus: 750,
-      deductions: 1450,
-      netSalary: 5550,
-      status: "processed"
-    },
-    {
-      id: 3,
-      employeeName: "Sophie Laurent",
-      month: "Janvier 2024",
-      baseSalary: 4583,
-      bonus: 200,
-      deductions: 1050,
-      netSalary: 3733,
-      status: "pending"
-    },
-    {
-      id: 4,
-      employeeName: "Pierre Moreau",
-      month: "Janvier 2024",
-      baseSalary: 5667,
-      bonus: 400,
-      deductions: 1300,
-      netSalary: 4767,
-      status: "pending"
+    loadPayrollStats();
+    loadPayrollRecords();
+    loadHistoryData();
+  }, [selectedMonth]);
+
+  const loadPayrollStats = async () => {
+    try {
+      const response = await api.get(`/payroll/records/stats?period=${selectedMonth}`);
+      setPayrollStats(response.data);
+    } catch (error) {
+      console.error('Erreur chargement stats:', error);
     }
-  ];
-  
+  };
+
+  const loadPayrollRecords = async () => {
+    try {
+      const response = await api.get(`/payroll/records/?period=${selectedMonth}`);
+      setPayrollRecords(response.data.records || []);
+    } catch (error) {
+      console.error('Erreur chargement records:', error);
+      setPayrollRecords([]);
+    }
+  };
+
+  const loadHistoryData = async () => {
+    try {
+      const response = await api.get('/payroll/records/');
+      const records = response.data.records || [];
+      
+      // Grouper par période
+      const groupedByPeriod = records.reduce((acc, record) => {
+        const period = record.period;
+        if (!acc[period]) {
+          acc[period] = {
+            period: period,
+            employeeCount: 0,
+            totalAmount: 0,
+            records: []
+          };
+        }
+        acc[period].employeeCount++;
+        acc[period].totalAmount += record.net_salary;
+        acc[period].records.push(record);
+        return acc;
+      }, {});
+      
+      // Tri par date avec une vraie bibliothèque de dates
+      const sortedData = Object.values(groupedByPeriod).sort((a, b) => {
+        const dateA = new Date(a.period + '-01');
+        const dateB = new Date(b.period + '-01');
+        return dateB - dateA; // Tri décroissant (plus récent en premier)
+      });
+      
+      setHistoryData(sortedData);
+    } catch (error) {
+      console.error('Erreur chargement historique:', error);
+      setHistoryData([]);
+    }
+  };
+
+
+
   const filteredRecords = payrollRecords.filter(record => 
-    record.employeeName.toLowerCase().includes(searchTerm.toLowerCase())
+    record.employee_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
-
-  const totalPayroll = payrollRecords.reduce((sum, record) => sum + record.netSalary, 0);
+  const totalPayroll = payrollRecords.reduce((sum, record) => sum + (record.net_salary || 0), 0);
   const processedCount = payrollRecords.filter((r) => r.status === "processed").length;
 
+  // Vue de paramétrage intelligent des employés
+  if (activeView === 'employee-setup') {
+    if (selectedEmployeeForSetup) {
+      return (
+        <AdvancedEmployeeSetup 
+          employee={selectedEmployeeForSetup}
+          onSave={() => {
+            setSelectedEmployeeForSetup(null);
+            loadPayrollRecords();
+          }}
+          onBack={() => setSelectedEmployeeForSetup(null)}
+        />
+      );
+    }
+    return (
+      <SmartPayrollTable 
+        onBack={() => setActiveView('overview')}
+        onEmployeeSelect={(employee) => setSelectedEmployeeForSetup(employee)}
+      />
+    );
+  }
+  
+  // Vue de traitement mensuel
+  if (activeView === 'processing') {
+    return (
+      <MonthlyProcessing 
+        period={selectedMonth}
+        onComplete={() => {
+          setActiveView('overview');
+          loadPayrollRecords();
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="p-6  mx-auto">
+    <div className="p-6 mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
@@ -81,7 +151,6 @@ const PayrollPage = ({ setActiveTab }) => {
           <div className="flex space-x-3">
             <button
               onClick={() => {
-                console.log('Configuration clicked, setActiveTab:', setActiveTab);
                 if (setActiveTab) {
                   setActiveTab('payroll-config');
                 } else {
@@ -102,7 +171,6 @@ const PayrollPage = ({ setActiveTab }) => {
               ⚠️ Configuration de paie requise. 
               <button 
                 onClick={() => {
-                  console.log('Configurer maintenant clicked, setActiveTab:', setActiveTab);
                   if (setActiveTab) {
                     setActiveTab('payroll-config');
                   } else {
@@ -122,11 +190,11 @@ const PayrollPage = ({ setActiveTab }) => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-secondary-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="text-2xl font-bold text-secondary-600">
-              {totalPayroll.toLocaleString("fr-FR")} €
+            <span className="text-2xl font-bold text-blue-600">
+              {(payrollStats.total_payroll || 0).toLocaleString("fr-FR")} F
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Total mensuel</h3>
@@ -137,7 +205,7 @@ const PayrollPage = ({ setActiveTab }) => {
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <Send className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-2xl font-bold text-green-600">{processedCount}</span>
+            <span className="text-2xl font-bold text-green-600">{payrollStats.processed_count || 0}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Salaires traités</h3>
           <p className="text-sm text-gray-600">Ce mois</p>
@@ -147,7 +215,7 @@ const PayrollPage = ({ setActiveTab }) => {
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-6 h-6 text-orange-600" />
             </div>
-            <span className="text-2xl font-bold text-orange-600">{payrollRecords.length - processedCount}</span>
+            <span className="text-2xl font-bold text-orange-600">{payrollStats.pending_count || 0}</span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">En attente</h3>
           <p className="text-sm text-gray-600">Traitement</p>
@@ -158,7 +226,7 @@ const PayrollPage = ({ setActiveTab }) => {
               <DollarSign className="w-6 h-6 text-purple-600" />
             </div>
             <span className="text-2xl font-bold text-purple-600">
-              {Math.round(totalPayroll / payrollRecords.length).toLocaleString("fr-FR")} €
+              {(payrollStats.average_salary || 0).toLocaleString("fr-FR")} F
             </span>
           </div>
           <h3 className="font-semibold text-gray-900 mb-1">Salaire moyen</h3>
@@ -172,15 +240,26 @@ const PayrollPage = ({ setActiveTab }) => {
           <div className="flex items-center space-x-4">
             <div className="flex space-x-2">
               <button
-                onClick={() => setActiveView('dashboard')}
+                onClick={() => setActiveView('overview')}
                 className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
-                  activeView === 'dashboard' 
+                  activeView === 'overview' 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                <DollarSign className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4" />
                 <span>Tableau de bord</span>
+              </button>
+              <button
+                onClick={() => setActiveView('employee-setup')}
+                className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+                  activeView === 'employee-setup' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <UserCog className="w-4 h-4" />
+                <span>Paramétrage</span>
               </button>
               <button
                 onClick={() => setActiveView('processing')}
@@ -194,15 +273,26 @@ const PayrollPage = ({ setActiveTab }) => {
                 <span>Traitement</span>
               </button>
               <button
-                onClick={() => setActiveView('validation')}
+                onClick={() => setActiveView('history')}
                 className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
-                  activeView === 'validation' 
+                  activeView === 'history' 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                <Users className="w-4 h-4" />
-                <span>Validation</span>
+                <Calendar className="w-4 h-4" />
+                <span>Historique</span>
+              </button>
+              <button
+                onClick={() => setActiveView('reports')}
+                className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+                  activeView === 'reports' 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+                <span>Rapports</span>
               </button>
             </div>
           </div>
@@ -215,24 +305,40 @@ const PayrollPage = ({ setActiveTab }) => {
                 placeholder="Rechercher un employé..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
-            <select 
-              value={selectedMonth} 
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-500 text-sm"
-            >
-              <option value="2024-01">Janvier 2024</option>
-              <option value="2023-12">Décembre 2023</option>
-              <option value="2023-11">Novembre 2023</option>
-            </select>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  const current = new Date(selectedMonth + '-01');
+                  const prev = new Date(current.getFullYear(), current.getMonth() - 1, 1);
+                  setSelectedMonth(`${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ←
+              </button>
+              <span className="px-4 py-2 bg-gray-50 rounded-lg font-medium text-gray-900 min-w-[140px] text-center">
+                {new Date(selectedMonth + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                onClick={() => {
+                  const current = new Date(selectedMonth + '-01');
+                  const next = new Date(current.getFullYear(), current.getMonth() + 1, 1);
+                  setSelectedMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                →
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      {activeView === 'dashboard' && (
+      {activeView === 'overview' && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -255,29 +361,29 @@ const PayrollPage = ({ setActiveTab }) => {
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-semibold text-sm">
-                            {record.employeeName.split(' ').map(n => n[0]).join('')}
+                            {record.employee_name?.split(' ').map(n => n[0]).join('') || 'N/A'}
                           </span>
                         </div>
-                        <span className="font-medium text-gray-900">{record.employeeName}</span>
+                        <span className="font-medium text-gray-900">{record.employee_name || 'N/A'}</span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-600">{record.month}</td>
+                    <td className="py-4 px-6 text-gray-600">{record.period || 'N/A'}</td>
                     <td className="py-4 px-6 text-gray-900">
-                      {record.baseSalary.toLocaleString("fr-FR")} €
+                      {(record.gross_salary || 0).toLocaleString("fr-FR")} F
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-green-600 font-medium">
-                        +{record.bonus.toLocaleString("fr-FR")} €
+                        +{(record.bonus || 0).toLocaleString("fr-FR")} F
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <span className="text-red-600 font-medium">
-                        -{record.deductions.toLocaleString("fr-FR")} €
+                        -{(record.total_deductions || 0).toLocaleString("fr-FR")} F
                       </span>
                     </td>
                     <td className="py-4 px-6">
                       <span className="font-bold text-gray-900">
-                        {record.netSalary.toLocaleString("fr-FR")} €
+                        {(record.net_salary || 0).toLocaleString("fr-FR")} F
                       </span>
                     </td>
                     <td className="py-4 px-6">
@@ -289,7 +395,7 @@ const PayrollPage = ({ setActiveTab }) => {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-2">
-                        <button className="text-secondary-600 hover:text-secondary-700 transition-colors">
+                        <button className="text-blue-600 hover:text-blue-700 transition-colors">
                           <Download className="w-4 h-4" />
                         </button>
                         {record.status === 'pending' && (
@@ -313,7 +419,7 @@ const PayrollPage = ({ setActiveTab }) => {
                   Salaires traités: <span className="font-bold">{processedCount}/{payrollRecords.length}</span>
                 </span>
                 <span className="text-sm font-medium text-gray-900">
-                  Montant total: <span className="font-bold text-secondary-600">{totalPayroll.toLocaleString("fr-FR")} €</span>
+                  Montant total: <span className="font-bold text-blue-600">{totalPayroll.toLocaleString("fr-FR")} F</span>
                 </span>
               </div>
             </div>
@@ -321,70 +427,11 @@ const PayrollPage = ({ setActiveTab }) => {
         </div>
       )}
 
-      {activeView === 'processing' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sélectionner un employé</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {payrollRecords.map((record) => (
-                <button
-                  key={record.id}
-                  onClick={() => setSelectedEmployee(record)}
-                  className={`p-4 border rounded-lg text-left transition-colors ${
-                    selectedEmployee?.id === record.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-semibold text-sm">
-                        {record.employeeName.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{record.employeeName}</p>
-                      <p className="text-sm text-gray-600">Salaire: {record.baseSalary.toLocaleString()} €</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {selectedEmployee && config && (
-            <PayrollCalculator 
-              employeeId={selectedEmployee.id}
-              period={selectedMonth}
-              onCalculationComplete={(result) => {
-                console.log('Calcul terminé:', result);
-              }}
-            />
-          )}
 
-          {!config && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-              <p className="text-yellow-800">
-                Configuration de paie requise pour utiliser le calculateur.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      {activeView === 'history' && <PayrollHistory />}
 
-      {activeView === 'validation' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Validation des calculs de paie</h3>
-          <p className="text-gray-600">
-            Cette section permettra de valider et approuver les calculs de paie avant finalisation.
-          </p>
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800 text-sm">
-              🚧 Fonctionnalité en cours de développement
-            </p>
-          </div>
-        </div>
-      )}
+      {activeView === 'reports' && <PayrollReports period={selectedMonth} />}
     </div>
   );
 };

@@ -6,7 +6,7 @@ from app.api.v1.endpoints import (
     attendance, goals, assets, notifications, websocket, websocket_admin, email,
     time_tracking, reports, analytics, workflows, integrations, departments, google_drive, auto_recruitment
 )
-from app.api.v1.endpoints import payroll_config
+from app.api.v1.endpoints import payroll_config, employee_payroll, payroll_records, payroll_batch, payroll_reports
 from app.api.v1.endpoints import tasks as advanced_tasks
 from app.api.v1.endpoints import settings as advanced_settings
 from app.db import models
@@ -26,6 +26,10 @@ api_router.include_router(companies.router, prefix="/companies", tags=["Companie
 api_router.include_router(recruitment.router, prefix="/recruitment", tags=["Recruitment"])
 api_router.include_router(payroll.router, prefix="/payroll", tags=["Payroll"])
 api_router.include_router(payroll_config.router, prefix="/payroll-config", tags=["Payroll Configuration"])
+api_router.include_router(employee_payroll.router, prefix="/employee-payroll", tags=["Employee Payroll"])
+api_router.include_router(payroll_records.router, prefix="/payroll/records", tags=["Payroll Records"])
+api_router.include_router(payroll_batch.router, prefix="/payroll", tags=["Payroll Batch"])
+api_router.include_router(payroll_reports.router, prefix="/payroll-reports", tags=["Payroll Reports"])
 api_router.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 api_router.include_router(goals.router, prefix="/goals", tags=["Goals"])
 api_router.include_router(assets.router, prefix="/assets", tags=["Assets"])

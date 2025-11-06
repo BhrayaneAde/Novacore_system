@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Settings, Zap, List } from 'lucide-react';
 import PayrollVariablesManager from './PayrollVariablesManager';
 import QuickSetupWizard from '../../components/payroll/QuickSetupWizard';
+import PayrollLoader from '../../components/payroll/PayrollLoader';
 import api from '../../services/api';
 
 const PayrollConfigPage = ({ setActiveTab }) => {
@@ -39,11 +40,7 @@ const PayrollConfigPage = ({ setActiveTab }) => {
   };
 
   if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <PayrollLoader message="Chargement de la configuration..." />;
   }
 
   if (view === 'variables') {
@@ -51,7 +48,8 @@ const PayrollConfigPage = ({ setActiveTab }) => {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-teal-50 p-6">
+      <div className="max-w-6xl mx-auto">
       <div className="mb-6">
         <button
           onClick={() => setActiveTab('payroll')}
@@ -60,8 +58,10 @@ const PayrollConfigPage = ({ setActiveTab }) => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour à la paie
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Configuration de Paie</h1>
-        <p className="text-gray-600">Gérez votre système de paie et vos variables</p>
+        <div className="bg-gradient-to-r from-teal-600 to-blue-700 rounded-2xl p-8 text-white shadow-xl">
+          <h1 className="text-3xl font-bold mb-2">Configuration de Paie</h1>
+          <p className="text-teal-100 text-lg">Système de paie intelligent et conforme à la législation béninoise</p>
+        </div>
       </div>
 
       {/* Statut de la configuration */}
@@ -179,6 +179,7 @@ const PayrollConfigPage = ({ setActiveTab }) => {
           onCancel={() => setShowQuickSetup(false)}
         />
       )}
+      </div>
     </div>
   );
 };

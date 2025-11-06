@@ -128,6 +128,19 @@ class Employee(Base):
     emergency_phone = Column(String(50))
     marital_status = Column(String(50))
     
+    # Paramètres fiscaux et familiaux
+    children_count = Column(Integer, default=0)
+    tax_status = Column(String(50))  # "célibataire", "marié", "divorcé"
+    
+    # Informations professionnelles
+    seniority_years = Column(Float, default=0)
+    grade = Column(String(50))
+    level = Column(String(50))
+    
+    # Variables de paie personnalisées (JSON)
+    custom_allowances = Column(JSON)  # Primes personnalisées
+    custom_deductions = Column(JSON)  # Retenues personnalisées
+    
     company_id = Column(Integer, ForeignKey("companies.id"))
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     manager_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Manager est un User

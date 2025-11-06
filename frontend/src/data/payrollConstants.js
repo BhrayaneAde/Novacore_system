@@ -1,19 +1,19 @@
 export const COMPANY_TYPES = {
-  PME: 'PME',
-  GRANDE_ENTREPRISE: 'Grande Entreprise',
-  SECTEUR_PUBLIC: 'Secteur Public',
-  ONG: 'ONG',
-  BTP_INDUSTRIE: 'BTP/Industrie',
-  BANQUE_ASSURANCE: 'Banque/Assurance'
+  PME: { label: 'PME', description: 'Petite et Moyenne Entreprise', icon: '🏢' },
+  GRANDE_ENTREPRISE: { label: 'Grande Entreprise', description: 'Plus de 250 employés', icon: '🏭' },
+  SECTEUR_PUBLIC: { label: 'Secteur Public', description: 'Administration publique', icon: '🏛️' },
+  ONG: { label: 'ONG', description: 'Organisation Non Gouvernementale', icon: '🤝' },
+  BTP_INDUSTRIE: { label: 'BTP/Industrie', description: 'Bâtiment et Travaux Publics', icon: '🏗️' },
+  BANQUE_ASSURANCE: { label: 'Banque/Assurance', description: 'Services financiers', icon: '🏦' }
 };
 
 export const VARIABLE_TYPES = {
-  FIXE: 'fixe',
-  PRIME: 'prime',
-  INDEMNITE: 'indemnite',
-  RETENUE: 'retenue',
-  COTISATION: 'cotisation',
-  IMPOT: 'impot'
+  FIXE: 'FIXE',
+  PRIME: 'PRIME',
+  INDEMNITE: 'INDEMNITE',
+  RETENUE: 'RETENUE',
+  COTISATION: 'COTISATION',
+  IMPOT: 'IMPOT'
 };
 
 export const CALCULATION_METHODS = {
@@ -40,12 +40,12 @@ export const VARIABLE_TYPE_LABELS = {
 };
 
 export const VARIABLE_TYPE_COLORS = {
-  [VARIABLE_TYPES.FIXE]: 'bg-blue-100 text-blue-800',
-  [VARIABLE_TYPES.PRIME]: 'bg-green-100 text-green-800',
-  [VARIABLE_TYPES.INDEMNITE]: 'bg-purple-100 text-purple-800',
-  [VARIABLE_TYPES.RETENUE]: 'bg-red-100 text-red-800',
-  [VARIABLE_TYPES.COTISATION]: 'bg-orange-100 text-orange-800',
-  [VARIABLE_TYPES.IMPOT]: 'bg-gray-100 text-gray-800'
+  [VARIABLE_TYPES.FIXE]: 'bg-gradient-to-r from-blue-50 to-teal-50 text-teal-800 border border-teal-200',
+  [VARIABLE_TYPES.PRIME]: 'bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-800 border border-amber-200',
+  [VARIABLE_TYPES.INDEMNITE]: 'bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-800 border border-purple-200',
+  [VARIABLE_TYPES.RETENUE]: 'bg-gradient-to-r from-red-50 to-pink-50 text-red-800 border border-red-200',
+  [VARIABLE_TYPES.COTISATION]: 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-800 border border-orange-200',
+  [VARIABLE_TYPES.IMPOT]: 'bg-gradient-to-r from-slate-50 to-gray-50 text-slate-800 border border-slate-200'
 };
 
 export const CALCULATION_METHOD_LABELS = {

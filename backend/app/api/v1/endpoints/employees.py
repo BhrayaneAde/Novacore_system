@@ -8,7 +8,7 @@ from ....db.models import User, Employee
 
 router = APIRouter()
 
-@router.get("/employees")
+@router.get("/")
 def get_employees(
     skip: int = 0,
     limit: int = 100,
@@ -19,7 +19,7 @@ def get_employees(
     employees = db.query(Employee).filter(Employee.company_id == current_user.company_id).offset(skip).limit(limit).all()
     return employees
 
-@router.post("/employees", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def create_employee(
     employee_data: dict,
     db: Session = Depends(get_db),
@@ -40,7 +40,7 @@ def create_employee(
     db.refresh(employee)
     return employee
 
-@router.get("/employees/{employee_id}")
+@router.get("/{employee_id}")
 def get_employee(
     employee_id: int,
     db: Session = Depends(get_db),
@@ -57,7 +57,7 @@ def get_employee(
         
     return employee
 
-@router.put("/employees/{employee_id}")
+@router.put("/{employee_id}")
 def update_employee(
     employee_id: int,
     employee_data: dict,
@@ -92,7 +92,7 @@ def update_employee(
     db.refresh(employee)
     return employee
 
-@router.delete("/employees/{employee_id}")
+@router.delete("/{employee_id}")
 def delete_employee(
     employee_id: int,
     db: Session = Depends(get_db),

@@ -6,7 +6,7 @@
       {
         "code": "SB",
         "name": "Salaire de base",
-        "type": "fixe",
+        "type": "FIXE",
         "mandatory": true,
         "calculation_method": "fixed",
         "display_order": 1
@@ -14,7 +14,7 @@
       {
         "code": "PT",
         "name": "Prime de transport",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 2
@@ -22,7 +22,7 @@
       {
         "code": "PA",
         "name": "Prime d'assiduité",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 3
@@ -30,7 +30,7 @@
       {
         "code": "HS25",
         "name": "Heures supplémentaires 25%",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "formula",
         "formula": "heures_sup_25 * (salaire_base / 173.33) * 1.25",
@@ -39,7 +39,7 @@
       {
         "code": "CNSS",
         "name": "Cotisation CNSS salariale",
-        "type": "cotisation",
+        "type": "COTISATION",
         "mandatory": true,
         "calculation_method": "percentage",
         "percentage_rate": 3.6,
@@ -48,7 +48,7 @@
       {
         "code": "IRPP",
         "name": "Impôt sur le revenu",
-        "type": "impot",
+        "type": "IMPOT",
         "mandatory": true,
         "calculation_method": "progressive",
         "display_order": 11
@@ -62,7 +62,7 @@
       {
         "code": "SB",
         "name": "Salaire de base",
-        "type": "fixe",
+        "type": "FIXE",
         "mandatory": true,
         "calculation_method": "fixed",
         "display_order": 1
@@ -70,7 +70,7 @@
       {
         "code": "PF",
         "name": "Prime de fonction",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 2
@@ -78,7 +78,7 @@
       {
         "code": "PA",
         "name": "Prime d'ancienneté",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "percentage",
         "percentage_rate": 2.0,
@@ -87,7 +87,7 @@
       {
         "code": "PR",
         "name": "Prime de rendement",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 4
@@ -95,7 +95,7 @@
       {
         "code": "IT",
         "name": "Indemnité de transport",
-        "type": "indemnite",
+        "type": "INDEMNITE",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 5
@@ -103,7 +103,7 @@
       {
         "code": "IL",
         "name": "Indemnité de logement",
-        "type": "indemnite",
+        "type": "INDEMNITE",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 6
@@ -111,7 +111,7 @@
       {
         "code": "VS",
         "name": "Véhicule de service",
-        "type": "indemnite",
+        "type": "INDEMNITE",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 7
@@ -119,7 +119,7 @@
       {
         "code": "13M",
         "name": "13ème mois",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "formula",
         "formula": "salaire_base / 12",
@@ -128,7 +128,7 @@
       {
         "code": "CNSS",
         "name": "Cotisation CNSS salariale",
-        "type": "cotisation",
+        "type": "COTISATION",
         "mandatory": true,
         "calculation_method": "percentage",
         "percentage_rate": 3.6,
@@ -137,7 +137,7 @@
       {
         "code": "CNSSP",
         "name": "Cotisation CNSS patronale",
-        "type": "cotisation",
+        "type": "COTISATION",
         "mandatory": true,
         "calculation_method": "percentage",
         "percentage_rate": 16.5,
@@ -146,7 +146,7 @@
       {
         "code": "MUT",
         "name": "Mutuelle d'entreprise",
-        "type": "retenue",
+        "type": "RETENUE",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 12
@@ -154,7 +154,7 @@
       {
         "code": "IRPP",
         "name": "Impôt sur le revenu",
-        "type": "impot",
+        "type": "IMPOT",
         "mandatory": true,
         "calculation_method": "progressive",
         "display_order": 13
@@ -168,7 +168,7 @@
       {
         "code": "SB",
         "name": "Salaire de base",
-        "type": "fixe",
+        "type": "FIXE",
         "mandatory": true,
         "calculation_method": "fixed",
         "display_order": 1
@@ -176,7 +176,7 @@
       {
         "code": "AA",
         "name": "Allocation alimentaire",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 2
@@ -184,7 +184,7 @@
       {
         "code": "AL",
         "name": "Allocation logement",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 3
@@ -192,7 +192,7 @@
       {
         "code": "PM",
         "name": "Prime de mission",
-        "type": "prime",
+        "type": "PRIME",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 4
@@ -200,7 +200,7 @@
       {
         "code": "PD",
         "name": "Per diem",
-        "type": "indemnite",
+        "type": "INDEMNITE",
         "mandatory": false,
         "calculation_method": "fixed",
         "display_order": 5
@@ -208,7 +208,7 @@
       {
         "code": "CNSS",
         "name": "Cotisation CNSS",
-        "type": "cotisation",
+        "type": "COTISATION",
         "mandatory": true,
         "calculation_method": "percentage",
         "percentage_rate": 3.6,
@@ -217,7 +217,7 @@
       {
         "code": "IRPP",
         "name": "Impôt sur le revenu",
-        "type": "impot",
+        "type": "IMPOT",
         "mandatory": true,
         "calculation_method": "progressive",
         "display_order": 11
