@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calculator, ArrowLeft, DollarSign, TrendingUp, AlertCircle } from 'lucide-react';
-import { calculerSalaireComplet, formaterMontant, validerSalaireNet } from '../../services/payrollCalculationEngine';
+import { usePayroll } from '../../hooks/usePayroll';
 import api from '../../services/api';
 
 const SmartEmployeeSetup = ({ onBack }) => {
@@ -8,6 +8,36 @@ const SmartEmployeeSetup = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [calculations, setCalculations] = useState({});
   const [saving, setSaving] = useState(false);
+  const { calculatePayroll } = usePayroll();
+
+  const formaterMontant = (montant) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'XOF',
+      minimumFractionDigits: 0
+    }).format(montant || 0);
+  };
+
+  const validerSalaireNet = (netSouhaite) => {
+    const errors = [];
+    if (netSouhaite < 50000) errors.push('Salaire net trop faible (minimum 50,000 F CFA)');
+    if (netSouhaite > 5000000) errors.push('Salaire net très élevé (maximum recommandé 5,000,000 F CFA)');
+    return { isValid: errors.length === 0, errors };
+  };
+
+  const calculerSalaireComplet = async (netSouhaite, profil = 'default') => {
+    try {
+      const response = await calculatePayroll({
+        netSouhaite,
+        profil,
+        calculType: 'reverse'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erreur calcul:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     loadEmployees();
@@ -43,7 +73,7 @@ const SmartEmployeeSetup = ({ onBack }) => {
     }
   };
 
-  const handleNetSalaireChange = (employeeId, netSouhaite, profil = 'default') => {
+  const handleNetSalaireChange = async (employeeId, netSouhaite, profil = 'default') => {
     if (!netSouhaite || netSouhaite <= 0) {
       setCalculations(prev => {
         const newCalc = { ...prev };
@@ -54,17 +84,19 @@ const SmartEmployeeSetup = ({ onBack }) => {
     }
 
     const validation = validerSalaireNet(netSouhaite);
-    const calcul = calculerSalaireComplet(netSouhaite, profil);
+    const calcul = await calculerSalaireComplet(netSouhaite, profil);
 
-    setCalculations(prev => ({
-      ...prev,
-      [employeeId]: {
-        ...calcul,
-        validation,
-        netSouhaite: netSouhaite,
-        profil: profil
-      }
-    }));
+    if (calcul) {
+      setCalculations(prev => ({
+        ...prev,
+        [employeeId]: {
+          ...calcul,
+          validation,
+          netSouhaite: netSouhaite,
+          profil: profil
+        }
+      }));
+    }
   };
 
   const saveAllCalculations = async () => {

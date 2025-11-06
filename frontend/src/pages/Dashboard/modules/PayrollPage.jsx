@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Users, TrendingUp, Calendar, Settings, Calculator, FileText, AlertCircle, UserCog, Download, Send, Search } from 'lucide-react';
-import { usePayrollConfig } from '../../../hooks/usePayrollConfig';
+import { usePayroll } from '../../../hooks/usePayroll';
 import EmployeePayrollSetup from '../../../components/payroll/EmployeePayrollSetup';
 import SmartEmployeeSetup from '../../../components/payroll/SmartEmployeeSetup';
 import SmartPayrollTable from '../../../components/payroll/SmartPayrollTable';
-import PayrollCalculator from '../../../components/payroll/PayrollCalculator';
+
 import AdvancedEmployeeSetup from '../../../components/payroll/AdvancedEmployeeSetup';
 import MonthlyProcessing from '../../../components/payroll/MonthlyProcessing';
 import PayrollReports from '../../../components/payroll/PayrollReports';
-import PayrollHistory from '../../../components/payroll/PayrollHistory';
+
 import api from '../../../services/api';
 
 const PayrollPage = ({ setActiveTab }) => {
-  const { config, loadConfig } = usePayrollConfig();
+  const { getConfig } = usePayroll();
+  const [config, setConfig] = useState(null);
+
+  const loadConfig = async () => {
+    try {
+      const response = await getConfig();
+      setConfig(response.data);
+    } catch (error) {
+      console.error('Config not found:', error);
+      setConfig(null);
+    }
+  };
   const [activeView, setActiveView] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -429,7 +440,12 @@ const PayrollPage = ({ setActiveTab }) => {
 
 
 
-      {activeView === 'history' && <PayrollHistory />}
+      {activeView === 'history' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Historique des paies</h3>
+          <p className="text-gray-600">Fonctionnalité disponible dans l'onglet Rapports</p>
+        </div>
+      )}
 
       {activeView === 'reports' && <PayrollReports period={selectedMonth} />}
     </div>

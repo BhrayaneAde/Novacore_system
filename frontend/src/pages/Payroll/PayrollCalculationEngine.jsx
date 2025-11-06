@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calculator, Users, DollarSign, TrendingUp, AlertCircle, CheckCircle, Play, Pause, RotateCcw, Eye } from 'lucide-react';
-import { payrollConfigAPI, payrollCalculationAPI } from '../../services/api';
+import { usePayroll } from '../../hooks/usePayroll';
 import IRPPBreakdown from '../../components/payroll/IRPPBreakdown';
 
 const PayrollCalculationEngine = () => {
@@ -16,6 +16,7 @@ const PayrollCalculationEngine = () => {
     errors: 0
   });
   const [showIRPPDetail, setShowIRPPDetail] = useState(null);
+  const { getVariables, batchCalculate } = usePayroll();
 
   useEffect(() => {
     loadVariables();
@@ -24,7 +25,7 @@ const PayrollCalculationEngine = () => {
 
   const loadVariables = async () => {
     try {
-      const response = await payrollConfigAPI.getVariables();
+      const response = await getVariables();
       setVariables(response.data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des variables:', error);
@@ -52,7 +53,7 @@ const PayrollCalculationEngine = () => {
     setStats({ total: employees.length, completed: 0, inProgress: employees.length, errors: 0 });
 
     try {
-      const response = await payrollCalculationAPI.startCalculation({
+      const response = await batchCalculate({
         period: selectedPeriod,
         employee_ids: employees.map(emp => emp.id)
       });
