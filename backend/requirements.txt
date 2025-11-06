@@ -21,3 +21,4 @@ msal
 linkedin-api
 packaging
 reportlab
+Pillow

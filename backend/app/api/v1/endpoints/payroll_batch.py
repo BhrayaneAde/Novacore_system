@@ -5,7 +5,7 @@ from datetime import datetime
 
 from ....db.database import get_db
 from ....db.models import Employee, PayrollRecord, PayrollConfig
-from ....services.payroll_calculation_engine import PayrollCalculationEngine
+from ....services.payroll_calculator import PayrollCalculator
 from ....core.auth import get_current_user
 
 router = APIRouter()
@@ -52,18 +52,15 @@ async def calculate_batch_payroll(
             if config:
                 # Utiliser le moteur de calcul complexe si config existe
                 try:
-                    engine = PayrollCalculationEngine(config)
-                    calculation = engine.calculate_full_payroll(
-                        base_salary=employee.salary,
-                        employee_data={
-                            "marital_status": employee.marital_status,
-                            "children_count": employee.children_count or 0,
-                            "custom_allowances": employee.custom_allowances or [],
-                            "custom_deductions": employee.custom_deductions or []
-                        },
-                        variable_data=emp_data.get("variable_data", {}),
-                        attendance_data=emp_data.get("attendance_data", {})
-                    )
+                    calculator = PayrollCalculator()
+                    calculation = calculator.calculate_employee_payroll({
+                        "employee_id": employee_id,
+                        "employee_name": employee.name,
+                        "base_salary": employee.salary,
+                        "overtime_hours": emp_data.get("variable_data", {}).get("overtime_hours", 0),
+                        "absence_hours": emp_data.get("attendance_data", {}).get("absence_hours", 0),
+                        "period": period
+                    })
                     
                     calculations.append({
                         "employee_id": employee_id,

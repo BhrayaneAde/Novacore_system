@@ -56,6 +56,7 @@ import EmployeeTasksPage from "./modules/EmployeeTasksPage";
 import PayrollManagementPage from "./modules/PayrollManagementPage";
 import ManagerDocumentsPage from "./modules/ManagerDocumentsPage";
 import PayrollConfigPage from "../Settings/PayrollConfigPage";
+import PayrollMainPage from "../Payroll/PayrollMainPage";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -865,7 +866,7 @@ const Dashboard = () => {
       case 'employees':
         return <EmployeesPage setActiveTab={setActiveTab} />;
       case 'payroll':
-        return <PayrollPage setActiveTab={setActiveTab} />;
+        return <PayrollMainPage />;
       case 'performance':
         return <PerformancePage setActiveTab={setActiveTab} />;
       case 'recruitment':
@@ -934,6 +935,8 @@ const Dashboard = () => {
         return <SettingsPage setActiveTab={setActiveTab} />;
       case 'payroll-config':
         return <PayrollConfigPage setActiveTab={setActiveTab} />;
+      case 'payroll-main':
+        return <PayrollMainPage />;
       default:
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">

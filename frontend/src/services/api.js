@@ -36,4 +36,43 @@ api.interceptors.response.use(
   }
 );
 
+// DEPRECATED - Utiliser payrollService depuis services/payroll.js
+// Ces exports sont conservés pour compatibilité temporaire
+import { payrollService } from './payroll';
+
+export const payrollConfigAPI = {
+  getVariables: () => payrollService.getVariables(),
+  createVariable: (data) => payrollService.createVariable(data),
+  updateVariable: (id, data) => payrollService.updateVariable(id, data),
+  deleteVariable: (id) => payrollService.deleteVariable(id),
+  toggleVariable: (id) => payrollService.toggleVariable(id)
+};
+
+export const payrollCalculationAPI = {
+  startCalculation: (data) => payrollService.calculate(data),
+  getIRPPBreakdown: (taxableIncome) => payrollService.getIRPPBreakdown(taxableIncome),
+  batchCalculate: (employeesData) => payrollService.batchCalculate(employeesData)
+};
+
+export const payslipsAPI = {
+  generatePayslips: (data) => payrollService.generatePayslips(data),
+  getPayslips: (params) => payrollService.getPayslips(params),
+  downloadPayslip: (payslipId) => payrollService.downloadPayslip(payslipId),
+  sendPayslip: (payslipId) => payrollService.sendPayslip(payslipId)
+};
+
+export const payrollAccountingAPI = {
+  generateEntries: (data) => payrollService.generateAccountingEntries(data),
+  getAccountingEntries: (params) => payrollService.getAccountingEntries(params),
+  validateEntry: (entryId) => payrollService.validateEntry(entryId),
+  postEntry: (entryId) => payrollService.postEntry(entryId)
+};
+
+export const socialDeclarationsAPI = {
+  generateDeclaration: (data) => payrollService.generateDeclaration(data),
+  getDeclarations: (params) => payrollService.getDeclarations(params),
+  submitDeclaration: (declarationId) => payrollService.submitDeclaration(declarationId),
+  downloadDeclaration: (declarationId) => payrollService.downloadDeclaration(declarationId)
+};
+
 export default api;

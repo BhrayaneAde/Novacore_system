@@ -8,7 +8,7 @@ import base64
 
 from ....db.database import get_db
 from ....db.models import Employee, PayrollRecord, Company
-from ....services.payslip_generator import PayslipGenerator
+from ....services.pdf_generator import PayslipPDFGenerator as PayslipGenerator
 from ....core.auth import get_current_user
 
 router = APIRouter()

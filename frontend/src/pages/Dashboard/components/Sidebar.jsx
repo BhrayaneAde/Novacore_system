@@ -76,7 +76,7 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
     {
       title: "Paie & Contrats",
       items: [
-        { icon: Wallet, label: "Paie & Avantages", tab: "payroll", module: "payroll" },
+        { icon: Wallet, label: "Paie & Avantages", tab: "payroll-main", module: "payroll" },
         { icon: Wallet, label: "Mes Fiches de Paie", tab: "payslips", module: "payroll" },
         { icon: Edit3, label: "Éditeur Contrats", tab: "contract-editor", module: "contracts" }
       ]
@@ -136,7 +136,7 @@ const Sidebar = ({ activeTab, setActiveTab, collapsed = false, setSidebarCollaps
 
   const getMenuItems = () => {
     const roleBasedItems = {
-      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management', 'onboarding-workflow', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'hr-workflows', 'hr-leaves', 'hr-training', 'hr-emails', 'hr-departments', 'hr-assets', 'hr-alerts'],
+      'employer': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll-main', 'performance', 'recruitment', 'advanced-reports', 'audit-logs', 'succession-planning', 'settings', 'hr-management', 'onboarding-workflow', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'hr-workflows', 'hr-leaves', 'hr-training', 'hr-emails', 'hr-departments', 'hr-assets', 'hr-alerts'],
       'hr_admin': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'managers-list', 'manager-nominations', 'contract-editor', 'payroll', 'performance', 'recruitment', 'onboarding-workflow', 'advanced-reports', 'hr-management'],
       'hr_user': ['dashboard', 'employees', 'task-management'],
       'manager': ['dashboard', 'employees', 'task-management', 'employee-evaluation', 'manager-planning', 'goal-setting', 'one-on-one', 'manager-documents', 'advanced-reports', 'performance'],

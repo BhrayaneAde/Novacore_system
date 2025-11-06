@@ -19,7 +19,7 @@ const Sidebar = () => {
     { name: 'Tableau de bord', href: '/app/dashboard', icon: LayoutDashboard, useIcon: true },
     { name: 'Gestion du Personnel', href: '/app/employees', logo: NovaPeopleR },
     { name: 'Contrats', href: '/app/contracts', logo: NovaContratR },
-    { name: 'Paie & Avantages', href: '/app/payroll', logo: NovaPaieR },
+    { name: 'Paie & Avantages', href: '/app/payroll-main', logo: NovaPaieR },
     { name: 'Performance', href: '/app/performance', logo: NovaPerformR },
     { name: 'Recrutement', href: '/app/recruitment', logo: NovaHireR },
     { name: 'Paramètres', href: '/app/settings', icon: Settings, useIcon: true },

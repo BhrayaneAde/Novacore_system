@@ -6,7 +6,7 @@ from app.api.v1.endpoints import (
     attendance, goals, assets, notifications, websocket, websocket_admin, email,
     time_tracking, reports, analytics, workflows, integrations, departments, google_drive, auto_recruitment
 )
-from app.api.v1.endpoints import payroll_config, employee_payroll, payroll_records, payroll_batch, payroll_reports
+from app.api.v1.endpoints import payroll_config, employee_payroll, payroll_records, payroll_batch, payroll_reports, payroll_calculation, payslips, payroll_accounting, social_declarations
 from app.api.v1.endpoints import tasks as advanced_tasks
 from app.api.v1.endpoints import settings as advanced_settings
 from app.db import models
@@ -30,6 +30,10 @@ api_router.include_router(employee_payroll.router, prefix="/employee-payroll", t
 api_router.include_router(payroll_records.router, prefix="/payroll/records", tags=["Payroll Records"])
 api_router.include_router(payroll_batch.router, prefix="/payroll", tags=["Payroll Batch"])
 api_router.include_router(payroll_reports.router, prefix="/payroll-reports", tags=["Payroll Reports"])
+api_router.include_router(payroll_calculation.router, prefix="/payroll-calculation", tags=["Payroll Calculation"])
+api_router.include_router(payslips.router, prefix="/payslips", tags=["Payslips"])
+api_router.include_router(payroll_accounting.router, prefix="/payroll-accounting", tags=["Payroll Accounting"])
+api_router.include_router(social_declarations.router, prefix="/social-declarations", tags=["Social Declarations"])
 api_router.include_router(attendance.router, prefix="/attendance", tags=["Attendance"])
 api_router.include_router(goals.router, prefix="/goals", tags=["Goals"])
 api_router.include_router(assets.router, prefix="/assets", tags=["Assets"])
