@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Building, FileText, Download, Send, Calendar, AlertTriangle, CheckCircle, Calculator } from 'lucide-react';
-import { socialDeclarationsAPI } from '../../services/api';
+import { usePayroll } from '../../hooks/usePayroll';
 
 const SocialDeclarations = () => {
   const [declarations, setDeclarations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('2024-03');
   const [declarationType, setDeclarationType] = useState('all');
+  const { getDeclarations, generateDeclaration, submitDeclaration, downloadDeclaration } = usePayroll();
 
   useEffect(() => {
     loadDeclarations();
@@ -15,7 +16,7 @@ const SocialDeclarations = () => {
   const loadDeclarations = async () => {
     setLoading(true);
     try {
-      const response = await socialDeclarationsAPI.getDeclarations({
+      const response = await getDeclarations({
         period: selectedPeriod,
         type: declarationType !== 'all' ? declarationType : undefined
       });
@@ -73,9 +74,9 @@ const SocialDeclarations = () => {
     }
   };
 
-  const generateDeclaration = async (type) => {
+  const generateDeclarationHandler = async (type) => {
     try {
-      const response = await socialDeclarationsAPI.generateDeclaration({
+      const response = await generateDeclaration({
         type,
         period: selectedPeriod
       });
@@ -90,9 +91,9 @@ const SocialDeclarations = () => {
     }
   };
 
-  const submitDeclaration = async (declarationId) => {
+  const submitDeclarationHandler = async (declarationId) => {
     try {
-      await socialDeclarationsAPI.submitDeclaration(declarationId);
+      await submitDeclaration(declarationId);
       setDeclarations(declarations.map(d => 
         d.id === declarationId 
           ? { ...d, status: 'submitted', submittedAt: new Date().toISOString() }
@@ -105,9 +106,9 @@ const SocialDeclarations = () => {
     }
   };
 
-  const downloadDeclaration = async (declarationId) => {
+  const downloadDeclarationHandler = async (declarationId) => {
     try {
-      const response = await socialDeclarationsAPI.downloadDeclaration(declarationId);
+      const response = await downloadDeclaration(declarationId);
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
@@ -177,7 +178,7 @@ const SocialDeclarations = () => {
         {/* Actions rapides */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
-            onClick={() => generateDeclaration('CNSS_MONTHLY')}
+            onClick={() => generateDeclarationHandler('CNSS_MONTHLY')}
             className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors"
           >
             <div className="flex items-center space-x-3">
@@ -190,7 +191,7 @@ const SocialDeclarations = () => {
           </button>
           
           <button
-            onClick={() => generateDeclaration('IRPP_MONTHLY')}
+            onClick={() => generateDeclarationHandler('IRPP_MONTHLY')}
             className="p-4 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 transition-colors"
           >
             <div className="flex items-center space-x-3">
@@ -203,7 +204,7 @@ const SocialDeclarations = () => {
           </button>
           
           <button
-            onClick={() => generateDeclaration('DISA_ANNUAL')}
+            onClick={() => generateDeclarationHandler('DISA_ANNUAL')}
             className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors"
           >
             <div className="flex items-center space-x-3">
@@ -276,20 +277,20 @@ const SocialDeclarations = () => {
                     
                     {declaration.type === 'CNSS_MONTHLY' && (
                       <div className="mt-2 text-sm text-gray-600">
-                        <span className="font-medium">Total CNSS:</span> {(declaration.totalCnssEmployee + declaration.totalCnssEmployer).toLocaleString()} FCFA
+                        <span className="font-medium">Total CNSS:</span> {((declaration.totalCnssEmployee || 0) + (declaration.totalCnssEmployer || 0)).toLocaleString()} FCFA
                       </div>
                     )}
                     
                     {declaration.type === 'IRPP_MONTHLY' && (
                       <div className="mt-2 text-sm text-gray-600">
-                        <span className="font-medium">Total IRPP:</span> {declaration.totalIrpp.toLocaleString()} FCFA
+                        <span className="font-medium">Total IRPP:</span> {(declaration.totalIrpp || 0).toLocaleString()} FCFA
                       </div>
                     )}
                   </div>
                   
                   <div className="flex items-center space-x-2 ml-4">
                     <button
-                      onClick={() => downloadDeclaration(declaration.id)}
+                      onClick={() => downloadDeclarationHandler(declaration.id)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Télécharger"
                     >
@@ -298,7 +299,7 @@ const SocialDeclarations = () => {
                     
                     {declaration.status === 'generated' && (
                       <button
-                        onClick={() => submitDeclaration(declaration.id)}
+                        onClick={() => submitDeclarationHandler(declaration.id)}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
                         title="Soumettre"
                       >

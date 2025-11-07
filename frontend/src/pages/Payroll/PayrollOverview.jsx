@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Users, DollarSign, Calendar, AlertTriangle, CheckCircle, Clock, Calculator, Settings, FileText, BookOpen } from 'lucide-react';
-import { payrollConfigAPI, payrollCalculationAPI } from '../../services/api';
+import { usePayroll } from '../../hooks/usePayroll';
 import PayrollWorkflowGuide from '../../components/payroll/PayrollWorkflowGuide';
 
 const PayrollOverview = ({ setActiveTab }) => {
@@ -13,6 +13,7 @@ const PayrollOverview = ({ setActiveTab }) => {
   });
 
   const [recentActivity, setRecentActivity] = useState([]);
+  const { getVariables } = usePayroll();
 
   useEffect(() => {
     loadOverviewData();
@@ -21,12 +22,11 @@ const PayrollOverview = ({ setActiveTab }) => {
   const loadOverviewData = async () => {
     try {
       // Charger les variables de paie
-      const variablesResponse = await payrollConfigAPI.getVariables();
+      const variablesResponse = await getVariables();
       const variables = variablesResponse.data || [];
 
-      // Charger l'historique des calculs
-      const historyResponse = await payrollCalculationAPI.getCalculationHistory(5);
-      const history = historyResponse.data || [];
+      // Historique simulé
+      const history = [];
 
       // Simulation des données employés
       const mockEmployees = [
