@@ -57,6 +57,10 @@ import PayrollManagementPage from "./modules/PayrollManagementPage";
 import ManagerDocumentsPage from "./modules/ManagerDocumentsPage";
 import PayrollConfigPage from "../Settings/PayrollConfigPage";
 import PayrollMainPage from "../Payroll/PayrollMainPage";
+import DepartmentsPage from "./modules/DepartmentsPage";
+import HRAlertsPage from "./modules/HRAlertsPage";
+import TrainingPage from "./modules/TrainingPage";
+import EmailTemplatesPage from "./modules/EmailTemplatesPage";
 
 const Dashboard = () => {
   const { currentUser } = useAuthStore();
@@ -922,15 +926,15 @@ const Dashboard = () => {
       case 'hr-reports':
         return <div>Rapports RH</div>;
       case 'hr-training':
-        return <div>Formations</div>;
+        return <TrainingPage />;
       case 'hr-emails':
-        return <div>Templates Email</div>;
+        return <EmailTemplatesPage />;
       case 'hr-departments':
-        return <div>Départements</div>;
+        return <DepartmentsPage />;
       case 'hr-assets':
         return <HRAssets />;
       case 'hr-alerts':
-        return <div>Alertes RH</div>;
+        return <HRAlertsPage />;
       case 'settings':
         return <SettingsPage setActiveTab={setActiveTab} />;
       case 'payroll-config':

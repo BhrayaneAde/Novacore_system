@@ -1,11 +1,11 @@
 import apiClient from '../api/client';
 
 export const employeesService = {
-  getAll: () => apiClient.get('/employees/employees'),
-  getById: (id) => apiClient.get(`/employees/employees/${id}`),
-  create: (data) => apiClient.post('/employees/employees', data),
-  update: (id, data) => apiClient.put(`/employees/employees/${id}`, data),
-  delete: (id) => apiClient.delete(`/employees/employees/${id}`),
+  getAll: () => apiClient.get('/employees'),
+  getById: (id) => apiClient.get(`/employees/${id}`),
+  create: (data) => apiClient.post('/employees', data),
+  update: (id, data) => apiClient.put(`/employees/${id}`, data),
+  delete: (id) => apiClient.delete(`/employees/${id}`),
   
   // Departments
   departments: {
